@@ -1,9 +1,6 @@
 package com.example.vericert.domain;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import org.hibernate.annotations.processing.Pattern;
 import java.time.Instant;
 
 @Entity
