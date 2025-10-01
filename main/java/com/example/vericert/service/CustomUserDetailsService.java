@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -25,12 +26,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("Utente non trovato con username: " + username);
-        }
-        Membership membership = membershipRepository.findByUser(user);
-
+        Optional<User> u = Optional.ofNullable(userRepository.findByUserName(username).orElseThrow(() -> new UsernameNotFoundException("Utente non trovato")));
+        User user = u.get();
+        Optional<Membership> m = Optional.ofNullable(membershipRepository.findByUser(user).orElseThrow(() -> new UsernameNotFoundException("Nessuna membership trovata")));
+        Membership membership = m.get();
         // Un solo ruolo
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + membership.getRole());
 

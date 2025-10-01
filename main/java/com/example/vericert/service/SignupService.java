@@ -1,48 +1,61 @@
 package com.example.vericert.service;
 
 import com.example.vericert.domain.*;
+import com.example.vericert.dto.SignupRequest;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 //Insert Tenant, User, Membership
 @Service
 public class SignupService {
 
-    private final TenantRepository tenantRepo;
+    private final TenantRepository tenantRepository;
+    private final UserRepository userRepository;
+    private final MembershipRepository membershipRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    private final UserRepository userRepo;
-
-    private final MembershipRepository membershipRepo;
-
-    private final PasswordEncoder enc;
-
-
-    public SignupService(TenantRepository tenantRepo,
-                         UserRepository userRepo,
-                         MembershipRepository membershipRepo,
-                         PasswordEncoder enc) {
-
-        this.tenantRepo = tenantRepo;
-        this.userRepo = userRepo;
-        this.membershipRepo = membershipRepo;
-        this.enc = enc;
+    public SignupService(TenantRepository tenantRepository,
+                         UserRepository userRepository,
+                         MembershipRepository membershipRepository,
+                         PasswordEncoder passwordEncoder) {
+        this.tenantRepository = tenantRepository;
+        this.userRepository = userRepository;
+        this.membershipRepository = membershipRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
-    public void createTenantWithOwner(String slug, String name, String email, String rawPassword){
-        Tenant t = new Tenant(); t.setSlug(slug); t.setName(name); t.setPlan(Plan.FREE);
-        t = tenantRepo.save(t);
-        User u = new User(); u.setEmail(email); u.setPassword(enc.encode(rawPassword)); u = userRepo.save(u);
-        MembershipId mid = new MembershipId(t.getId(), u.getId());
-        Membership m = new Membership();
-        m.setId(mid);
-        m.setTenant(t);
-        m.setUser(u);
-        m.setRole("OWNER");
-        membershipRepo.save(m);
+    public void register(SignupRequest req) {
+        // 1. crea utente
+        var user = new User();
+        user.setUserName(req.getUsername());
+        user.setEmail(req.getEmail());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        userRepository.save(user);
+
+        // 2. crea tenant se non esiste
+        Tenant tenant = tenantRepository.findByName(req.getTenantName())
+                .orElseGet(() -> {
+                    Tenant t = new Tenant();
+                    t.setName(req.getTenantName());
+                    return tenantRepository.save(t);
+                });
+
+        // 3. controlla se ci sono già membership nel tenant
+        boolean tenantHasUsers = membershipRepository.existsByTenant(tenant);
+
+        // 4. assegna ruolo
+        String role = tenantHasUsers ? "USER" : "ADMIN";
+
+        var membership = new Membership();
+        var membershipId = new MembershipId(user.getId(), tenant.getId());
+        membership.setId(membershipId);
+        membership.setUser(user);
+        membership.setTenant(tenant);
+        membership.setRole(role);
+        membershipRepository.save(membership);
     }
 }

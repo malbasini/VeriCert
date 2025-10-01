@@ -8,6 +8,10 @@ public class SignupRequest {
     @Size(min = 3, max = 50, message = "Il nome utente deve avere tra 3 e 50 caratteri")
     private String username;
 
+    @NotBlank(message = "Il nome del tenant è obbligatorio")
+    @Size(min = 4, max = 50, message = "Il nome del tenant deve avere tra 4 e 50 caratteri")
+    private String tenantName;
+
     @NotBlank(message = "L'email è obbligatoria")
     @Email(message = "Formato email non valido")
     private String email;
@@ -44,7 +48,11 @@ public class SignupRequest {
         this.password = password;
     }
 
-    // getters & setters
+    public String getTenantName() {
+        return tenantName;
+    }
 
-
+    public void setTenantName(String tenantName) {
+        this.tenantName = tenantName;
+    }
 }

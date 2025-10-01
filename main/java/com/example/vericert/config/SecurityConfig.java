@@ -1,6 +1,7 @@
 package com.example.vericert.config;
 
 
+import com.example.vericert.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,8 +24,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
-
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +40,13 @@ public class SecurityConfig {
     String apiKeyHeader;
     @Value("${vericert.security.api-key}")
     String apiKey;
+
+    private final CustomUserDetailsService userDetailsService;
+    private DataSource dataSource;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     @Bean
     SecurityFilterChain filter(HttpSecurity http) throws Exception {
@@ -51,7 +63,6 @@ public class SecurityConfig {
                         // Il resto della tua app segue le regole normali
                         .anyRequest().authenticated()
                 )
-                .formLogin(Customizer.withDefaults()) // login form classico
                 .httpBasic(Customizer.withDefaults()); // utile per API client
         return http.build();
     }
@@ -91,6 +102,15 @@ public class SecurityConfig {
         return new InMemoryUserDetailsManager(admin);
     }
 
+
+    // Configura il DaoAuthenticationProvider
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
