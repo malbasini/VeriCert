@@ -1,0 +1,36 @@
+<html lang="it" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<!-- Inclusione dell'header -->
+<div th:insert="common/base :: headerFragment"></div>
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>Verifica</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        h2 { color: #333; }
+        .box { border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem; border-radius: 8px; }
+        pre { background: #f4f4f4; padding: 1rem; border-radius: 5px; }
+        input, button, textarea { margin-top: 0.5rem; padding: 0.4rem; width: 100%; }
+        button { cursor: pointer; background: #007bff; color: #fff; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 style="text-align: center">Verifica</h1>
+    <!-- Verifica certificato -->
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+                <form th:action="@{/v/{code}(code=${code})}" method="get">
+                    <label>Codice certificato:</label>
+                    <input type="text" class="form-control" id="verifyCode" readonly="readonly" th:value="${code}">
+                    <button class="btn btn-outline-primary form-control" type="submit">Verifica</button>
+                </form>
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+</div>
+</body>
+<div th:insert="common/footer :: footerFragment"></div>
+</html>

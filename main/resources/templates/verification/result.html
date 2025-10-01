@@ -1,0 +1,62 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Inclusione dell'header -->
+    <div th:insert="common/base :: headerFragment"></div>
+    <meta charset="utf-8">
+    <title>Verifica certificato</title>
+    <style>
+        .ok
+        {
+           color:#0a7a28
+        }
+        .ko
+        {
+            color:#b30000
+         }
+        .warn
+        {
+            color:#946200
+        }
+        .card
+        {
+              border:1px solid #ddd;
+              padding:16px;border-radius:10px
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+<div class="row">
+    <div class="col-md-3"></div>
+    <div class="col-md-6">
+        <br>
+            <h1>Esito verifica</h1>
+                <br>
+            <div class="card bg-warning">
+            <div class="card-header">
+                Certificato
+            </div>
+            <div class="card-body fa-text-width-normal">
+                <p th:if="${r.status}=='ISSUED'" class="ok"><strong>CERTIFICATO VALIDO</strong></p>
+                <p th:if="${r.status}=='REVOKED'" class="ko"><strong>CERTIFICATO REVOCATO</strong></p>
+                <p th:if="${r.status}=='UNKNOWN'" class="warn"><strong>SCONOSCIUTO</strong></p>
+                <dl th:if="${r.status}!='UNKNOWN'">
+                    <dt>Seriale</dt><dd th:text="${r.serial}"></dd>
+                    <dt>Titolare</dt><dd th:text="${r.ownerName}"></dd>
+                    <dt>Corso/Codice</dt><dd th:text="${r.courseCode}"></dd>
+                    <dt>PDF</dt><dd><a th:href="${r.pdfUrl}" class="card-link" target="_blank">Scarica PDF</a></dd>
+                    <dt>Impronta (SHA‑256)</dt><dd><code th:text="${r.sha256}"></code></dd>
+                </dl>
+            </div>
+            <div class="card-footer">
+                footer
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3"></div>
+</div>
+</div>
+</body>
+<div th:insert="common/footer :: footerFragment"></div>
+</html>

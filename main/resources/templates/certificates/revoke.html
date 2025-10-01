@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="it" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<!-- Inclusione dell'header -->
+<div th:insert="common/base :: headerFragment"></div>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Revoke</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        h2 { color: #333; }
+        .box { border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem; border-radius: 8px; }
+        pre { background: #f4f4f4; padding: 1rem; border-radius: 5px; }
+        input, button, textarea { margin-top: 0.5rem; padding: 0.4rem; width: 100%; }
+        button { cursor: pointer; background: #007bff; color: #fff; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+<br>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5"></div>
+                <div class="col-md-2">
+                    <label>ID certificato:</label>
+                    <input type="text" class="form-control" id="revokeId" placeholder="es. 13">
+                    <label>Motivo (opzionale):</label>
+                    <input type="text" class="form-control" id="revokeReason" placeholder="Motivo della revoca">
+                    <button class="btn btn-outline-primary" style="text-align: center"  onclick="revokeCert()">Revoca certificato</button>
+                </div>
+                <div class="col-md-5"></div>
+            </div>
+            <br>
+            <br>
+            <h2 style="text-align: center">STATUS</h2>
+            <hr>
+            <pre id="revokeResult"></pre>
+        </div>
+<script>
+    async function revokeCert() {
+        const API_BASE = "http://localhost:8080";
+        const id = document.getElementById("revokeId").value.trim();
+        const reason = document.getElementById("revokeReason").value.trim();
+        const body = { reason: reason || "Revocato da test.html" };
+        const response = await fetch(`${API_BASE}/api/certificates/${id}/revoke`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Basic " + btoa("admin:admin123"),
+                "X-Tenant": "demo"
+            },
+            body: JSON.stringify(body)
+        });
+
+        document.getElementById("revokeResult").textContent =
+            `${response.status} ${response.statusText}`;
+    }
+</script>
+</body>
+<div th:insert="common/footer :: footerFragment"></div>
+</html>

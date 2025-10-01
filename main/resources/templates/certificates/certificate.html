@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="it" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<!-- Inclusione dell'header -->
+<div th:insert="common/base :: headerFragment"></div>
+<head>
+    <meta charset="UTF-8">
+    <title>Test API</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        h2 { color: #333; }
+        .box { border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem; border-radius: 8px; }
+        pre { background: #f4f4f4; padding: 1rem; border-radius: 5px; }
+        input, button, textarea { margin-top: 0.5rem; padding: 0.4rem; width: 100%; }
+        button { cursor: pointer; background: #007bff; color: #fff; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-md-5"></div>
+        <div class="col-md-2">
+            <button class="btn btn-outline-primary" style="text-align: center"  onclick="createCert()">Crea certificato</button>
+        </div>
+        <div class="col-md-5"></div>
+    </div>
+    <br>
+    <br>
+    <h2 style="text-align: center">RISULTATO JSON</h2>
+    <hr>
+    <pre id="result"></pre>
+</div>
+<script>
+    async function createCert() {
+        const response = await fetch("http://localhost:8080/api/certificates", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Basic " + btoa("admin:admin123"),
+                "X-Tenant": "demo"
+            },
+            body: JSON.stringify({
+                templateId: 1,
+                ownerName: "Marco Albasini",
+                ownerEmail: "marco@example.com",
+                courseCode: "SPRING-123",
+                vars: {
+                    courseName: "Spring Boot",
+                    date: "2025-09-30",
+                    hours: "10",
+                    grade: "A"
+                }
+            })
+        });
+
+        document.getElementById("result").textContent =
+            await response.text();
+    }
+</script>
+</body>
+<div th:insert="common/footer :: footerFragment"></div>
+</html>
