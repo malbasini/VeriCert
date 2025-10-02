@@ -2,6 +2,7 @@ package com.example.vericert.domain;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "user")
@@ -17,7 +18,6 @@ public class User {
     private String email;
     @Column(name="created_at",nullable=false)
     private Instant createdAt = Instant.now();
-
 
     public Long getId() {
         return id;
@@ -58,4 +58,5 @@ public class User {
     public void setUserName(String userName) {
         this.userName = userName;
     }
+
 }

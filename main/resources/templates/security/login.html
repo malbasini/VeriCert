@@ -33,7 +33,6 @@
 <br>
 <div class="container">
     <section class="course-info">
-        <form id="loginForm">
         <div class="row">
             <div class="col-md-4"></div>
             <div class="col-md-4">
@@ -68,40 +67,32 @@
             <div class="col-md-5"></div>
             <div class="col-md-2">
                 <br>
-                <button type="submit"  class="btn btn-outline-primary">Login</button>
+                <button type="submit"  onclick="login();" class="btn btn-outline-primary">Login</button>
             </div>
             <div class="col-md-5"></div>
         </div>
-      </form>
     </section>
-    <br>
-    <br>
-    <h2 style="text-align: center">RISULTATO JSON</h2>
-    <hr>
-    <pre id="result"></pre>
 </div>
 <script>
-    document.getElementById("loginForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-        const data = {
-            username: this.username.value,
-            password: this.password.value,
-            rememberMe: this.rememberMe.checked
-        };
+    async function login() {
+        const API_BASE = "http://localhost:8080";
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const remember = document.getElementById("rememberMe").checked;
 
-        const res = await fetch("/api/auth/login", {
+        const params = new URLSearchParams();
+        params.append("username", username);
+        params.append("password", password);
+        params.append("rememberMe", remember);
+
+        const response = await fetch(`${API_BASE}/login`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: params.toString()
         });
-
-        if (res.ok) {
-            alert("Login effettuato!");
-            window.location.href = "/home";
-        } else {
-            alert("Credenziali non valide");
-        }
-    });
+    }
 </script>
 </body>
 </html>

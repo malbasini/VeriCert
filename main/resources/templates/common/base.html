@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security6" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.thymeleaf.org/extras/spring-security6">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 
 <div th:fragment="headerFragment">
     <meta charset="UTF-8">
@@ -47,8 +47,7 @@
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <th:block sec:authorize="isAuthenticated()">
                     <a class="nav-link" href="#">Benvenuto
-                        <th:block sec:authentication="name"/>
-                        !</a>&nbsp;&nbsp;&nbsp;
+                        <th:block sec:authentication="name"/>!</a>&nbsp;&nbsp;&nbsp;
                 </th:block>
                 <th:block sec:authorize="isAuthenticated()">
                     <a class="nav-link" th:href="@{/logout}">Logout</a>

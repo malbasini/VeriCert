@@ -10,13 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import javax.management.relation.Role;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Collections;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -32,17 +26,24 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> u = Optional.ofNullable(userRepository.findByUserName(username).orElseThrow(() -> new UsernameNotFoundException("Utente non trovato")));
-        User user = u.get();
-        Optional<Membership> m = Optional.ofNullable(membershipRepository.findByUser(user).orElseThrow(() -> new UsernameNotFoundException("Nessuna membership trovata")));
-        Membership membership = m.get();
-        // Un solo ruolo
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + membership.getRole());
+        // recupero utente
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato: " + username));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getUserName(),
-                user.getPassword(),
-                List.of(authority)
-        );
+        // recupero membership
+        Membership membership = membershipRepository.findByUser(user)
+                .orElseThrow(() -> new UsernameNotFoundException("Nessuna membership per utente: " + username));
+
+        // attenzione: membership.getRole() contiene "ADMIN" oppure "USER"
+        String role = membership.getRole();
+
+        // costruisco l’autorità con prefisso ROLE_
+        GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getUserName())
+                .password(user.getPassword()) // deve essere già codificata con BCrypt
+                .authorities(Collections.singletonList(authority))
+                .build();
     }
 }

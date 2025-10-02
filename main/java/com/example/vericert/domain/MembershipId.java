@@ -37,12 +37,6 @@ public class MembershipId implements Serializable {
         this.tenantId = tenantId;
         this.userId = userId;
     }
-
-
-
-
-
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

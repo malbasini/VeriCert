@@ -2,61 +2,49 @@ package com.example.vericert.config;
 
 
 import com.example.vericert.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
 import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    @Value("${vericert.security.api-key-header}")
-    String apiKeyHeader;
-    @Value("${vericert.security.api-key}")
-    String apiKey;
 
-    private final CustomUserDetailsService customUserDetailsService;
-    private DataSource dataSource;
+    private final CustomUserDetailsService userDetailsService;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
-        this.customUserDetailsService = customUserDetailsService;
+    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
     }
 
+    private DataSource dataSource;
+
+
+    // 🔑 Config della security
     @Bean
-    SecurityFilterChain filter(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable);
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.csrf(csrf -> csrf.disable());
+
         http
                 .authorizeHttpRequests(auth -> auth
-                        // Actuator: health e info pubblici
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/v/**", "/files/**","/certificati","/signup","/home","/login","/","/webhooks/**").permitAll()
+                        .requestMatchers("/signup", "/login", "/v/**","/home","/files/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
-                        // Tutti gli altri actuator richiedono autenticazione
-                        .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        // Il resto della tua app segue le regole normali
                         .anyRequest().authenticated()
                 )
-                .formLogin(login -> login
-                        .loginPage("/login")// tua vista custom
-                        .defaultSuccessUrl("/",true)
+                .formLogin(formLogin -> formLogin
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home",true)
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -67,31 +55,34 @@ public class SecurityConfig {
                         .permitAll()
                 )
                 // Configurazione rememberMe
-                .rememberMe(remember -> remember
-                        .key("vericert-remember-key") // chiave univoca per firmare il cookie
-                        .tokenValiditySeconds(7 * 24 * 60 * 60) // 7 giorni
-                        .rememberMeCookieName("VERICERT_REMEMBER")
-                        .rememberMeParameter("rememberMe")
-                        .tokenRepository(persistentTokenRepository(dataSource)));// Nome del parametro checkbox                                     // nome cookie
+                .rememberMe(rememberMe -> rememberMe
+                        .rememberMeParameter("rememberMe")  // Nome del parametro checkbox
+                        .tokenValiditySeconds(2 * 24 * 60 * 60) // 2 giorni in secondi (172.800)
+                        .key("mykey")
+                        .tokenRepository(persistentTokenRepository(dataSource))
+                );
+
         return http.build();
     }
+    // 🔑 BCrypt encoder (obbligatorio)
     @Bean
-    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Configura il DaoAuthenticationProvider
+    // 🔑 Provider che usa il tuo CustomUserDetailsService
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authProvider(PasswordEncoder encoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(encoder);
         return authProvider;
+    }
+
+    // 🔑 AuthenticationManager da esporre al contesto
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
@@ -101,6 +92,4 @@ public class SecurityConfig {
         jdbcTokenRepository.setCreateTableOnStartup(false); // Da usare solo la prima volta con true
         return jdbcTokenRepository;
     }
-
-
 }
