@@ -1,0 +1,28 @@
+spring:
+  datasource:
+     url: jdbc:mysql://localhost:3306/vericert?useSSL=false&allowPublicKeyRetrieval=true
+     username: root
+     password: KHJuial0a100?
+  jpa:
+     hibernate:
+       ddl-auto: validate
+     properties:
+        hibernate:
+             format_sql: true
+             show_sql: false
+  thymeleaf:
+        cache: false
+vericert:
+        base-url: "https://example.vericert.app"
+        security:
+             api-key-header: "X-API-KEY"
+             api-key: "change-me"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+logging:
+  level:
+    org.springframework.security: DEBUG

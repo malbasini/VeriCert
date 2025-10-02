@@ -2,21 +2,16 @@ package com.example.vericert.config;
 
 
 import com.example.vericert.service.CustomUserDetailsService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -27,11 +22,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.filter.OncePerRequestFilter;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
 
 @Configuration
 @EnableWebSecurity
@@ -41,11 +32,11 @@ public class SecurityConfig {
     @Value("${vericert.security.api-key}")
     String apiKey;
 
-    private final CustomUserDetailsService userDetailsService;
+    private final CustomUserDetailsService customUserDetailsService;
     private DataSource dataSource;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Bean
@@ -63,58 +54,53 @@ public class SecurityConfig {
                         // Il resto della tua app segue le regole normali
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults()); // utile per API client
+                .formLogin(login -> login
+                        .loginPage("/login")// tua vista custom
+                        .defaultSuccessUrl("/",true)
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+                        .logoutSuccessUrl("/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
+                )
+                // Configurazione rememberMe
+                .rememberMe(remember -> remember
+                        .key("vericert-remember-key") // chiave univoca per firmare il cookie
+                        .tokenValiditySeconds(7 * 24 * 60 * 60) // 7 giorni
+                        .rememberMeCookieName("VERICERT_REMEMBER")
+                        .rememberMeParameter("rememberMe")
+                        .tokenRepository(persistentTokenRepository(dataSource)));// Nome del parametro checkbox                                     // nome cookie
         return http.build();
     }
-    public class ApiKeyFilter extends OncePerRequestFilter {
-        private final String header;
-        private final String expected;
-
-        public ApiKeyFilter(String header, String expected) {
-            this.header = header;
-            this.expected = expected;
-        }
-
-        @Override
-        protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-                throws ServletException, IOException {
-            if (req.getRequestURI().startsWith("/api/")) {
-                String key = req.getHeader(header);
-                if (!Objects.equals(key, expected)) {
-                    res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
-                var auth = new UsernamePasswordAuthenticationToken("api-key", null, List.of(new SimpleGrantedAuthority("ROLE_API")));
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-            chain.doFilter(req, res);
-        }
-    }
-
-    // 👇 User in memoria per test
     @Bean
-    public UserDetailsService inMemoryUsers(PasswordEncoder encoder) {
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(encoder.encode("admin123"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
-    }
-
-
-    // Configura il DaoAuthenticationProvider
-    @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
+    // Configura il DaoAuthenticationProvider
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository(DataSource dataSource) {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+        jdbcTokenRepository.setDataSource(dataSource);
+        jdbcTokenRepository.setCreateTableOnStartup(false); // Da usare solo la prima volta con true
+        return jdbcTokenRepository;
+    }
+
 
 }

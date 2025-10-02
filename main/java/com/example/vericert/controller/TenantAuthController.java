@@ -1,8 +1,10 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.dto.LoginRequest;
 import com.example.vericert.dto.SignupRequest;
 import com.example.vericert.service.SignupService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +25,6 @@ public class TenantAuthController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid  @RequestBody SignupRequest request){
         signup.register(request);
-        return ResponseEntity.ok(Map.of("ok", true));
+        return ResponseEntity.status(HttpStatus.CREATED).body("Utente registrato con successo");
     }
-
 }

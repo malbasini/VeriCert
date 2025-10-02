@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="it" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<!-- Inclusione dell'header -->
+<div th:insert="common/base :: headerFragment"></div>
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+<br>
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <div class="alert alert-success" role="alert" style="text-align: center">
+            LOGIN
+        </div>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+<br>
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <th:block th:if="${param.logout != null}">
+            <div class="alert alert-success" role="alert">
+                Logout effettuato con successo.
+            </div>
+        </th:block>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+<br>
+<div class="container">
+    <section class="course-info">
+        <form id="loginForm">
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <span class="input-group-text" id="inputGroup-sizing-sm1">Username</span>
+                <br>
+                <input type="text" id="username" class="form-control" placeholder="Username" name="username" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <span class="input-group-text" id="inputGroup-sizing-sm3">Password</span>
+                <br>
+                <input type="password" id="password" class="form-control" placeholder="Password" name="password" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="form-check col-md-4"></div>
+            <div class="col-md-4">
+                <!-- Deve essere name="rememberMe" -->
+                <input type="checkbox" id="rememberMe" name="rememberMe" />
+                <label for="rememberMe">Ricordami</label>
+            </div>
+            <div class="col-md-4"></div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-5"></div>
+            <div class="col-md-2">
+                <br>
+                <button type="submit"  class="btn btn-outline-primary">Login</button>
+            </div>
+            <div class="col-md-5"></div>
+        </div>
+      </form>
+    </section>
+    <br>
+    <br>
+    <h2 style="text-align: center">RISULTATO JSON</h2>
+    <hr>
+    <pre id="result"></pre>
+</div>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const data = {
+            username: this.username.value,
+            password: this.password.value,
+            rememberMe: this.rememberMe.checked
+        };
+
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            alert("Login effettuato!");
+            window.location.href = "/home";
+        } else {
+            alert("Credenziali non valide");
+        }
+    });
+</script>
+</body>
+</html>
