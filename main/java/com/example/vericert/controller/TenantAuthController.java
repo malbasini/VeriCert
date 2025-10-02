@@ -20,7 +20,7 @@ public class TenantAuthController {
 
     //Insert Tenant, User, Membership
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid  @RequestBody SignupRequest request){
+    public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request){
         signup.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body("Utente registrato con successo");
     }

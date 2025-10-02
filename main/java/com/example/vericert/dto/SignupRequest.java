@@ -8,6 +8,10 @@ public record SignupRequest (
     @Size(min = 3, max = 50, message = "Il nome utente deve avere tra 3 e 50 caratteri")
     String username,
 
+    @NotBlank(message = "Il nome utente è obbligatorio")
+    @Size(min = 3, max = 50, message = "Il nome utente deve avere tra 3 e 50 caratteri")
+    String password,
+
     @NotBlank(message = "Il nome del tenant è obbligatorio")
     @Size(min = 4, max = 50, message = "Il nome del tenant deve avere tra 4 e 50 caratteri")
     String tenantName,

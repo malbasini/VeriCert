@@ -64,12 +64,11 @@
         </div>
         <br>
         <div class="row">
-            <div class="col-md-5"></div>
-            <div class="col-md-2">
-                <br>
-                <button type="submit"  onclick="login();" class="btn btn-outline-primary">Login</button>
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <button onclick="login()" class="btn btn-outline-primary">Login</button>
             </div>
-            <div class="col-md-5"></div>
+            <div class="col-md-4"></div>
         </div>
     </section>
 </div>
@@ -92,6 +91,7 @@
             },
             body: params.toString()
         });
+        window.location.href = "/home";
     }
 </script>
 </body>

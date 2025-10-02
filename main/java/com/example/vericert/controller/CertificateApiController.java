@@ -1,6 +1,7 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
+import com.example.vericert.dto.CreateReq;
 import com.example.vericert.service.CertificateService;
 import com.example.vericert.service.TenantService;
 import com.example.vericert.service.UsageService;
@@ -57,7 +58,7 @@ public class CertificateApiController {
         }
     }
 
-    public record CreateReq(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, String courseCode){}
+
 }
 
 

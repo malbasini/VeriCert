@@ -31,16 +31,16 @@ public class SignupService {
     public void register(SignupRequest req) {
         // 1. crea utente
         var user = new User();
-        user.setUserName(req.getUsername());
-        user.setEmail(req.getEmail());
-        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setUserName(req.username());
+        user.setEmail(req.email());
+        user.setPassword(passwordEncoder.encode(req.password()));
         userRepository.save(user);
 
         // 2. crea tenant se non esiste
-        Tenant tenant = tenantRepository.findByName(req.getTenantName())
+        Tenant tenant = tenantRepository.findByName(req.tenantName())
                 .orElseGet(() -> {
                     Tenant t = new Tenant();
-                    t.setName(req.getTenantName());
+                    t.setName(req.tenantName());
                     return tenantRepository.save(t);
                 });
 
