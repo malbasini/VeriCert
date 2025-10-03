@@ -106,6 +106,7 @@ section+section {
     background-image: url('../images/hero.jpg');
     background-repeat: no-repeat;
     background-size: cover;
+    height: 300px;
 }
 .jumbotron h1 {
     font-size: 3.5rem;
