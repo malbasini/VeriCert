@@ -26,9 +26,6 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
     <!-- CAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
-
-    <th:block th:fragment="headerFragment">
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
         <a class="navbar-brand"></a>
         <!-- Bottone toggle per mobile -->
@@ -46,7 +43,10 @@
             </ul>
             <!-- Link Login e Signup a destra -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <span class="badge bg-info text-dark me-3" style="text-align: center;" th:text="${currentTenant}"></span>
+                    <span class="badge bg-info text-dark me-3  d-flex align-items-center justify-content-center"
+                          th:text="${#authorization.expression('isAuthenticated()') ? #authentication.principal.tenantName : 'Nessun tenant'}">
+                                 Nessun tenant
+                         </span>
                 <th:block sec:authorize="isAuthenticated()">
                     <a class="nav-link" href="#">Benvenuto
                         <th:block sec:authentication="name"/>!</a>&nbsp;&nbsp;&nbsp;
@@ -65,6 +65,5 @@
             </ul>
         </div>
     </nav>
-    </th:block>
 </div>
 </html>

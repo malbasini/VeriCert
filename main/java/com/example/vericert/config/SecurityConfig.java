@@ -62,7 +62,6 @@ public class SecurityConfig {
                         .key("mykey")
                         .tokenRepository(persistentTokenRepository(dataSource))
                 );
-
         return http.build();
     }
     // 🔑 BCrypt encoder (obbligatorio)

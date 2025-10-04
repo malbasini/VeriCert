@@ -25,9 +25,15 @@ public class HomeController {
 
 
     @GetMapping("/home")
-    public String showHomePage(Model model) {
+    public String showHomePage()
+    {
         return "home";
     }
+
+
+
+
+
     @GetMapping("/certificati")
     public String insertCertificate(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -49,7 +49,7 @@ public class PublicVerificationController {
                 certificate.getOwnerName(),
                 certificate.getOwnerEmail(),
                 certificate.getCourseCode(),
-                certificate.getIssuedAt().toString()
+                certificate.getIssuedAt().toString().format("dd-MM-yyyy HH:mm:ss")
         ));
     }
 
