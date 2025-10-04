@@ -51,6 +51,12 @@ public class HomeController {
         // Ritorna la vista
         return "certificates/revoke";
     }
+    @GetMapping("/verify")
+    public String VerifyCertificate() {
+        // Ritorna la vista
+        return "verification/result";
+    }
+
 
 
 

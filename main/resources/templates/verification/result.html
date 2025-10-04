@@ -1,63 +1,75 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <!-- Inclusione dell'header -->
     <meta charset="utf-8">
     <title>Verifica certificato</title>
-    <style>
-        .ok
-        {
-           color:#0a7a28
-        }
-        .ko
-        {
-            color:#b30000
-         }
-        .warn
-        {
-            color:#946200
-        }
-        .card
-        {
-              border:1px solid #ddd;
-              padding:16px;border-radius:10px
-        }
-    </style>
 </head>
 <body>
+<!-- Inclusione dell'header -->
 <div th:replace="common/base :: headerFragment"></div>
-<br>
 <div class="container mt-5">
-<div class="row">
-    <div class="col-md-3"></div>
-    <div class="col-md-6">
-        <br>
-            <h1>Esito verifica</h1>
-                <br>
-            <div class="card bg-warning">
-            <div class="card-header">
-                Certificato
-            </div>
-            <div class="card-body fa-text-width-normal">
-                <p th:if="${r.status}=='ISSUED'" class="ok"><strong>CERTIFICATO VALIDO</strong></p>
-                <p th:if="${r.status}=='REVOKED'" class="ko"><strong>CERTIFICATO REVOCATO</strong></p>
-                <p th:if="${r.status}=='UNKNOWN'" class="warn"><strong>SCONOSCIUTO</strong></p>
-                <dl th:if="${r.status}!='UNKNOWN'">
-                    <dt>Seriale</dt><dd th:text="${r.serial}"></dd>
-                    <dt>Titolare</dt><dd th:text="${r.ownerName}"></dd>
-                    <dt>Corso/Codice</dt><dd th:text="${r.courseCode}"></dd>
-                    <dt>PDF</dt><dd><a th:href="${r.pdfUrl}" class="card-link" target="_blank">Scarica PDF</a></dd>
-                    <dt>Impronta (SHA‑256)</dt><dd><code th:text="${r.sha256}"></code></dd>
-                </dl>
-            </div>
-            <div class="card-footer">
-                footer
-            </div>
-        </div>
+    <h3 class="mb-3">Verifica certificato</h3>
+    <div class="input-group mb-3">
+        <label class="input-group-text" for="codeSelect">Codice</label>
+        <select class="form-select" id="codeSelect">
+            <option value="">-- Seleziona un certificato --</option>
+        </select>
+        <button class="btn btn-primary" onclick="verifyCode()">Verifica</button>
     </div>
-    <div class="col-md-3"></div>
+    <br>
+    <hr>
+    <div id="result" class="mt-3"></div>
 </div>
-</div>
+
+<script>
+    const API_BASE = "http://localhost:8080/v";
+
+    // Popola la select all'avvio
+    async function loadCodes() {
+        const response = await fetch(`${API_BASE}/codes`);
+        const codes = await response.json();
+        alert(codes);
+        const select = document.getElementById("codeSelect");
+
+        codes.forEach(code => {
+            const option = document.createElement("option");
+            option.value = code;
+            option.textContent = code;
+            select.appendChild(option);
+        });
+    }
+
+    // Verifica certificato selezionato
+    async function verifyCode() {
+        const code = document.getElementById("codeSelect").value;
+        if (!code) {
+            alert("Seleziona un codice valido");
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/${code}`);
+        const resultDiv = document.getElementById("result");
+
+        if (response.ok) {
+            const data = await response.json();
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    ✅ Certificato valido<br>
+                    <b>Proprietario:</b> ${data.ownerName}<br>
+                    <b>Email:</b> ${data.ownerEmail}<br>
+                    <b>Corso:</b> ${data.courseCode}<br>
+                    <b>Data emissione:</b> ${data.issueDate}
+                </div>
+            `;
+        } else if (response.status === 410) {
+            resultDiv.innerHTML = `<div class="alert alert-warning">⚠️ Certificato revocato</div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger">❌ Certificato non trovato</div>`;
+        }
+    }
+
+    // carica i codici al caricamento della pagina
+    loadCodes();
+</script>
 </body>
-<div th:insert="common/footer :: footerFragment"></div>
 </html>
