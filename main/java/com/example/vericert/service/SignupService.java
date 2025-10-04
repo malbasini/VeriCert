@@ -37,7 +37,7 @@ public class SignupService {
         userRepository.save(user);
 
         // 2. crea tenant se non esiste
-        Tenant tenant = tenantRepository.findByName(req.tenantName())
+        Tenant tenant = tenantRepository.findIdByName(req.tenantName())
                 .orElseGet(() -> {
                     Tenant t = new Tenant();
                     t.setName(req.tenantName());

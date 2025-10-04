@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="it" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
-<!-- Inclusione dell'header -->
-<div th:insert="common/base :: headerFragment"></div>
 <head>
     <meta charset="UTF-8">
     <title>Signup</title>
@@ -17,6 +15,7 @@
     </style>
 </head>
 <body>
+<div th:replace="common/base :: headerFragment"></div>
 <br>
 <div class="row">
     <div class="col-md-4"></div>

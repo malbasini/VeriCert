@@ -6,12 +6,13 @@ import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
-import com.example.vericert.tenancy.TenantContext;
 import com.example.vericert.util.HashUtil;
 import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -48,7 +49,10 @@ public class CertificateService {
 
     @Transactional
     public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, String courseCode) throws IOException {
-        Long tenantId = Objects.requireNonNull(TenantContext.get(), "No tenant in context");
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+        String tenantName = user.getTenantName();
+        Long tenantId = tenantRepo.findByName(tenantName).getId();
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = randomCode(24);
         String verifyUrl = baseUrl + "/v/" + code;

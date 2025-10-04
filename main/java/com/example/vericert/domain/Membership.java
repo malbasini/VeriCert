@@ -19,7 +19,7 @@ public class Membership {
 
     // relazione Tenant → senza duplicare tenant_id
     @MapsId("tenantId")
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 

@@ -9,5 +9,5 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
 
     Optional<Tenant> findIdByName(String name);
 
-    Optional<Tenant> findByName(String tenantName);
+    Tenant findByName(String tenantName);
 }

@@ -2,7 +2,6 @@
 <html lang="it" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <!-- Inclusione dell'header -->
-<div th:insert="common/base :: headerFragment"></div>
 <head>
     <meta charset="UTF-8">
     <title>Test API</title>
@@ -17,8 +16,49 @@
     </style>
 </head>
 <body>
+<div th:replace="common/base :: headerFragment"></div>
 <br>
 <div class="container">
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <span class="input-group-text" id="inputGroup-sizing-sm0">Nome del tenant</span>
+            <input type="text" id="tenantName" class="form-control"  th:value="${tenantName}" name="tenantName" aria-label="Small" aria-describedby="inputGroup-sizing-sm" readonly="readonly">
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <span class="input-group-text" id="inputGroup-sizing-sm6">ID Template</span>
+            <input type="text" id="templateId" class="form-control"  th:value="${templateId}" name="templateId" aria-label="Small" aria-describedby="inputGroup-sizing-sm6" readonly="readonly">
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <span class="input-group-text" id="inputGroup-sizing-sm1">Owner Name</span>
+            <input type="text" id="ownerName" class="form-control" placeholder="Owner Name" name="ownerName" aria-label="Small" aria-describedby="inputGroup-sizing-sm1">
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <span class="input-group-text" id="inputGroup-sizing-sm2">Owner email</span>
+            <input type="text" id="ownerEmail" class="form-control" placeholder="Owner email" name="ownerEmail" aria-label="Small" aria-describedby="inputGroup-sizing-sm2">
+        </div>
+        <div class="col-md-4"></div>
+    </div>
+    <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <span class="input-group-text" id="inputGroup-sizing-sm3">Codice Corso</span>
+            <input type="text" id="courseCode" class="form-control" placeholder="Codice Corso" name="courseCode" aria-label="Small" aria-describedby="inputGroup-sizing-sm3">
+        </div>
+        <div class="col-md-4"></div>
+    </div>
     <div class="row">
         <div class="col-md-5"></div>
         <div class="col-md-2">
@@ -27,25 +67,29 @@
         <div class="col-md-5"></div>
     </div>
     <br>
-    <br>
-    <h2 style="text-align: center">RISULTATO JSON</h2>
+    <h2 style="text-align: center">JSON</h2>
     <hr>
     <pre id="result"></pre>
 </div>
 <script>
     async function createCert() {
-        const response = await fetch("http://localhost:8080/api/certificates", {
+        const API_BASE = "http://localhost:8080";
+        const tenantName = document.getElementById("tenantName").value.trim();
+        const ownerName = document.getElementById("ownerName").value.trim();
+        const ownerEmail = document.getElementById("ownerEmail").value.trim();
+        const courseCode = document.getElementById("courseCode").value.trim();
+        const templateId = document.getElementById("templateId").value.trim();
+        const response = await fetch(`${API_BASE}/api/certificates`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": "Basic " + btoa("admin:admin123"),
-                "X-Tenant": "demo"
+                "X-Tenant": tenantName
             },
             body: JSON.stringify({
-                templateId: 1,
-                ownerName: "Marco Albasini",
-                ownerEmail: "marco@example.com",
-                courseCode: "SPRING-123",
+                templateId: templateId,
+                ownerName: ownerName,
+                ownerEmail: ownerEmail,
+                courseCode: courseCode,
                 vars: {
                     courseName: "Spring Boot",
                     date: "2025-09-30",
