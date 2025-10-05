@@ -25,8 +25,8 @@ public class Certificate extends BaseTenantEntity {
     private String pdfUrl;
     @Column(nullable=false, length=64)
     private String sha256;
-    @Enumerated(EnumType.STRING) @Column(nullable=false)
-    private Status status = Status.ISSUED;
+    @Enumerated(EnumType.STRING) @Column(name = "status", nullable=false)
+    private Stato status = Stato.ISSUED;
     @Column(name="issued_at",nullable=false)
     private Instant issuedAt = Instant.now();
     @Column(name="revoked_reason")
@@ -104,14 +104,6 @@ public class Certificate extends BaseTenantEntity {
         this.sha256 = sha256;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
     public Instant getIssuedAt() {
         return issuedAt;
     }
@@ -136,5 +128,12 @@ public class Certificate extends BaseTenantEntity {
         this.revokedAt = revokedAt;
     }
 
-    public enum Status { ISSUED, REVOKED }
+    public Stato getStatus() {
+        return status;
+    }
+
+    public Stato setStatus(Stato status) {
+        this.status = status;
+        return status;
+    }
 }

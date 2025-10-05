@@ -1,6 +1,7 @@
 package com.example.vericert.service;
 
 import com.example.vericert.domain.Certificate;
+import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
@@ -119,7 +120,7 @@ public class CertificateService {
     @Transactional
     public void revoke(Long certId, String reason, String actor) {
         Certificate c = certRepo.findById(certId).orElseThrow();
-        c.setStatus(Certificate.Status.REVOKED);
+        c.setStatus(c.setStatus(Stato.REVOKED));
         c.setRevokedReason(reason);
         c.setRevokedAt(Instant.now());
         audit(actor,"REVOKE","certificate", certId.toString(), Map.of("reason", reason));

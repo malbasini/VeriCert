@@ -1,6 +1,7 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
+import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
@@ -38,7 +39,7 @@ public class PublicVerificationController {
         Long certId = token.getCertificateId();
         Certificate certificate = certificateRepo.getById(certId);
 
-        if (certificate.getStatus() == Certificate.Status.REVOKED) {
+        if (certificate.getStatus() == Stato.REVOKED) {
             return ResponseEntity.status(410) // Gone
                     .body("❌ Certificato revocato");
         }

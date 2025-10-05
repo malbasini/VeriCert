@@ -43,10 +43,10 @@
             </ul>
             <!-- Link Login e Signup a destra -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <span class="badge bg-info text-dark me-3  d-flex align-items-center justify-content-center"
+                <span class="badge bg-info text-dark me-3  d-flex align-items-center justify-content-center"
                           th:text="${#authorization.expression('isAuthenticated()') ? #authentication.principal.tenantName : 'Nessun tenant'}">
-                                 Nessun tenant
-                         </span>
+                          Nessun tenant
+                </span>
                 <th:block sec:authorize="isAuthenticated()">
                     <a class="nav-link" href="#">Benvenuto
                         <th:block sec:authentication="name"/>!</a>&nbsp;&nbsp;&nbsp;
