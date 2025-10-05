@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.io.ObjectInputFilter;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,12 +51,37 @@ public class CertificateApiController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
-        Tenant tenant = tenantRepo.findByName(tenantName);
-        // controllo piano
-        usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
-        Certificate c = service.issue(req.templateId(), req.vars(), req.ownerName(), req.ownerEmail(), req.courseCode());
-        return ResponseEntity.ok(Map.of("id", c.getId(), "serial", c.getSerial(), "pdfUrl", c.getPdfUrl(), "sha256", c.getSha256()));
+        Certificate c = null;
+        try {
+            Tenant tenant = tenantRepo.findByName(tenantName);
+            // controllo piano
+            usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
+            c = service.issue(req.templateId(), req.vars(), req.ownerName(), req.ownerEmail(), req.courseCode());
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+        return ResponseEntity.ok(new CertificateApiController.VerificationCreateResponse(
+                c.getId().toString(),
+                c.getSerial(),
+                c.getPdfUrl(),
+                c.getSha256(),
+                c.getOwnerName(),
+                c.getOwnerEmail(),
+                c.getIssuedAt().toString()
+        ));
     }
+    // DTO interno alla risposta
+    record VerificationCreateResponse(
+            String code,
+            String serial,
+            String pdfUrl,
+            String sha256,
+            String ownerName,
+            String ownerEmail,
+            String issuedAt
+    ) { }
 
     @PostMapping("/{code}/revoke")
     public ResponseEntity<?> revoke(@PathVariable(name = "code") Long code,
@@ -77,6 +103,7 @@ public class CertificateApiController {
                     certificate.getOwnerName(),
                     certificate.getOwnerEmail(),
                     certificate.getCourseCode(),
+                    certificate.getIssuedAt().toString(),
                     certificate.getRevokedReason(),
                     certificate.getRevokedAt().toString()
             ));
@@ -93,8 +120,10 @@ public class CertificateApiController {
             String ownerName,
             String ownerEmail,
             String courseCode,
+            String issuedAt,
             String revokedReason,
             String revokedAt
+
     ) {}
 
     @GetMapping("/codes")

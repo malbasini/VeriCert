@@ -67,10 +67,11 @@
             const data = await response.json();
             resultDiv.innerHTML = `
                 <div class="alert alert-success">
-                    ✅ <b>Certificato revocato</b><br>
+                    ✅ <b>Certificato revocato con successo</b><br>
                     <b>Proprietario:</b> ${data.ownerName}<br>
                     <b>Email:</b> ${data.ownerEmail}<br>
                     <b>Corso:</b> ${data.courseCode}<br>
+                    <b>Emesso in data:</b> ${data.issuedAt}<br>
                     <b>Motivo revoca:</b> ${data.revokedReason}<br>
                     <b>Data della revoca:</b> ${data.revokedAt}<br>
                 </div>
