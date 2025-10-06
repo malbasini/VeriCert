@@ -3,25 +3,24 @@ package com.example.vericert.controller;
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.Tenant;
-import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.dto.CreateReq;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CertificateService;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.UsageService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.io.ObjectInputFilter;
 import java.security.Principal;
-import java.time.LocalDate;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/certificates")
@@ -47,7 +46,15 @@ public class CertificateApiController {
     }
 
     @PostMapping()
-    public ResponseEntity<?> create(@RequestBody CreateReq req) throws IOException {
+    public ResponseEntity<?> create(@Valid @RequestBody CreateReq req, BindingResult br) throws IOException {
+        if (br.hasErrors()) {
+            var errors = br.getFieldErrors().stream()
+                    .collect(Collectors.groupingBy(
+                            fe -> fe.getField(),
+                            Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
+                    ));
+            return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
+        }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
@@ -86,8 +93,8 @@ public class CertificateApiController {
     @PostMapping("/{code}/revoke")
     public ResponseEntity<?> revoke(@PathVariable(name = "code") Long code,
                                     @RequestBody Map<String,String> body,
-                                    Principal principal) {
-
+                                    Principal principal
+                                    ) {
         Certificate certificate = certRepo.findById(code).orElseThrow();
         if (certificate.getStatus() == Stato.REVOKED) {
             return ResponseEntity.status(410) // Gone

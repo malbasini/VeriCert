@@ -51,7 +51,16 @@
         }
         const tenantName = document.getElementById("tenantName").value;
         const reason = document.getElementById("reason").value;
-        const body = { reason: reason || "Revocato da test.html" };
+        const body = { reason: reason };
+        if (reason===""){
+            alert("Inserisci un motivo");
+            return;
+        }
+        console.log(
+            "Revoca certificato con codice:", code,
+            "Tenant:", tenantName,
+            "Motivo:", reason
+        )
         const response = await fetch(`${API_BASE}/${code}/revoke`, {
 
             method: "POST",
@@ -61,11 +70,18 @@
             },
             body: JSON.stringify(body)
         });
-        const resultDiv = document.getElementById("result");
-
-        if (response.ok) {
-            const data = await response.json();
-            resultDiv.innerHTML = `
+        const resultDiv = document.getElementById("result")
+        const data = await response.json();
+        if(!response.ok)
+        {
+                // Esempio: mostra il primo errore per campo
+                const errors = data.errors || {};
+                alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
+                return;
+        }
+        else if (response.ok === true)
+        {
+                resultDiv.innerHTML = `
                 <div class="alert alert-success">
                     ✅ <b>Certificato revocato con successo</b><br>
                     <b>Proprietario:</b> ${data.ownerName}<br>
@@ -76,9 +92,8 @@
                     <b>Data della revoca:</b> ${data.revokedAt}<br>
                 </div>
             `;
-        } else if (response.status === 410) {
-            resultDiv.innerHTML = `<div class="alert alert-warning">⚠️ Certificato revocato</div>`;
-        } else {
+        }
+        else {
             resultDiv.innerHTML = `<div class="alert alert-danger">❌ Certificato non trovato</div>`;
         }
     }

@@ -71,16 +71,16 @@
             })
         });
         const resultDiv = document.getElementById("result");
-        if(response.ok === false)
+        const data = await response.json();
+        if(!response.ok)
         {
-            resultDiv.innerHTML = `
-                <div class="alert alert-danger">
-                    <b>Errore nella creazione del certificato.</b>
-                </div>
-            `;
+                // Esempio: mostra il primo errore per campo
+                const errors = data.errors || {};
+                alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
+                return;
         }
-        if (response.ok) {
-            const data = await response.json();
+        else
+        {
             resultDiv.innerHTML = `
                 <div class="alert alert-success">
                     ✅ <b>Certificato creato con successo</b><br>

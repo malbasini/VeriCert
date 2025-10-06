@@ -8,8 +8,12 @@ public record SignupRequest (
     @Size(min = 3, max = 50, message = "Il nome utente deve avere tra 3 e 50 caratteri")
     String username,
 
-    @NotBlank(message = "Il nome utente è obbligatorio")
-    @Size(min = 3, max = 50, message = "Il nome utente deve avere tra 3 e 50 caratteri")
+    @NotBlank(message = "Password obbligatoria")
+    @Size(min = 8, message = "La password deve essere almeno di 8 caratteri")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&]).+$",
+            message = "La password deve contenere maiuscola, minuscola, numero e carattere speciale"
+    )
     String password,
 
     @NotBlank(message = "Il nome del tenant è obbligatorio")

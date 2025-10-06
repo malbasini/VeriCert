@@ -8,68 +8,31 @@
 <body>
 <div th:replace="common/base :: headerFragment"></div>
 <br>
-<div class="row">
-    <div class="col-md-4"></div>
-    <div class="col-md-4">
-        <div class="alert alert-success" role="alert" style="text-align: center">
-            LOGIN
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <th:block th:if="${param.logout != null}">
+                <div style="text-align: center;" class="alert alert-success" role="alert">
+                    Logout effettuato con successo
+                </div>
+            </th:block>
         </div>
     </div>
-    <div class="col-md-4"></div>
-</div>
-<br>
-<div class="row">
-    <div class="col-md-4"></div>
-    <div class="col-md-4">
-        <th:block th:if="${param.logout != null}">
-            <div class="alert alert-dark" role="alert">
-                Logout effettuato con successo.
-            </div>
-        </th:block>
+    <br>
+    <h2 class="mb-3">Login</h2>
+    <div class="input-group mb-3">
+        <label class="input-group-text" for="username">Username</label>
+        <input type="text" class="form-control" id="username" placeholder="Username" aria-label="User" aria-describedby="User">
+        <label class="input-group-text" for="password">Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Password" aria-label="Password" aria-describedby="Password">
     </div>
-    <div class="col-md-4"></div>
-</div>
-<br>
-<div class="container">
-    <section class="course-info">
-        <div class="row">
-            <div class="col-md-4"></div>
-            <div class="col-md-4">
-                <span class="input-group-text" id="inputGroup-sizing-sm1">Username</span>
-                <br>
-                <input type="text" id="username" class="form-control" placeholder="Username" name="username" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-            </div>
-            <div class="col-md-4"></div>
+    <div class="input-group mb-3">
+        <div class="form-check">
+            <label class="form-check-label" for="rememberMe">Remember me</label>&nbsp;&nbsp;&nbsp;
+            <input class="form-check-input" type="checkbox" value="" id="rememberMe" aria-label="Remember" aria-describedby="Remember">
         </div>
-        <br>
-        <div class="row">
-            <div class="col-md-4"></div>
-            <div class="col-md-4">
-                <span class="input-group-text" id="inputGroup-sizing-sm3">Password</span>
-                <br>
-                <input type="password" id="password" class="form-control" placeholder="Password" name="password" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-            </div>
-            <div class="col-md-4"></div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="form-check col-md-4"></div>
-            <div class="col-md-4">
-                <!-- Deve essere name="rememberMe" -->
-                <input type="checkbox" id="rememberMe" name="rememberMe" />
-                <label for="rememberMe">Ricordami</label>
-            </div>
-            <div class="col-md-4"></div>
-        </div>
-        <br>
-        <div class="row">
-            <div class="col-md-4"></div>
-            <div class="col-md-4">
-                <button onclick="login()" class="btn btn-outline-primary">Login</button>
-            </div>
-            <div class="col-md-4"></div>
-        </div>
-    </section>
+        <button class="btn btn-primary form-control ms-5"  onclick="login()">Login</button>
+    </div>
 </div>
 <script>
     async function login() {
