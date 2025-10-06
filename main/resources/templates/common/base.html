@@ -38,24 +38,40 @@
             <!-- Altre voci di menu a sinistra (opzionali) -->
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <a class="nav-link" href="/">Home</a>
-                <a class="nav-link" href="/certificati">Certificati</a>
-                <a class="nav-link" href="/revoke">Revoca cerificato</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Dropdown
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/certificati">Certificati</a></li>
+                        <li><a class="dropdown-item" href="/revoke">Revoca certificato</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/verify">Verifica</a></li>
+                    </ul>
+                </li>
             </ul>
             <!-- Link Login e Signup a destra -->
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <span class="badge bg-info text-dark me-3  d-flex align-items-center justify-content-center"
+                <span style="width: 100px;height: 45px;" class="badge bg-info text-dark me-3  d-flex align-items-center justify-content-center"
                           th:text="${#authorization.expression('isAuthenticated()') ? #authentication.principal.tenantName : 'Nessun tenant'}">
                           Nessun tenant
                 </span>
                 <th:block sec:authorize="isAuthenticated()">
-                    <a class="nav-link" href="#">Benvenuto
-                        <th:block sec:authentication="name"/>!</a>&nbsp;&nbsp;&nbsp;
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Benvenuto
+                            <th:block sec:authentication="name"/>!
+                        </a>&nbsp;&nbsp;&nbsp;
+                    </li>
                 </th:block>
                 <th:block sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:href="@{/logout}">Logout</a>
+                    <li class="nav-item">
+                            <a class="nav-link" th:href="@{/logout}">Logout</a>
+                    </li>
                 </th:block>
                 <th:block sec:authorize="!isAuthenticated()">
-                    <a class="nav-link" th:href="@{/login}">Login</a>
+                    <li class="nav-item">
+                         <a class="nav-link" th:href="@{/login}">Login</a>
+                    </li>
                 </th:block>
                 <th:block sec:authorize="!isAuthenticated()">
                     <li class="nav-item">
@@ -66,4 +82,3 @@
         </div>
     </nav>
 </div>
-</html>

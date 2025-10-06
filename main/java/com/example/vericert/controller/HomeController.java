@@ -22,18 +22,11 @@ public class HomeController {
         this.tenantRepo = tenantRepo;
         this.templateRepo = templateRepo;
     }
-
-
     @GetMapping("/home")
     public String showHomePage()
     {
         return "home";
     }
-
-
-
-
-
     @GetMapping("/certificati")
     public String insertCertificate(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
