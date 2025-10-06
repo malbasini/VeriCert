@@ -10,12 +10,13 @@
 <br>
 <div class="container mt-5">
     <div class="row">
-        <div class=" alert alert-success col-md-12" style="text-align: center;" role="alert">
+        <div id="div1" class="alert alert-success col-md-12" style="text-align: center; visibility: hidden;" role="alert">
             Registrazione avvenuta con successo
         </div>
     </div>
     <br>
     <h2 class="mb-3">Signup</h2>
+    <br>
     <div class="input-group mb-3">
             <label for="username" class="input-group-text" id="inputGroup-sizing-sm">Username</label>
             <input type="text" id="username" class="form-control" placeholder="Username" name="username" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
@@ -25,12 +26,19 @@
             <input type="text" class="form-control" placeholder="Nome tenant" id="tenant" name="nometenant" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
     </div>
     <div class="input-group mb-3">
-        <label for="email" class="input-group-text" id="inputGroup-sizing-sm4">Email</label>
+        <label for="email" class="input-group-text" id="inputGroup-sizing-sm1">Email</label>
         <input type="email" id="email" class="form-control"  placeholder="Email" name="email" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
-        <br>
-        <div class="g-recaptcha col-sm-5" th:attr="data-sitekey=${@captchaSettings.getSite()}"></div>
-        <br>
-        <button type="button" onclick="signup()" class="btn btn-outline-primary form-control">Signup</button>
+        <button type="button" onclick="signup()" class="btn btn-primary form-control">Signup</button>
+    </div>
+    <br>
+    <div class="input-group mb-3">
+         <div class="row">
+             <div class="col-md-4"></div>
+             <div class="col-md4">
+                <div class="g-recaptcha" th:attr="data-sitekey=${@captchaSettings.getSite()}"></div>
+             </div>
+             <div class="col-md-4"></div>
+         </div>
     </div>
     <br>
     <hr>
@@ -44,6 +52,8 @@
         const password = document.getElementById("password").value;
         const tenant = document.getElementById("tenant").value;
         const email = document.getElementById("email").value;
+        const div = document.getElementById("div1");
+
 
         const response = await fetch(`${API_BASE}/signup`,{
             method: "POST",
@@ -77,13 +87,14 @@
                     <b>Username:</b> ${data.username}<br>
                     <b>Email:</b> ${data.email}<br>
                     <b>Ruolo:</b> ${data.role}<br>
-
                 </div>
             `;
         }
         else {
             resultDiv.innerHTML = `<div class="alert alert-danger">❌ Si è verificato un errore</div>`;
+            return;
         }
+        div.style.visibility = "visible";
     }
 </script>
 </body>
