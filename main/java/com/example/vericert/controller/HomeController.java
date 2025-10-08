@@ -53,7 +53,7 @@ public class HomeController {
     @GetMapping("/verify")
     public String VerifyCertificate() {
         // Ritorna la vista
-        return "verification/result";
+        return "verification/resultJson";
     }
 
 

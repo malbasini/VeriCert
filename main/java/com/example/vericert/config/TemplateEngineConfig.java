@@ -6,24 +6,20 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
-
+@Primary
 @Configuration
 public class TemplateEngineConfig {
 
     @Bean
-    @Primary
-    public TemplateEngine stringTemplateEngine() {
-        TemplateEngine engine = new TemplateEngine();
-        StringTemplateResolver resolver = new StringTemplateResolver();
-        resolver.setTemplateMode("HTML"); // puoi usare anche "HTML5"
-        resolver.setCacheable(false);     // utile in sviluppo, evita cache
+    public org.thymeleaf.TemplateEngine dbTemplateEngine() {
+        var resolver = new org.thymeleaf.templateresolver.StringTemplateResolver();
+        resolver.setTemplateMode("HTML");
+        resolver.setCacheable(false);
+        var engine = new org.thymeleaf.TemplateEngine();
         engine.setTemplateResolver(resolver);
         return engine;
     }
 
 
-    // Opzionale: Configura la mappatura della home senza controller
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("home");
-    }
+
 }

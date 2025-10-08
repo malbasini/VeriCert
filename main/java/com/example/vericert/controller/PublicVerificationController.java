@@ -5,20 +5,21 @@ import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/v")
+@RequestMapping()
 public class PublicVerificationController {
 
     private final VerificationTokenRepository verificationRepo;
     private final CertificateRepository certificateRepo;
 
     public PublicVerificationController(VerificationTokenRepository verificationRepo,
-                                  CertificateRepository certificateRepo) {
+                                        CertificateRepository certificateRepo) {
         this.verificationRepo = verificationRepo;
         this.certificateRepo = certificateRepo;
     }
@@ -27,7 +28,7 @@ public class PublicVerificationController {
      * Verifica pubblica del certificato tramite codice QR
      * Esempio: GET /v/ABC123XYZ
      */
-    @GetMapping("/{code}")
+    @GetMapping(value="/v/{code}", produces= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> verifyCertificate(@PathVariable("code") String code) {
         Optional<VerificationToken> tokenOpt = verificationRepo.findByCode(code);
 
@@ -50,7 +51,7 @@ public class PublicVerificationController {
                 certificate.getOwnerName(),
                 certificate.getOwnerEmail(),
                 certificate.getCourseCode(),
-                certificate.getIssuedAt().toString().format("dd-MM-yyyy HH:mm:ss")
+                certificate.getIssuedAt().toString()
         ));
     }
 
@@ -63,7 +64,7 @@ public class PublicVerificationController {
             String issueDate
     ) {}
 
-    @GetMapping("/codes")
+    @GetMapping("/v/codes")
     public ResponseEntity<?> getValidCodes() {
         var codes = verificationRepo.findAll().stream()
                 .map(VerificationToken::getCode)

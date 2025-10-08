@@ -10,4 +10,6 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
     Optional<Tenant> findIdByName(String name);
 
     Tenant findByName(String tenantName);
+
+    Tenant getTenantById(Long id);
 }

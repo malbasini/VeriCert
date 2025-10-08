@@ -2,6 +2,7 @@ package com.example.vericert.config;
 
 
 import com.example.vericert.service.CustomUserDetailsService;
+import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -91,5 +92,10 @@ public class SecurityConfig {
         jdbcTokenRepository.setDataSource(dataSource);
         jdbcTokenRepository.setCreateTableOnStartup(false); // Da usare solo la prima volta con true
         return jdbcTokenRepository;
+    }
+    @Bean
+    @ConfigurationPropertiesBinding
+    public VericertProps vericertProps() {
+        return new VericertProps();
     }
 }

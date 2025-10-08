@@ -1,5 +1,6 @@
 package com.example.vericert.service;
 
+import com.example.vericert.config.VericertProps;
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.Tenant;
@@ -36,16 +37,19 @@ public class CertificateService {
     private final TemplateService templateService;
     private final TenantRepository tenantRepo; // usa l'opzione A, o cambia tipo se usi Plain
 
+    private final VericertProps props;
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
                               TemplateService templateService,
-                              TenantRepository tenantRepo){
+                              TenantRepository tenantRepo,
+                              VericertProps props){
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
         this.templateService = templateService;
         this.tenantRepo = tenantRepo;
+        this.props = props;
     }
 
     @Transactional
@@ -56,7 +60,7 @@ public class CertificateService {
         Long tenantId = tenantRepo.findByName(tenantName).getId();
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = randomCode(24);
-        String verifyUrl = baseUrl + "/v/" + code;
+        String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
         Map<String,Object> sys = new HashMap<>();
@@ -80,7 +84,7 @@ public class CertificateService {
         c.setCourseCode(courseCode);
         c.setPdfUrl(pdfUrl);
         c.setSha256(sha);
-        Tenant tenant = tenantRepo.getById(tenantId);
+        Tenant tenant = tenantRepo.getTenantById(tenantId);
         c.setTenant(tenant);
         c = certRepo.save(c);
         VerificationToken t = new VerificationToken();
