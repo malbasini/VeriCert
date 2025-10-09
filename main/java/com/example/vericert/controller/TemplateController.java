@@ -26,14 +26,14 @@ public class TemplateController {
     @GetMapping("/{id}/variables")
     public ResponseEntity<?> getVariables(@PathVariable Long id) throws Exception {
         Template tpl = repo.findById(id).orElseThrow();
-        List<String> required = readRequiredVars(tpl.getVariables_json());
+        List<String> required = readRequiredVars(tpl.getVariablesJson());
         return ResponseEntity.ok(Map.of("required", required));
     }
 
     @PostMapping("/{id}/check-variables")
     public ResponseEntity<?> checkVariables(@PathVariable Long id, @RequestBody Map<String,Object> vars) throws Exception {
         Template tpl = repo.findById(id).orElseThrow();
-        List<String> required = readRequiredVars(tpl.getVariables_json());
+        List<String> required = readRequiredVars(tpl.getVariablesJson());
 
         List<String> missing = new ArrayList<>();
         for (String key : required) {

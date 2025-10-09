@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><title>Template · VeriCert</title>
+
+</head>
+<body onload="load()">
+<div th:replace="common/base :: headerFragment"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3>Template</h3>
+    </div>
+    <div id="msg"></div>
+    <table class="table table-hover">
+        <thead><tr>
+            <th>ID</th><th>Nome</th><th>Versione</th><th>Attivo</th><th>Updated</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+    </table>
+    <div id="result"></div>
+<script>
+    function msg(html, cls="info") {
+        document.getElementById("msg").innerHTML =
+            `<div class="alert alert-${cls} my-2">${html}</div>`;
+    }
+    const API_BASE = "http://localhost:8080";
+    async function load() {
+        const tbody = document.getElementById('rows');
+        tbody.innerHTML = '';
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/templates`, { headers: { 'Accept': 'application/json' } });
+
+            // 1) non ok -> mostra errore
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                // se è una pagina HTML (login), avvisa
+                const ct = res.headers.get('Content-Type') || '';
+                if (ct.includes('text/html')) {
+                    msg('Sei stato reindirizzato al login. Effettua l’accesso e riprova.', 'warning');
+                    return;
+                }
+                msg(`Errore ${res.status}: ${text || 'Impossibile caricare i template'}`, 'danger');
+                return;
+            }
+
+            // 2) content-type deve essere JSON
+            const ct = (res.headers.get('Content-Type') || '').toLowerCase();
+            if (!ct.includes('application/json')) {
+                const text = await res.text().catch(() => '');
+                msg('La risposta non è JSON. Forse sei loggato? Prova a ricaricare la pagina.', 'warning');
+                console.error('Risposta non-JSON:', text);
+                return;
+            }
+
+            // 3) parse sicuro
+            let page;
+            try {
+                page = await res.json();
+            } catch (e) {
+                const raw = await res.text().catch(()=>'');
+                console.error('JSON parse error. Body:', raw);
+                msg('Errore nel parsing della risposta dal server.', 'danger');
+                return;
+            }
+
+            // 4) struttura attesa: { content: [...] }
+            const items = Array.isArray(page.content) ? page.content : [];
+            if (items.length === 0) {
+                msg('Nessun template trovato.', 'info');
+                return;
+            }
+
+            // 5) render righe
+            for (const t of items) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td>${t.id ?? ''}</td>
+          <td>${t.name ?? ''}</td>
+          <td>${t.version ?? ''}</td>
+          <td>${t.active ? '✅' : ''}</td>
+          <td>${t.updatedAt ?? ''}</td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-outline-secondary" href="http://localhost:8080/api/admin/templates/${t.id}/edit">Modifica</a>
+            <button class="btn btn-sm btn-outline-success" onclick="activateTpl(${t.id})">Attiva</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="delTpl(${t.id})">Elimina</button>
+          </td>`;
+                tbody.appendChild(tr);
+            }
+
+            msg(`Caricati ${items.length} template.`, 'success');
+        } catch (err) {
+            console.error(err);
+            msg('Errore di rete o JS. Vedi console.', 'danger');
+        }
+    }
+
+    async function activateTpl(id){
+        if (!confirm('Attivare questo template?')) return;
+        const res = await fetch(`${API_BASE}/api/admin/templates/${id}/activate`, { method:'POST' });
+        if (!res.ok) return msg('Errore attivazione', 'danger');
+        msg('Template attivato', 'success');
+        load();
+    }
+    async function delTpl(id){
+        if (!confirm('Eliminare?')) return;
+        const res = await fetch(`${API_BASE}/api/admin/templates/${id}`, { method:'DELETE' });
+        if (!res.ok) return msg('Errore eliminazione', 'danger');
+        msg('Template eliminato', 'success');
+    }
+    async function createTemplate() {
+
+        const API_BASE = "http://localhost:8080/api/admin/templates";
+
+        const div = document.getElementById("create").value;
+        const name = document.getElementById("name").value.trim();
+        const version = document.getElementById("version").value.trim();
+        const html = document.getElementById("html").value.trim();
+        const variablesJson = document.getElementById("variablesJson").value.trim();
+        const active = document.getElementById("active").checked;
+        div.style.visibility = "visible";
+        const response = await fetch(`${API_BASE}/new`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                version: version,
+                html: html,
+                variablesJson: variablesJson,
+                active: active
+            })
+        });
+        const resultDiv = document.getElementById("result");
+        const data = await response.json();
+        if(!response.ok)
+        {
+            // Esempio: mostra il primo errore per campo
+            const errors = data.errors || {};
+            alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
+            return;
+        }
+        else
+        {
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    ✅ <b>Template creato con successo</b><br>
+                    <b>ID:</b> ${data.id}<br>
+                    <b>Nome:</b> ${data.name}<br>
+                    <b>Versione:</b> ${data.version}<br>
+                    <b>Attivo:</b> ${data.active}<br>
+                </div>
+            `;
+        }
+    }
+</script>
+</body>
+<div th:replace="common/footer :: footerFragment"></div>
+<!-- qui potresti caricare i file JS di Bootstrap, se serve -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</html>

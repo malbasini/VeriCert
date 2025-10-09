@@ -36,7 +36,6 @@ public class CertificateService {
     private final VerificationTokenRepository tokRepo;
     private final TemplateService templateService;
     private final TenantRepository tenantRepo; // usa l'opzione A, o cambia tipo se usi Plain
-
     private final VericertProps props;
 
     public CertificateService(CertificateRepository certRepo,
@@ -63,14 +62,17 @@ public class CertificateService {
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
-        Map<String,Object> sys = new HashMap<>();
-        sys.put("SERIAL", serial);
-        sys.put("VERIFY_URL", verifyUrl);
-        sys.put("QR_BASE64", qrBase64);
         vars.put("ownerName", ownerName);
         vars.put("ownerEmail", ownerEmail);
         vars.put("courseCode", courseCode);
-        String html = templateService.renderHtml(templateId, vars, sys);
+
+        Map<String,Object> sysVars = Map.of(
+                "serial", serial,
+                "verifyUrl", verifyUrl,
+                "qrBase64", qrBase64,
+                "issueDate", Instant.now()
+        );
+        String html = templateService.renderHtml(templateId, vars, sysVars);
         byte[] pdf = PdfUtil.htmlToPdf(html);
         String sha = HashUtil.sha256Hex(pdf);
         Files.createDirectories(Paths.get(storagePath));

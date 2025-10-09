@@ -1,7 +1,6 @@
 package com.example.vericert.domain;
 
 
-import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Filter;
 
@@ -10,27 +9,41 @@ import java.time.Instant;
 @Entity
 @Table(name="template")
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-public class Template extends BaseTenantEntity {
-    @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+public class Template {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable=false)
-    private String name;
-    @Column(nullable=false)
-    private String version;
-    @Lob
-    @Column(name = "html", nullable = false, columnDefinition = "TEXT")
-    private String html;
-    @Column(name="variables_json", nullable=false)
-    private String variablesJson;
-    @Column(nullable=false, columnDefinition = "boolean default true")
-    private boolean active;
-    @Column(name="created_at",nullable=false)
-    private Instant createdAt = Instant.now();
 
-    @ManyToOne
-    @JoinColumn(name = "tenant_id",nullable = false)
+    @ManyToOne(fetch=FetchType.LAZY, optional=false)
+    @JoinColumn(name="tenant_id", nullable=false)
     private Tenant tenant;
+
+    @Column(nullable=false, length=120)
+    private String name;
+
+    @Column(nullable=false, length=20)
+    private String version;      // es. "v1", "2025-10-06.1"
+
+    @Lob @Column(columnDefinition="TEXT", nullable=false)
+    private String html;
+
+    @Column(name="variables_json", columnDefinition="JSON")
+    private String variablesJson; // ["ownerName","courseName",...]
+
+    @Column(nullable=false)
+    private boolean active = false;
+
+    @Column(name="created_at") private Instant createdAt = Instant.now();
+    @Column(name="updated_at") private Instant updatedAt = Instant.now();
+
+    @PreUpdate void touch(){ this.setUpdatedAt(Instant.now()); }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public Tenant getTenant() {
         return tenant;
@@ -38,13 +51,6 @@ public class Template extends BaseTenantEntity {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
-    }
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -71,12 +77,12 @@ public class Template extends BaseTenantEntity {
         this.html = html;
     }
 
-    public String getVariables_json() {
+    public String getVariablesJson() {
         return variablesJson;
     }
 
-    public void setVariables_json(String variables_json) {
-        this.variablesJson = variables_json;
+    public void setVariablesJson(String variablesJson) {
+        this.variablesJson = variablesJson;
     }
 
     public boolean isActive() {
@@ -87,12 +93,19 @@ public class Template extends BaseTenantEntity {
         this.active = active;
     }
 
-    public Instant getCreated_at() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreated_at(Instant created_at) {
-        this.createdAt = created_at;
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

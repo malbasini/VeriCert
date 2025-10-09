@@ -8,6 +8,8 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import java.util.HashMap;
 import java.util.Map;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 @Service
 public class TemplateService {
@@ -22,11 +24,13 @@ public class TemplateService {
 
     public String renderHtml(Long templateId, Map<String, Object> userVars, Map<String, Object> sysVars) {
         Template tpl = templates.findById(templateId).orElseThrow();
+        // sanitize opzionale
+        String html = Jsoup.clean(tpl.getHtml(), Safelist.relaxed().addTags("img","style").addAttributes("img","src"));
         var ctx = new Context();
         Map<String,Object> model = new HashMap<>();
         if (userVars != null) model.putAll(userVars);
         if (sysVars  != null) model.putAll(sysVars);
         ctx.setVariables(model);
-        return stringTemplateEngine.process(tpl.getHtml(), ctx); // processa LA STRINGA
+        return stringTemplateEngine.process(html, ctx); // processa LA STRINGA
     }
 }

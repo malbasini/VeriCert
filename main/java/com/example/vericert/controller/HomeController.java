@@ -55,6 +55,16 @@ public class HomeController {
         // Ritorna la vista
         return "verification/resultJson";
     }
+    @GetMapping("/api/admin/templates/view")
+    public String Template() {
+        // Ritorna la vista
+        return "admin/templates";
+    }
+    @GetMapping("/api/admin/templates/create")
+    public String CreateTemplate() {
+        // Ritorna la vista
+        return "admin/create";
+    }
 
 
 
