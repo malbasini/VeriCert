@@ -4,11 +4,16 @@
     <meta charset="UTF-8"><title>Template · VeriCert</title>
 
 </head>
-<body onload="load()">
+<body>
 <div th:replace="common/base :: headerFragment"></div>
     <div class="d-flex justify-content-between align-items-center mb-3">
+        <br>
+        <br>
         <h3>Template</h3>
+        <br>
+        <button class="btn btn-primary" onclick="window.location.href='/api/admin/templates/create'">Nuovo template</button>
     </div>
+    <br>
     <div id="msg"></div>
     <table class="table table-hover">
         <thead><tr>
@@ -22,12 +27,12 @@
         document.getElementById("msg").innerHTML =
             `<div class="alert alert-${cls} my-2">${html}</div>`;
     }
-    const API_BASE = "http://localhost:8080";
+
     async function load() {
         const tbody = document.getElementById('rows');
         tbody.innerHTML = '';
         try {
-            const res = await fetch(`${API_BASE}/api/admin/templates`, { headers: { 'Accept': 'application/json' } });
+            const res = await fetch('/api/admin/templates', { headers: { 'Accept': 'application/json' } });
 
             // 1) non ok -> mostra errore
             if (!res.ok) {
@@ -79,7 +84,7 @@
           <td>${t.active ? '✅' : ''}</td>
           <td>${t.updatedAt ?? ''}</td>
           <td class="text-end">
-            <a class="btn btn-sm btn-outline-secondary" href="http://localhost:8080/api/admin/templates/${t.id}/edit">Modifica</a>
+            <a class="btn btn-sm btn-outline-secondary" href="/admin/templates/${t.id}/edit">Modifica</a>
             <button class="btn btn-sm btn-outline-success" onclick="activateTpl(${t.id})">Attiva</button>
             <button class="btn btn-sm btn-outline-danger" onclick="delTpl(${t.id})">Elimina</button>
           </td>`;
@@ -95,63 +100,20 @@
 
     async function activateTpl(id){
         if (!confirm('Attivare questo template?')) return;
-        const res = await fetch(`${API_BASE}/api/admin/templates/${id}/activate`, { method:'POST' });
+        const res = await fetch(`/api/admin/templates/${id}/activate`, { method:'POST' });
         if (!res.ok) return msg('Errore attivazione', 'danger');
         msg('Template attivato', 'success');
         load();
     }
     async function delTpl(id){
         if (!confirm('Eliminare?')) return;
-        const res = await fetch(`${API_BASE}/api/admin/templates/${id}`, { method:'DELETE' });
+        const res = await fetch(`/api/admin/templates/${id}`, { method:'DELETE' });
         if (!res.ok) return msg('Errore eliminazione', 'danger');
         msg('Template eliminato', 'success');
+        load();
     }
-    async function createTemplate() {
-
-        const API_BASE = "http://localhost:8080/api/admin/templates";
-
-        const div = document.getElementById("create").value;
-        const name = document.getElementById("name").value.trim();
-        const version = document.getElementById("version").value.trim();
-        const html = document.getElementById("html").value.trim();
-        const variablesJson = document.getElementById("variablesJson").value.trim();
-        const active = document.getElementById("active").checked;
-        div.style.visibility = "visible";
-        const response = await fetch(`${API_BASE}/new`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: name,
-                version: version,
-                html: html,
-                variablesJson: variablesJson,
-                active: active
-            })
-        });
-        const resultDiv = document.getElementById("result");
-        const data = await response.json();
-        if(!response.ok)
-        {
-            // Esempio: mostra il primo errore per campo
-            const errors = data.errors || {};
-            alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
-            return;
-        }
-        else
-        {
-            resultDiv.innerHTML = `
-                <div class="alert alert-success">
-                    ✅ <b>Template creato con successo</b><br>
-                    <b>ID:</b> ${data.id}<br>
-                    <b>Nome:</b> ${data.name}<br>
-                    <b>Versione:</b> ${data.version}<br>
-                    <b>Attivo:</b> ${data.active}<br>
-                </div>
-            `;
-        }
-    }
+    // avvia al DOM pronto
+    document.addEventListener('DOMContentLoaded', load);
 </script>
 </body>
 <div th:replace="common/footer :: footerFragment"></div>

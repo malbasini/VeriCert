@@ -21,9 +21,13 @@
     </div>
     <div class="input-group mb-3">
         <span class="input-group-text" id="inputGroup-sizing-sm2">Variables Json</span>
-        <input type="text" id="variablesJson" class="form-control" placeholder="Variables Json" name="variablesJson" aria-label="Small" aria-describedby="inputGroup-sizing-sm2">
-        <span class="input-group-text" id="inputGroup-sizing-sm3">Active</span>
-        <input type="checkbox" id="active" name="active" aria-label="Small" aria-describedby="inputGroup-sizing-sm3">
+        <input type="text" id="variablesJson" class="form-control mr-5" placeholder="Variables Json" name="variablesJson" aria-label="Small" aria-describedby="inputGroup-sizing-sm2">
+        <div class="form-check">
+            <label class="form-check-label" for="active">
+                Active
+            </label>
+            <input class="form-check-input sm-4" type="checkbox" value="" id="active" name="active">
+        </div>
     </div>
     <div class="input-group mb-3">
         <button class="btn btn-outline-primary" onclick="createTemplate()">Crea Template</button>
