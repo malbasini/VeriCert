@@ -29,10 +29,9 @@ public class TemplateAdminService {
         t.setVersion(req.version());
         t.setHtml(sanitize(req.html()));
         t.setVariablesJson(normalizeVars(req.variablesJson()));
-        t.setActive(false);
+        t.setActive(req.active());
         t = repo.save(t);
 
-        if (req.active()) { activate(t.getId()); }
         return t;
     }
 
@@ -44,11 +43,8 @@ public class TemplateAdminService {
         t.setVersion(req.version());
         t.setHtml(sanitize(req.html()));
         t.setVariablesJson(normalizeVars(req.variablesJson()));
-        t.setActive(false);
-        if (req.active()) { // attiva solo alla fine
-            repo.save(t);
-            activate(id);
-        }
+        t.setActive(req.active());
+        repo.save(t);
         return t;
     }
 

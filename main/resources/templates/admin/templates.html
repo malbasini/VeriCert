@@ -84,7 +84,7 @@
           <td>${t.active ? '✅' : ''}</td>
           <td>${t.updatedAt ?? ''}</td>
           <td class="text-end">
-            <a class="btn btn-sm btn-outline-secondary" href="/admin/templates/${t.id}/edit">Modifica</a>
+            <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='/api/admin/templates/${t.id}/update'">Modifica</a>
             <button class="btn btn-sm btn-outline-success" onclick="activateTpl(${t.id})">Attiva</button>
             <button class="btn btn-sm btn-outline-danger" onclick="delTpl(${t.id})">Elimina</button>
           </td>`;

@@ -1,6 +1,7 @@
 package com.example.vericert.controller;
 
 
+import com.example.vericert.domain.Template;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CustomUserDetails;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -64,6 +66,15 @@ public class HomeController {
     public String CreateTemplate() {
         // Ritorna la vista
         return "admin/create";
+    }
+    @GetMapping("/api/admin/templates/{id}/update")
+    public String updateTemplate(@PathVariable(name="id") Long id, Model model) {
+        Template template = templateRepo.findById(id).orElseThrow();
+        if(template.isActive())
+            template.setActive(true);
+        // Ritorna la vista
+        model.addAttribute("template", template);
+        return "admin/update";
     }
 
 

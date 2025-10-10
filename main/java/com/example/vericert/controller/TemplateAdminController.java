@@ -63,7 +63,6 @@ public class TemplateAdminController {
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
         }
         var t = service.create(req);
-        //return ResponseEntity.status(HttpStatus.CREATED).body(new IdResponse(t.getId()));
 
         return ResponseEntity.ok(new TemplateAdminController.VerificationResponse(
                 t.getId().toString(),
@@ -83,10 +82,34 @@ public class TemplateAdminController {
     ) {}
 
     @PutMapping("/{id}/edit")
-    public IdResponse update(@PathVariable(name = "id") Long id, @Valid @RequestBody TemplateUpsert req) {
+    public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
+                              @Valid @RequestBody TemplateUpsert req,
+                             BindingResult br) {
+        if (br.hasErrors()) {
+            var errors = br.getFieldErrors().stream()
+                    .collect(Collectors.groupingBy(
+                            fe -> fe.getField(),
+                            Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
+                    ));
+            return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
+        }
         var t = service.update(id, req);
-        return new IdResponse(t.getId());
+        return ResponseEntity.ok(new TemplateAdminController.VerificationUpdateResponse(
+                t.getId().toString(),
+                t.getName(),
+                t.getVersion(),
+                t.isActive(),
+                t.getTenant().getName()
+        ));
     }
+    // DTO interno alla risposta
+    record VerificationUpdateResponse(
+            String id,
+            String name,
+            String version,
+            boolean active,
+            String tenant
+    ) {}
 
     @PostMapping("/{id}/activate")
     public ResponseEntity<Void> activate(@PathVariable Long id) {

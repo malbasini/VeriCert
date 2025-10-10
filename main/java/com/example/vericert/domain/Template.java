@@ -30,7 +30,7 @@ public class Template {
     private String variablesJson; // ["ownerName","courseName",...]
 
     @Column(nullable=false)
-    private boolean active = false;
+    private boolean active;
 
     @Column(name="created_at") private Instant createdAt = Instant.now();
     @Column(name="updated_at") private Instant updatedAt = Instant.now();
