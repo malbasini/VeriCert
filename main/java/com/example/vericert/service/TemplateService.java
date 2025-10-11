@@ -25,7 +25,7 @@ public class TemplateService {
     public String renderHtml(Long templateId, Map<String, Object> userVars, Map<String, Object> sysVars) {
         Template tpl = templates.findById(templateId).orElseThrow();
         // sanitize opzionale
-        String html = Jsoup.clean(tpl.getHtml(), Safelist.relaxed().addTags("img","style").addAttributes("img","src"));
+        String html = tpl.getHtml();
         var ctx = new Context();
         Map<String,Object> model = new HashMap<>();
         if (userVars != null) model.putAll(userVars);

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" ></meta>
+    <title>Certificato</title>
+    <style>
+        /* Header: invece di flex */
+        header {
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 24px;
+            margin-bottom: 64px;
+        }
+        .brand, .meta { display: inline-block; vertical-align: top; }
+        .brand { width: 60%; }
+        .meta { width: 38%; text-align: right; color: #6c757d; font-size: 10pt; }
+
+        .logo {
+            width: 38px; height: 38px; border-radius: 10px; background: #0d6efd;
+            display: inline-block; vertical-align: middle; margin-right: 10px;
+        }
+        .brand h1 { font-size: 18pt; display:inline-block; vertical-align: middle; margin:0; }
+        .brand small { display:block; color:#6c757d; }
+
+        /* Card */
+        .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 40px; margin-bottom: 40px; }
+
+        /* Row/col senza flex */
+        .row { font-size: 0; }        /* hack per spazi inline-block */
+        .col { display: inline-block; vertical-align: top; width: 48%; font-size: 12pt; }
+        .col + .col { margin-left: 4%; }
+
+        .kv { margin: 12px 0; }
+        .kv label { display:block; font-size: 9pt; color:#6c757d; }
+        .kv .v { font-size: 12pt; font-weight: 600; }
+
+        /* Pill */
+        .pill {
+            display:inline-block; padding: 2px 8px; border-radius: 999px;
+            background:#eef2ff; color:#3730a3; font-size:10pt; font-weight:600;
+            border: 1px solid #dbe4ff;
+        }
+
+        /* Box verifica */
+        .verify { background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding: 32px; }
+        .verify .qr, .verify .info { display:inline-block; vertical-align: top; }
+        .verify .qr { width: 140px; }
+        .verify .qr img { width: 120px; height: 120px; }
+        .verify .info { width: 70%; margin-left: 24px; }
+        .verify .link { color:#198754; font-weight: 600; word-break: break-all; }
+
+        /* Firma */
+        .sign .sigline {
+            display:inline-block; width: 240px; border-top:1px solid #222; text-align:center;
+            padding-top: 8px; font-size:10pt; margin-right: 40px;
+        }
+
+        /* Footer assoluto */
+        footer {
+            position:absolute; left:84px; right:84px; bottom:56px;
+            display:block; color:#6c757d; font-size:9pt;
+        }
+        footer .left { float:left; }
+        footer .right { float:right; }
+
+        /* Monospace seriale */
+        .serial {
+            font-family: Consolas, "Liberation Mono", monospace;
+            background:#f1f5f9; padding: 2px 6px; border-radius:6px; border:1px solid #e5e7eb;
+        }
+
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <header>
+        <div class="brand">
+            <span class="logo"></span>
+            <h1>VeriCert</h1>
+            <small>Attestato digitale verificabile</small>
+        </div>
+        <div class="meta">
+            <div>Seriale: <span class="serial" th:text="${serial}">ABC-123</span></div>
+            <div>Emesso il: <span th:text="${issueDate}">01/01/2025</span></div>
+        </div>
+    </header>
+
+    <section class="card">
+        <h2 style="margin:0 0 12px 0; font-size:24pt;">Certificato di Completamento</h2>
+        <p style="margin:0 0 24px 0;">Si attesta che il candidato ha completato con profitto il seguente percorso.</p>
+
+        <div class="row">
+            <div class="col">
+                <div class="kv">
+                    <label>Intestatario</label>
+                    <div class="v" th:text="${ownerName}">Nome Cognome</div>
+                </div>
+                <div class="kv">
+                    <label>Corso</label>
+                    <div class="v" th:text="${courseName}">Titolo del Corso</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="kv">
+                    <label>Codice Corso</label>
+                    <div class="v"><span class="pill" th:text="${courseCode}">COURSE-001</span></div>
+                </div>
+                <div class="kv">
+                    <label>Ore / Esito</label>
+                    <div class="v">
+                        <span th:text="${hours}">12</span><span> ore — </span><span th:text="${grade}">A</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="verify">
+        <div class="qr">
+            <img alt="QR" th:src="'data:image/png;base64,' + ${qrBase64}" ></img>
+        </div>
+        <div class="info">
+            <div><strong>Verifica pubblica</strong></div>
+            <small>Inquadra il QR oppure visita:</small><br/>
+            <div class="link" th:text="${verifyUrl}">https://example.org/v/ABC123</div>
+            <div style="margin-top:6px">
+                <small>Seriale: <span class="serial" th:text="${serial}">ABC-123</span></small>
+            </div>
+        </div>
+    </section>
+
+    <section class="sign" style="margin-top:48px;">
+        <div class="sigline">
+            <div>Firma Digitale</div>
+            <small th:text="${issuerName}">Responsabile</small>
+        </div>
+        <div class="sigline">
+            <div th:text="${issuerOrg}">VeriCert</div>
+            <small>Autorità Emettente</small>
+        </div>
+    </section>
+
+    <footer>
+        <div class="left">© <span th:text="${year}">2025</span> · <span th:text="${issuerOrg}">VeriCert</span></div>
+        <div class="right">Questo attestato è verificabile online.</div>
+        <div style="clear:both"></div>
+    </footer>
+
+</div>
+</body>
+</html>

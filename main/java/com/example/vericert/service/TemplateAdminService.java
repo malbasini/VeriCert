@@ -27,8 +27,9 @@ public class TemplateAdminService {
         t.setTenant(tenantService.ref(tenantId));
         t.setName(req.name());
         t.setVersion(req.version());
-        t.setHtml(sanitize(req.html()));
-        t.setVariablesJson(normalizeVars(req.variablesJson()));
+        String cleaned = HtmlSanitizers.TEMPLATE_POLICY.sanitize(req.html());
+        t.setHtml(req.html());
+        //t.setVariablesJson(normalizeVars(req.variablesJson()));
         t.setActive(req.active());
         t = repo.save(t);
 
@@ -41,7 +42,7 @@ public class TemplateAdminService {
         Template t = repo.findByTenantIdAndId(tenantId, id).orElseThrow();
         t.setName(req.name());
         t.setVersion(req.version());
-        t.setHtml(sanitize(req.html()));
+        t.setHtml(req.html());
         t.setVariablesJson(normalizeVars(req.variablesJson()));
         t.setActive(req.active());
         repo.save(t);

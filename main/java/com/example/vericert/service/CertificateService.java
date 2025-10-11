@@ -11,12 +11,17 @@ import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.util.HashUtil;
 import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -52,7 +57,7 @@ public class CertificateService {
     }
 
     @Transactional
-    public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, String courseCode) throws IOException {
+    public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, String courseCode) throws Exception {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
@@ -62,22 +67,18 @@ public class CertificateService {
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
-        vars.put("ownerName", ownerName);
-        vars.put("ownerEmail", ownerEmail);
-        vars.put("courseCode", courseCode);
-
-        Map<String,Object> sysVars = Map.of(
-                "serial", serial,
-                "verifyUrl", verifyUrl,
-                "qrBase64", qrBase64,
-                "issueDate", Instant.now()
-        );
-        String html = templateService.renderHtml(templateId, vars, sysVars);
+        Map<String,Object> sysVars = buildSysVarsForCertificate(code,serial,verifyUrl,qrBase64);
+        Map<String,Object> userVars = new HashMap<>();
+        userVars.put("ownerName", ownerName);
+        userVars.put("courseName", "Spring Boot");
+        userVars.put("courseCode", courseCode);
+        userVars.put("hours", 100);
+        userVars.put("grade", "A");
+        String html = templateService.renderHtml(templateId, userVars, sysVars);
         byte[] pdf = PdfUtil.htmlToPdf(html);
         String sha = HashUtil.sha256Hex(pdf);
         Files.createDirectories(Paths.get(storagePath));
         String pdfUrl = savePdf(serial, pdf);
-
         Certificate c = new Certificate();
         c.setTenantId(tenantId);
         c.setSerial(serial);
@@ -133,5 +134,28 @@ public class CertificateService {
     }
     private void audit(String actor, String action, String entity, String entityId, Map<String,Object> payload) {
         // puoi persistere in audit_log (omesso per brevità) o loggare in JSON
+    }
+
+    public Map<String,Object> buildSysVarsForCertificate(String code, String serial, String verifyUrl, String qrBase64) {
+        Map<String,Object> sys = new HashMap<>();
+        sys.put("serial", serial);
+        sys.put("verifyUrl", verifyUrl);
+        sys.put("qrBase64", qrBase64);
+
+        // tenantName: se lo hai nel SecurityContext (CustomUserDetails) o da DB
+        String tenantName = "VeriCert";
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cud) {
+            tenantName = cud.getTenantName();
+            // issuerName/role opzionali
+            sys.put("issuerName", cud.getUsername());
+            sys.put("issuerRole", cud.getAuthorities().stream()
+                    .findFirst().map(GrantedAuthority::getAuthority).orElse("USER"));
+        }
+        sys.put("tenantName", tenantName);
+
+        // issuedAt (opzionale)
+        sys.put("issuedAt", java.time.Instant.now());
+        return sys;
     }
 }
