@@ -5,34 +5,33 @@
 </head>
 <body>
 <div th:replace="common/base :: headerFragment"></div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <br>
-        <br>
-        <h3>Template</h3>
-        <br>
-        <button class="btn btn-primary" onclick="window.location.href='/api/admin/templates/create'">Nuovo template</button>
-    </div>
+<div class="d-flex justify-content-between align-items-center mb-3">
     <br>
-    <div id="msg"></div>
-    <table class="table table-hover">
-        <thead><tr>
-            <th>ID</th><th>Nome</th><th>Versione</th><th>Attivo</th><th>Updated</th>
-        </tr></thead>
-        <tbody id="rows"></tbody>
-    </table>
-    <div id="result"></div>
+    <br>
+    <br>
+    <button class="btn btn-primary" onclick="window.location.href='/certificati'">Nuovo certficato</button>
+</div>
+<hr>
+<br>
+<h3>Lista certificati per tenant <th:block th:text="${tenantName}"></th:block></h3>
+<div id="msg"></div>
+<table class="table table-hover">
+    <thead><tr>
+        <th>ID</th><th>Serial</th><th>Owner</th><th>PDF Url</th><th>Status</th>
+    </tr></thead>
+    <tbody id="rows"></tbody>
+</table>
+<div id="result"></div>
 <script>
     function msg(html, cls="info") {
         document.getElementById("msg").innerHTML =
             `<div class="alert alert-${cls} my-2">${html}</div>`;
     }
-
     async function load() {
         const tbody = document.getElementById('rows');
         tbody.innerHTML = '';
         try {
-            const res = await fetch('/api/admin/templates', { headers: { 'Accept': 'application/json' } });
-
+            const res = await fetch('/api/certificates/list', { headers: { 'Accept': 'application/json' } });
             // 1) non ok -> mostra errore
             if (!res.ok) {
                 const text = await res.text().catch(() => '');
@@ -45,7 +44,6 @@
                 msg(`Errore ${res.status}: ${text || 'Impossibile caricare i template'}`, 'danger');
                 return;
             }
-
             // 2) content-type deve essere JSON
             const ct = (res.headers.get('Content-Type') || '').toLowerCase();
             if (!ct.includes('application/json')) {
@@ -54,7 +52,6 @@
                 console.error('Risposta non-JSON:', text);
                 return;
             }
-
             // 3) parse sicuro
             let page;
             try {
@@ -65,51 +62,28 @@
                 msg('Errore nel parsing della risposta dal server.', 'danger');
                 return;
             }
-
             // 4) struttura attesa: { content: [...] }
             const items = Array.isArray(page.content) ? page.content : [];
             if (items.length === 0) {
-                msg('Nessun template trovato.', 'info');
+                msg('Nessun certificato trovato.', 'info');
                 return;
             }
-
             // 5) render righe
             for (const t of items) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
           <td>${t.id ?? ''}</td>
-          <td>${t.name ?? ''}</td>
-          <td>${t.version ?? ''}</td>
-          <td>${t.active ? '✅' : ''}</td>
-          <td>${t.updatedAt ?? ''}</td>
-          <td class="text-end">
-            <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='/api/admin/templates/${t.id}/update'">Modifica</a>
-            <button class="btn btn-sm btn-outline-success" onclick="activateTpl(${t.id})">Attiva</button>
-            <button class="btn btn-sm btn-outline-danger" onclick="delTpl(${t.id})">Elimina</button>
-          </td>`;
+          <td>${t.serial ?? ''}</td>
+          <td>${t.owner ?? ''}</td>
+          <td>${t.pdfUrl ?? ''}</td>
+          <td>${t.status ?? ''}</td>`;
                 tbody.appendChild(tr);
             }
-
-            msg(`Caricati ${items.length} template.`, 'success');
+            msg(`Caricati ${items.length} certificati.`, 'success');
         } catch (err) {
             console.error(err);
             msg('Errore di rete o JS. Vedi console.', 'danger');
         }
-    }
-
-    async function activateTpl(id){
-        if (!confirm('Attivare questo template?')) return;
-        const res = await fetch(`/api/admin/templates/${id}/activate`, { method:'POST' });
-        if (!res.ok) return msg('Errore attivazione', 'danger');
-        msg('Template attivato', 'success');
-        load();
-    }
-    async function delTpl(id){
-        if (!confirm('Eliminare?')) return;
-        const res = await fetch(`/api/admin/templates/${id}`, { method:'DELETE' });
-        if (!res.ok) return msg('Errore eliminazione', 'danger');
-        msg('Template eliminato', 'success');
-        load();
     }
     // avvia al DOM pronto
     document.addEventListener('DOMContentLoaded', load);

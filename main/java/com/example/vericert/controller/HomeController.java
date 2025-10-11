@@ -77,6 +77,16 @@ public class HomeController {
         return "admin/update";
     }
 
+    @GetMapping("/certificate/list")
+    public String certificateList(Model model) {
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+        String tenantName = user.getTenantName();
+        model.addAttribute("tenantName", tenantName);
+        return "certificates/list";
+    }
+
 
 
 

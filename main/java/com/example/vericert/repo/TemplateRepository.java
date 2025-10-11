@@ -24,6 +24,4 @@ public interface TemplateRepository extends JpaRepository<Template, Long> {
     @Query("update Template t set t.active=false where t.tenant.id=:tenantId")
     void deactivateAll(@Param("tenantId") Long tenantId);
 
-    @Query("select t from Template t where t.tenant.id=:tenantId and t.active=true")
-    Optional<Template> findActive(@Param("tenantId") Long tenantId);
 }

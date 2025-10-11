@@ -3,6 +3,7 @@ package com.example.vericert.controller;
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.Tenant;
+import com.example.vericert.dto.CertificateDto;
 import com.example.vericert.dto.CreateReq;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TenantRepository;
@@ -10,6 +11,9 @@ import com.example.vericert.service.CertificateService;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.UsageService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -45,6 +49,20 @@ public class CertificateApiController {
         this.certRepo = certRepo;
     }
 
+    @GetMapping("/list")
+    public Page<CertificateDto> list(@RequestParam(defaultValue = "0") int page,
+                                     @RequestParam(defaultValue = "10") int size) {
+        Long tenantId = currentTenantId();
+        var p = certRepo.findByTenantId(tenantId,
+                PageRequest.of(page, size, Sort.by("status").ascending()));
+        return p.map(CertificateMapper::toDto);
+    }
+
+    private Long currentTenantId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
+        return user.getTenantId();
+    }
     @PostMapping()
     public ResponseEntity<?> create(@Valid @RequestBody CreateReq req, BindingResult br) throws IOException {
         if (br.hasErrors()) {
