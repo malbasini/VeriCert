@@ -17,7 +17,7 @@
 <div id="msg"></div>
 <table class="table table-hover">
     <thead><tr>
-        <th>ID</th><th>Serial</th><th>Owner</th><th>PDF Url</th><th>Status</th>
+        <th>ID</th><th>Serial</th><th>Owner</th><th>Open PDF</th><th>Status</th>
     </tr></thead>
     <tbody id="rows"></tbody>
 </table>
@@ -75,7 +75,9 @@
           <td>${t.id ?? ''}</td>
           <td>${t.serial ?? ''}</td>
           <td>${t.owner ?? ''}</td>
-          <td>${t.pdfUrl ?? ''}</td>
+          <td>
+                    <button type="button" class="btn btn-outline-primary" onclick="window.open('${encodeURI(t.pdfUrl)}','_blank','noopener')">Apri</button>
+         </td>
           <td>${t.status ?? ''}</td>`;
                 tbody.appendChild(tr);
             }
