@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -155,6 +156,7 @@ public class CertificateApiController {
     public ResponseEntity<?> getValidCodes() {
         var codes = certRepo.findAll().stream()
                 .filter(z -> z.getStatus() != Stato.REVOKED)
+                .filter(z -> Objects.equals(z.getTenant().getId(), currentTenantId()))
                 .map(Certificate::getId)
                 .toList();
         return ResponseEntity.ok(codes);

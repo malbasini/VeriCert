@@ -2,10 +2,7 @@ package com.example.vericert.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.web.servlet.config.annotation.*;
-
-import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -31,12 +28,4 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${vericert.storage.local-path}")   // es: /opt/vericert/storage/
     private String storagePath;
 
-
-    public String getStoragePath() {
-        return storagePath;
-    }
-
-    public void setStoragePath(String storagePath) {
-        this.storagePath = storagePath;
-    }
 }

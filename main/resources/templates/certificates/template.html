@@ -1,94 +1,95 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" ></meta>
+    <meta charset="UTF-8"></meta>
     <title>Certificato</title>
     <style>
-        /* Header: invece di flex */
-        header {
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 24px;
-            margin-bottom: 64px;
+        @page { size: A4; margin: 16mm; }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0; font-family: Arial, Helvetica, sans-serif; color: #1f2937; background: #ffffff;
+            font-size: 12pt; line-height: 1.35;
         }
-        .brand, .meta { display: inline-block; vertical-align: top; }
-        .brand { width: 60%; }
-        .meta { width: 38%; text-align: right; color: #6c757d; font-size: 10pt; }
-
+        .wrap { width: 100%; }
+        .header {
+            border-bottom: 2px solid #e5e7eb; padding-bottom: 8mm; margin-bottom: 10mm;
+        }
+        .brand {
+            display: inline-block; vertical-align: top;
+        }
         .logo {
-            width: 38px; height: 38px; border-radius: 10px; background: #0d6efd;
-            display: inline-block; vertical-align: middle; margin-right: 10px;
+            width: 40px; height: 40px; border-radius: 8px; background: #0ea5e9; display: inline-block;
+            margin-right: 8px; vertical-align: middle;
         }
-        .brand h1 { font-size: 18pt; display:inline-block; vertical-align: middle; margin:0; }
-        .brand small { display:block; color:#6c757d; }
-
-        /* Card */
-        .card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 40px; margin-bottom: 40px; }
-
-        /* Row/col senza flex */
-        .row { font-size: 0; }        /* hack per spazi inline-block */
-        .col { display: inline-block; vertical-align: top; width: 48%; font-size: 12pt; }
-        .col + .col { margin-left: 4%; }
-
-        .kv { margin: 12px 0; }
-        .kv label { display:block; font-size: 9pt; color:#6c757d; }
-        .kv .v { font-size: 12pt; font-weight: 600; }
-
-        /* Pill */
-        .pill {
-            display:inline-block; padding: 2px 8px; border-radius: 999px;
-            background:#eef2ff; color:#3730a3; font-size:10pt; font-weight:600;
-            border: 1px solid #dbe4ff;
+        .brand-title {
+            display: inline-block; vertical-align: middle;
+            font-size: 16pt; font-weight: 700; color: #0f172a;
         }
-
-        /* Box verifica */
-        .verify { background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding: 32px; }
-        .verify .qr, .verify .info { display:inline-block; vertical-align: top; }
-        .verify .qr { width: 140px; }
-        .verify .qr img { width: 120px; height: 120px; }
-        .verify .info { width: 70%; margin-left: 24px; }
-        .verify .link { color:#198754; font-weight: 600; word-break: break-all; }
-
-        /* Firma */
-        .sign .sigline {
-            display:inline-block; width: 240px; border-top:1px solid #222; text-align:center;
-            padding-top: 8px; font-size:10pt; margin-right: 40px;
+        .meta {
+            float: right; text-align: right; color: #6b7280; font-size: 10pt;
         }
-
-        /* Footer assoluto */
-        footer {
-            position:absolute; left:84px; right:84px; bottom:56px;
-            display:block; color:#6c757d; font-size:9pt;
+        .title { text-align: center; margin: 0 0 8mm 0; }
+        .title h1 { margin: 0; font-size: 22pt; color: #111827; }
+        .card {
+            border: 1px solid #e5e7eb; border-radius: 10px; padding: 8mm; margin-bottom: 8mm;
+            background: #ffffff;
         }
-        footer .left { float:left; }
-        footer .right { float:right; }
-
-        /* Monospace seriale */
+        .row { width: 100%; }
+        .col { width: 49%; display: inline-block; vertical-align: top; }
+        .kv { margin: 3mm 0; }
+        .kv label { display: block; font-size: 9pt; color: #6b7280; margin-bottom: 2mm; }
+        .kv .v { font-weight: 700; color: #1f2937; }
+        .verify {
+            border: 1px dashed #94a3b8; background: #f8fafc; border-radius: 10px; padding: 6mm;
+            margin-top: 6mm;
+        }
+        .qr-wrap { width: 120px; height: 120px; display: inline-block; vertical-align: top; }
+        .verify-text { display: inline-block; vertical-align: top; width: calc(100% - 130px); padding-left: 6mm; }
+        .verify-url { word-break: break-all; color: #065f46; font-weight: 700; font-size: 10pt; }
+        .sign {
+            margin-top: 12mm;
+        }
+        .sigbox {
+            display: inline-block; width: 48%; vertical-align: top; text-align: center;
+        }
+        .sigline { border-top: 1px solid #0f172a; margin-top: 20mm; padding-top: 2mm; font-size: 10pt; color: #374151; }
+        .footer {
+            margin-top: 14mm; color: #6b7280; font-size: 9pt; border-top: 1px solid #e5e7eb; padding-top: 4mm;
+            display: flex; justify-content: space-between;
+        }
         .serial {
-            font-family: Consolas, "Liberation Mono", monospace;
-            background:#f1f5f9; padding: 2px 6px; border-radius:6px; border:1px solid #e5e7eb;
+            font-family: "Courier New", Courier, monospace; background: #f3f4f6; border: 1px solid #e5e7eb;
+            padding: 2px 6px; border-radius: 6px;
         }
-
+        .pill {
+            display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 10pt; font-weight: 700;
+        }
     </style>
 </head>
 <body>
-<div class="page">
-
-    <header>
+<div class="wrap">
+    <!-- Header -->
+    <div class="header">
         <div class="brand">
             <span class="logo"></span>
-            <h1>VeriCert</h1>
-            <small>Attestato digitale verificabile</small>
+            <span class="brand-title">VeriCert</span>
         </div>
         <div class="meta">
+            <div th:text="${tenantName}">Tenant</div>
+            <div>Emesso il: <span th:text="${issuedAt}">2025-01-01</span></div>
             <div>Seriale: <span class="serial" th:text="${serial}">ABC-123</span></div>
-            <div>Emesso il: <span th:text="${issueDate}">01/01/2025</span></div>
         </div>
-    </header>
+        <div style="clear: both;"></div>
+    </div>
 
-    <section class="card">
-        <h2 style="margin:0 0 12px 0; font-size:24pt;">Certificato di Completamento</h2>
-        <p style="margin:0 0 24px 0;">Si attesta che il candidato ha completato con profitto il seguente percorso.</p>
+    <!-- Titolo -->
+    <div class="title">
+        <h1>Certificato di Completamento</h1>
+        <div class="pill">Attestato digitale verificabile</div>
+    </div>
 
+    <!-- Dati principali -->
+    <div class="card">
         <div class="row">
             <div class="col">
                 <div class="kv">
@@ -97,55 +98,54 @@
                 </div>
                 <div class="kv">
                     <label>Corso</label>
-                    <div class="v" th:text="${courseName}">Titolo del Corso</div>
+                    <div class="v" th:text="${courseName}">Titolo del corso</div>
                 </div>
             </div>
             <div class="col">
                 <div class="kv">
                     <label>Codice Corso</label>
-                    <div class="v"><span class="pill" th:text="${courseCode}">COURSE-001</span></div>
+                    <div class="v"><span th:text="${courseCode}">COURSE-001</span></div>
                 </div>
                 <div class="kv">
                     <label>Ore / Esito</label>
-                    <div class="v">
-                        <span th:text="${hours}">12</span><span> ore — </span><span th:text="${grade}">A</span>
-                    </div>
+                    <div class="v"><span th:text="${hours}">12</span> ore — <span th:text="${grade}">A</span></div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <section class="verify">
-        <div class="qr">
-            <img alt="QR" th:src="'data:image/png;base64,' + ${qrBase64}" ></img>
-        </div>
-        <div class="info">
-            <div><strong>Verifica pubblica</strong></div>
-            <small>Inquadra il QR oppure visita:</small><br/>
-            <div class="link" th:text="${verifyUrl}">https://example.org/v/ABC123</div>
-            <div style="margin-top:6px">
-                <small>Seriale: <span class="serial" th:text="${serial}">ABC-123</span></small>
+        <!-- Verifica pubblica -->
+        <div class="verify">
+            <div class="qr-wrap">
+                <img th:src="'data:image/png;base64,' + ${qrBase64}" alt="QR" style="width:120px;height:120px"></img>
+            </div>
+            <div class="verify-text">
+                <div style="font-weight:700; margin-bottom: 2mm;">Verifica pubblica</div>
+                <div style="font-size:10pt; color:#6b7280;">Inquadra il QR oppure visita:</div>
+                <div class="verify-url" th:text="${verifyUrl}">https://example.org/v/ABC123</div>
+                <div style="margin-top: 2mm; font-size:10pt;">
+                    Seriale: <span class="serial" th:text="${serial}">ABC-123</span>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <section class="sign" style="margin-top:48px;">
-        <div class="sigline">
-            <div>Firma Digitale</div>
-            <small th:text="${issuerName}">Responsabile</small>
+    <!-- Firme -->
+    <div class="sign">
+        <div class="sigbox">
+            <div class="sigline">Firma Emettitore</div>
+            <div style="font-size:9pt; color:#6b7280;">Responsabile</div>
         </div>
-        <div class="sigline">
-            <div th:text="${issuerOrg}">VeriCert</div>
-            <small>Autorità Emettente</small>
+        <div class="sigbox">
+            <div class="sigline">Firma Destinatario</div>
+            <div style="font-size:9pt; color:#6b7280;">Conferma ricezione</div>
         </div>
-    </section>
+    </div>
 
-    <footer>
-        <div class="left">© <span th:text="${year}">2025</span> · <span th:text="${issuerOrg}">VeriCert</span></div>
-        <div class="right">Questo attestato è verificabile online.</div>
-        <div style="clear:both"></div>
-    </footer>
-
+    <!-- Footer -->
+    <div class="footer">
+        <div>© <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2025</span> · VeriCert</div>
+        <div>Questo attestato è verificabile online.</div>
+    </div>
 </div>
 </body>
 </html>

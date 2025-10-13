@@ -47,18 +47,6 @@ public class TemplateController {
                 : ResponseEntity.badRequest().body(Map.of("ok", false, "missing", missing));
     }
 
-    @PostMapping("/{id}/preview")
-    public ResponseEntity<?> preview(@PathVariable Long id, @RequestBody Map<String,Object> vars) throws Exception {
-        // qui puoi aggiungere sysVars fittizie per anteprima
-        Map<String,Object> sys = Map.of(
-                "serial", "PREVIEW-XXXX",
-                "verifyUrl", "https://example.test/v/PREVIEW",
-                "qrBase64", "" // se vuoi anche il QR in preview, generarlo con QRCodeService
-        );
-        String html = templateService.renderHtml(id, vars, sys);
-        return ResponseEntity.ok(Map.of("html", html));
-    }
-
     private List<String> readRequiredVars(String variablesJson) throws Exception {
         if (variablesJson == null || variablesJson.isBlank()) return List.of();
         return mapper.readValue(variablesJson, new TypeReference<List<String>>() {});

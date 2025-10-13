@@ -11,17 +11,13 @@ import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.util.HashUtil;
 import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.context.Context;
-
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,6 +70,7 @@ public class CertificateService {
         userVars.put("courseCode", courseCode);
         userVars.put("hours", 100);
         userVars.put("grade", "A");
+        userVars.put("iussueDate", Instant.now());
         String html = templateService.renderHtml(templateId, userVars, sysVars);
         byte[] pdf = PdfUtil.htmlToPdf(html);
         String sha = HashUtil.sha256Hex(pdf);
@@ -117,7 +114,7 @@ public class CertificateService {
             return publicUrl;
         } catch (IOException e) { throw new UncheckedIOException(e); }
     }
-    private static String randomCode(int len){
+    public static String randomCode(int len){
         String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         SecureRandom r = new SecureRandom();
         StringBuilder sb = new StringBuilder(len);
