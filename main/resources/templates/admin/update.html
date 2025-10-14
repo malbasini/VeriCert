@@ -21,11 +21,15 @@
     </div>
     <div class="input-group mb-3">
         <span class="input-group-text" id="inputGroup-sizing-sm4">Html</span>
-        <textarea id="html" th:utext="${template.getHtml()}" class="form-control" name="html" aria-label="Small" rows="10" cols="18" aria-describedby="inputGroup-sizing-sm4"></textarea>
+        <textarea id="html" th:text="${template.getHtml()}" class="form-control" name="html" aria-label="Small" rows="10" cols="18" aria-describedby="inputGroup-sizing-sm4"></textarea>
+    </div>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="inputGroup-sizing-sm5">Variables user</span>
+        <textarea id="variablesJson" th:text="${template.getUserVarSchema()}" class="form-control" name="variablesJson" aria-label="Small" rows="10" cols="18" aria-describedby="inputGroup-sizing-sm4"></textarea>
     </div>
     <div class="input-group mb-3">
         <span class="input-group-text" id="inputGroup-sizing-sm2">Variables Json</span>
-        <input type="text" id="variablesJson" th:value="${template.getVariablesJson().trim()}" class="form-control mr-5" placeholder="Variables Json" name="variablesJson" aria-label="Small" aria-describedby="inputGroup-sizing-sm2">
+        <input type="text" id="variables" th:value="${template.getVariablesJson().trim()}" class="form-control mr-5" placeholder="Variables Json" name="variables" aria-label="Small" aria-describedby="inputGroup-sizing-sm2">
         <div class="form-check">
             <label class="form-check-label" for="active">
                 Active
@@ -35,51 +39,226 @@
     </div>
     <div>
         <button class="btn btn-outline-primary ms-2" onclick="updateTemplate()">Update Template</button>
-        <button class="btn btn-outline-primary ms-2" onclick="doPreview()">Preview HTML</button>
+        <button class="btn btn-outline-primary ms-2" onclick="preview()">Preview HTML</button>
         <button class="btn btn-outline-primary ms-2" onclick="doPreviewPdf()">Preview PDF</button>
     </div>
-    <div class="mt-3">
-        <form id="tplForm"></form>
-        <iframe id="previewFrame" style="width:100%;height:900px;border:1px solid #ddd"></iframe>
-    </div>
+    <br>
+    <hr>
+    <div id="varsForm"></div>
+    <iframe id="prev" style="width:100%;height:800px;border:1px solid #ddd"></iframe>
 </div>
+<!-- es. un <textarea id="variablesJson">{"ownerName":{"type":"string","required":true,"label":"Intestatario"}}</textarea> -->
+
 <script>
-    function collectUserVarsFromForm() {
-        return { ownerName: "Mario Rossi", courseName: "Spring Boot", courseCode: "SB-101", hours: 12, grade: "A" };
+    let currentMode = null;     // 'html' | 'pdf'
+    let currentPdfUrl = null;   // URL.createObjectURL(blob) da revocare
+
+    function clearIframe(ifr) {
+        ifr.removeAttribute('srcdoc');
+        ifr.removeAttribute('src');
     }
-    async function doPreview() {
-        const id = document.getElementById('id').value;
-        const userVars = collectUserVarsFromForm();
+    function setIframeHtml(ifr, html) {
+        clearIframe(ifr);
+        ifr.srcdoc = html;
+    }
+    function setIframePdf(ifr, blob) {
+        // libera URL precedente
+        if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = URL.createObjectURL(blob);
+        clearIframe(ifr);
+        ifr.src = currentPdfUrl;
+    }
+    // Parsifica in sicurezza il JSON dello schema
+    function parseSchema(sel = '#variablesJson') {
+        const el = document.querySelector(sel);
+        if (!el) return {};
         try {
-            const resp = await fetch(`/api/templates/${id}/preview`, {   // URL relativo = stessa origine
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userVars),
-            });
-            // Debug utile
-            console.log('status', resp.status);
-            document.getElementById('previewFrame').srcdoc = await resp.text();
+            const txt = (el.value ?? el.textContent ?? '').trim();
+            return txt ? JSON.parse(txt) : {};
         } catch (e) {
-            console.error(e);
-            alert('Errore nel fetch: ' + e.message);
+            console.error('Schema JSON non valido:', e);
+            return {};
         }
     }
-</script>
-<script>
-    async function doPreviewPdf() {
-        const id = document.getElementById('id').value;
-        const userVars = collectUserVarsFromForm();
-        const resp = await fetch(`/api/templates/${id}/preview.pdf`, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify(userVars)
-        });
-        const blob = await resp.blob();
-        const url = URL.createObjectURL(blob);
-        document.getElementById('previewFrame').src = url;
+
+    let schema = parseSchema('#variablesJson'); // <-- ORA è un oggetto
+
+    function buildForm() {
+        const root = document.getElementById('varsForm');
+        root.innerHTML = ''; // evita duplicati
+
+        // se per errore arriva un array, trasformalo in oggetto { field_i: spec }
+        if (Array.isArray(schema)) {
+            schema = schema.reduce((acc, spec, i) => (acc['field_' + i] = spec, acc), {});
+        }
+
+        for (const [name, specRaw] of Object.entries(schema)) {
+            const spec = specRaw || {};
+            const type = String(spec.type || 'string').toLowerCase();
+
+            const wrap = document.createElement('div');
+            wrap.className = type === 'boolean' || type === 'bool' ? 'mb-3 form-check' : 'mb-3';
+
+            const label = document.createElement('label');
+            label.className = type === 'boolean' || type === 'bool' ? 'form-check-label' : 'form-label';
+            label.htmlFor = `f_${name}`;
+            label.textContent = spec.label || name;
+
+            if (type === 'boolean' || type === 'bool') {
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.id = `f_${name}`;
+                cb.name = name;
+                cb.className = 'form-check-input';
+                cb.required = !!spec.required;
+                if (spec.default === true) cb.checked = true;
+                wrap.append(cb, label); // checkbox prima, etichetta dopo (bootstrap)
+                root.append(wrap);
+                continue;
+            }
+
+            const input = document.createElement(
+                type === 'date' ? 'input' :
+                    type === 'number' ? 'input' : 'input'
+            );
+            input.className = 'form-control';
+            input.id = `f_${name}`;
+            input.name = name;
+            input.required = !!spec.required;
+            input.type = (type === 'number') ? 'number' :
+                (type === 'date') ? 'date' : 'text';
+
+            if (spec.default != null) input.value = spec.default;
+
+            wrap.append(label, input);
+            root.append(wrap);
+        }
     }
+    function collect(rootSelector = '#varsForm', schema = null) {
+        const root = document.querySelector(rootSelector);
+        if (!root) throw new Error(`Container ${rootSelector} non trovato`);
+
+        const data = Object.create(null);
+        const fields = root.querySelectorAll('input[name], select[name], textarea[name]');
+
+        for (const el of fields) {
+            const name = el.name;
+            if (!name) continue;
+
+            const spec = schema?.[name] || {};
+            const type = String(spec.type || el.type || 'text').toLowerCase();
+
+            if (el.type === 'checkbox') {
+                const group = root.querySelectorAll(`input[type="checkbox"][name="${CSS.escape(name)}"]`);
+                if (group.length > 1) {
+                    data[name] ??= [];
+                    if (el.checked) data[name].push(el.value);
+                } else {
+                    data[name] = !!el.checked;
+                }
+                continue;
+            }
+
+            if (el.type === 'radio') {
+                if (data[name] !== undefined) continue;
+                const checked = root.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+                data[name] = checked ? checked.value : (spec.default ?? '');
+                continue;
+            }
+
+            if (el.tagName === 'SELECT' && el.multiple) {
+                const arr = [...el.selectedOptions].map(o => o.value);
+                data[name] = arr.length ? arr : (spec.default ?? []);
+                continue;
+            }
+
+            const raw = (el.value ?? '').trim();
+
+            if (type === 'number' || el.type === 'number') {
+                // vuoto -> default o null; non fare Number("")!
+                if (raw === '') {
+                    data[name] = spec.default ?? null;       // <-- qui il fallback
+                } else {
+                    const n = Number(raw);
+                    data[name] = Number.isNaN(n) ? (spec.default ?? null) : n;
+                }
+                continue;
+            }
+
+            // boolean da select/text? (raro) -> normalizza
+            if (type === 'boolean' || type === 'bool') {
+                data[name] = raw === '' ? (spec.default ?? false) : (raw === 'true' || raw === '1' || raw === 'on');
+                continue;
+            }
+
+            // default testo
+            data[name] = raw === '' ? (spec.default ?? '') : raw;
+        }
+
+        return data;
+    }
+
+
+    async function preview() {
+        const idEl = document.getElementById('id');
+        const id = idEl ? idEl.value : 1;
+        const userVars = collect();
+        const iframe = document.getElementById('prev');
+        currentMode = 'html';
+        const resp = await fetch(`/api/templates/${id}/preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // 'X-Tenant': 'demo' se serve il tenant
+            body: JSON.stringify(userVars),
+        });
+        // se nel frattempo hai cliccato PDF, ignora questa risposta
+        if (currentMode !== 'html') return;
+
+        const html = await resp.text();
+        document.getElementById('prev').srcdoc = html;
+        currentMode = 'html';
+
+        if (resp.redirected || resp.status === 401) {
+            setIframeHtml(iframe, `<p style="color:#b91c1c">Non autenticato. <a href="${resp.url}">Login</a></p>`);
+            return;
+        }
+        if (!resp.ok) {
+            setIframeHtml(iframe, `<pre style="color:#b91c1c">Errore ${resp.status}\n${html}</pre>`);
+            return;
+        }
+        setIframeHtml(iframe, html);
+    }
+    async function doPreviewPdf() {
+        const idEl = document.getElementById('id');
+        const id = idEl ? idEl.value : 1;
+        const userVars = collect();
+        const iframe = document.getElementById('prev');
+        currentMode = 'pdf';
+
+        const resp = await fetch(`/api/templates/${id}/preview.pdf`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userVars),
+        });
+
+
+        if (currentMode !== 'pdf') return;
+
+        const ct = resp.headers.get('content-type') || '';
+        if (!resp.ok || !ct.includes('application/pdf')) {
+            const msg = await resp.text();
+            setIframeHtml(iframe, `<pre style="color:#b91c1c">Preview PDF fallita (${resp.status}).\n${msg}</pre>`);
+            return;
+        }
+        const blob = await resp.blob();
+        setIframePdf(iframe, blob);
+        document.getElementById('prev').src = URL.createObjectURL(blob);
+    }
+    // Costruisci il form UNA SOLA VOLTA
+    document.addEventListener('DOMContentLoaded', buildForm);
+    document.querySelector('form')?.addEventListener('submit', e => e.preventDefault());
 </script>
+
 <script>
     async function updateTemplate() {
 

@@ -29,6 +29,12 @@ public class Template {
     @Column(name="variables_json", columnDefinition="JSON")
     private String variablesJson; // ["ownerName","courseName",...]
 
+    @Column(name="user_vars_schema", columnDefinition="JSON")
+    private String userVarSchema;
+
+    @Column(name="sys_vars_schema", columnDefinition="JSON")
+    private String sysVarsScahema;
+
     @Column(nullable=false)
     private boolean active;
 
@@ -107,5 +113,21 @@ public class Template {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getUserVarSchema() {
+        return userVarSchema;
+    }
+
+    public void setUserVarSchema(String userVarSchema) {
+        this.userVarSchema = userVarSchema;
+    }
+
+    public String getSysVarsScahema() {
+        return sysVarsScahema;
+    }
+
+    public void setSysVarsScahema(String sysVarsScahema) {
+        this.sysVarsScahema = sysVarsScahema;
     }
 }

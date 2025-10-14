@@ -27,12 +27,12 @@ public class TemplateAdminService {
         t.setTenant(tenantService.ref(tenantId));
         t.setName(req.name());
         t.setVersion(req.version());
-        String cleaned = HtmlSanitizers.TEMPLATE_POLICY.sanitize(req.html());
         t.setHtml(req.html());
-        //t.setVariablesJson(normalizeVars(req.variablesJson()));
+        t.setVariablesJson(normalizeVars(req.variablesJson()));
+        t.setUserVarSchema(req.userVariables());
+        t.setSysVarsScahema(req.systemsVariables());
         t.setActive(req.active());
         t = repo.save(t);
-
         return t;
     }
 
@@ -44,6 +44,8 @@ public class TemplateAdminService {
         t.setVersion(req.version());
         t.setHtml(req.html());
         t.setVariablesJson(normalizeVars(req.variablesJson()));
+        t.setUserVarSchema(req.userVariables());
+        t.setSysVarsScahema(req.systemsVariables());
         t.setActive(req.active());
         repo.save(t);
         return t;
@@ -64,16 +66,6 @@ public class TemplateAdminService {
         Template t = repo.findByTenantIdAndId(tenantId, id).orElseThrow();
         repo.delete(t);
     }
-
-    private String sanitize(String html) {
-        // JSoup relaxed + img/src
-        return org.jsoup.Jsoup.clean(
-                html,
-                org.jsoup.safety.Safelist.relaxed()
-                        .addTags("img","style")
-                        .addAttributes("img","src","alt","width","height"));
-    }
-
     private String normalizeVars(String vjson) {
         if (vjson == null || vjson.isBlank()) return "[]";
         return vjson;

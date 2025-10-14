@@ -1,36 +1,41 @@
 package com.example.vericert.service;
 
+import com.example.vericert.component.SchemaParser;
 import com.example.vericert.domain.Template;
 import com.example.vericert.repo.TemplateRepository;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 import java.util.HashMap;
 import java.util.Map;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 
 @Service
 public class TemplateService {
-
     private final TemplateRepository templates;
-    private final TemplateEngine stringTemplateEngine;
+    private final org.thymeleaf.TemplateEngine engine;
+    private final SchemaParser parser;
+    private final ValidationService validator;
 
-    public TemplateService(TemplateRepository templates, @Qualifier("dbTemplateEngine") TemplateEngine stringTemplateEngine) {
+    public TemplateService(TemplateRepository templates,
+                           @Qualifier("dbTemplateEngine") org.thymeleaf.TemplateEngine engine,
+                           SchemaParser parser,
+                           ValidationService validator) {
         this.templates = templates;
-        this.stringTemplateEngine = stringTemplateEngine;
+        this.engine = engine;
+        this.parser = parser;
+        this.validator = validator;
     }
 
-    public String renderHtml(Long templateId, Map<String, Object> userVars, Map<String, Object> sysVars) {
+    public String renderHtml(Long templateId, Map<String,Object> userVars, Map<String,Object> sysVars){
         Template tpl = templates.findById(templateId).orElseThrow();
-        // sanitize opzionale
-        String html = tpl.getHtml();
-        var ctx = new Context();
+        var schema = parser.parse(tpl.getUserVarSchema());
+        validator.validateUserVars(userVars, schema);
+        var ctx = new org.thymeleaf.context.Context();
         Map<String,Object> model = new HashMap<>();
         if (userVars != null) model.putAll(userVars);
-        if (sysVars  != null) model.putAll(sysVars);
+        if (sysVars != null) model.putAll(sysVars);
         ctx.setVariables(model);
-        return stringTemplateEngine.process(html, ctx); // processa LA STRINGA
+        // ATTENZIONE: qui `tpl.getHtml()` è il *contenuto* del template, non il nome file
+        return engine.process(tpl.getHtml(), ctx); // usa StringTemplateResolver
     }
 }

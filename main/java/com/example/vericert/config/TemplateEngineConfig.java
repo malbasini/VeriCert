@@ -2,24 +2,22 @@ package com.example.vericert.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.templateresolver.StringTemplateResolver;
-@Primary
+
 @Configuration
 public class TemplateEngineConfig {
 
-    @Bean
+    @Bean("dbTemplateEngine")
     public org.thymeleaf.TemplateEngine dbTemplateEngine() {
-        var resolver = new org.thymeleaf.templateresolver.StringTemplateResolver();
-        resolver.setTemplateMode("HTML");
-        resolver.setCacheable(false);
-        var engine = new org.thymeleaf.TemplateEngine();
-        engine.setTemplateResolver(resolver);
+        var engine = new org.thymeleaf.spring6.SpringTemplateEngine();
+        var r = new org.thymeleaf.templateresolver.StringTemplateResolver();
+        r.setTemplateMode(org.thymeleaf.templatemode.TemplateMode.HTML);
+        r.setCacheable(false);          // utile in dev
+        r.setName("dbStringResolver");
+        engine.setTemplateResolver(r);
+        engine.setEnableSpringELCompiler(true);
         return engine;
     }
 
-
-
+    // NON definire qui un secondo TemplateEngine chiamato "templateEngine":
+    // lascia quello auto-configurato da Spring Boot per le viste MVC.
 }

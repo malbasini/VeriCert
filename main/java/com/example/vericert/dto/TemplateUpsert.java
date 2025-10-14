@@ -8,5 +8,7 @@ public record TemplateUpsert(
         @NotBlank(message="Versione obbligatoria") String version,
         @NotBlank(message = "Il campo html è obbligatorio") String html,
         String variablesJson,
+        String userVariables,
+        String systemsVariables,
         boolean active
 ) {}

@@ -11,10 +11,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.Console;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/templates")
+@RequestMapping()
 public class TemplatePreviewController {
     private final TemplateService templateService;
     private final SystemVarsBuilder sysVars; // tua classe che calcola serial, verifyUrl, qrBase64, ecc.
@@ -25,29 +26,29 @@ public class TemplatePreviewController {
         this.sysVars = sysVars;
     }
 
-    @PostMapping(value="/{id}/preview", produces = MediaType.TEXT_HTML_VALUE)
+    @PostMapping(value="/api/templates/{id}/preview", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> previewHtml(@PathVariable Long id, @RequestBody Map<String,Object> userVars) {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        String tenantName = user.getTenantName();
-        userVars.put("tenantName", tenantName);
-        Map<String,Object> sys = sysVars.buildPreviewVars(); // versioni “fake” ma realistiche
-        String html = templateService.renderHtml(id, userVars, sys);
-        return ResponseEntity.ok(html);
-    }
-
-
-    @PostMapping(value="/{id}/preview.pdf", produces=MediaType.APPLICATION_PDF_VALUE)
-    public ResponseEntity<byte[]> previewPdf(@PathVariable Long id, @RequestBody Map<String,Object> userVars) throws Exception {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
         userVars.put("tenantName", tenantName);
+        Map<String,Object> sys =  sysVars.buildPreviewVars(); // serial-demo, code-demo, qrBase64 demo, issuedAt=oggi
+        return ResponseEntity.ok(templateService.renderHtml(id, userVars, sys));
+    }
+
+
+
+    @PostMapping(value="/api/templates/{id}/preview.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> previewPdf(@PathVariable Long id, @RequestBody Map<String,Object> userVars) throws Exception {
         Map<String,Object> sys = sysVars.buildPreviewVars();
-        String html = templateService.renderHtml(id, userVars, sys);
-        byte[] pdf = PdfUtil.htmlToPdf(html); // la tua utility
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+        String tenantName = user.getTenantName();
+        userVars.put("tenantName", tenantName);
+        byte[] pdf = PdfUtil.htmlToPdf(templateService.renderHtml(id, userVars, sys));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"preview.pdf\"")
                 .body(pdf);
     }
+
 }
