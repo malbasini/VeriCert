@@ -70,8 +70,10 @@ public class HomeController {
     @GetMapping("/api/admin/templates/{id}/update")
     public String updateTemplate(@PathVariable(name="id") Long id, Model model) {
         Template template = templateRepo.findById(id).orElseThrow();
-        if(template.isActive())
-            template.setActive(true);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+        String tenantName = user.getTenantName();
+        model.addAttribute("tenantName", tenantName);
         // Ritorna la vista
         model.addAttribute("template", template);
         return "admin/update";

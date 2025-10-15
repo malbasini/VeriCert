@@ -4,6 +4,8 @@ import com.example.vericert.config.VericertProps;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.util.QrUtil;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.*;
@@ -28,6 +30,7 @@ public class SystemVarsBuilder {
         vars.put("serial", serial);
         vars.put("verifyUrl", verifyUrl);
         vars.put("qrBase64", qrBase64);
+        vars.put("issuedAt", Instant.now());
         return vars;
     }
 }

@@ -1,6 +1,5 @@
 package com.example.vericert.controller;
 
-import com.example.vericert.dto.IdResponse;
 import com.example.vericert.dto.TemplateDto;
 import com.example.vericert.dto.TemplateUpsert;
 import com.example.vericert.repo.TemplateRepository;
@@ -85,6 +84,7 @@ public class TemplateAdminController {
     public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
                               @Valid @RequestBody TemplateUpsert req,
                              BindingResult br) {
+        com.example.vericert.domain.Template t = null;
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(
@@ -92,8 +92,15 @@ public class TemplateAdminController {
                             Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
+
         }
-        var t = service.update(id, req);
+        try {
+           t  = service.update(id, req);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
         return ResponseEntity.ok(new TemplateAdminController.VerificationUpdateResponse(
                 t.getId().toString(),
                 t.getName(),
