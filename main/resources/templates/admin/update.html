@@ -29,8 +29,6 @@
         <textarea id="variablesUserJson" th:text="${template.getUserVarSchema()}" class="form-control" name="variablesJson" aria-label="Small" rows="10" cols="18" aria-describedby="inputGroup-sizing-sm4"></textarea>
     </div>
     <div class="input-group mb-3">
-        <span class="input-group-text" id="inputGroup-sizing-sm2">Variables Json</span>
-        <input type="text" id="variablesJson" th:value="${template.getVariablesJson().trim()}" class="form-control mr-5" placeholder="Variables Json" name="variables" aria-label="Small" aria-describedby="inputGroup-sizing-sm2">
         <div class="form-check">
             <label class="form-check-label" for="active">
                 Active
@@ -287,7 +285,6 @@
         const id = document.getElementById("id").value.trim();
         const version = document.getElementById("version").value.trim();
         const html = document.getElementById("html").value.trim();
-        const variablesJson = document.getElementById("variablesJson").value.trim();
         const variablesUserJson = document.getElementById("variablesUserJson").value.trim();
         const active = document.getElementById("active").checked;
         const response = await fetch(`${API_BASE}/${id}/edit`, {
@@ -300,7 +297,6 @@
                 name: name,
                 version: version,
                 html: html,
-                variablesJson: variablesJson,
                 variablesUserJson: variablesUserJson,
                 active: active
             })

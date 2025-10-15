@@ -26,9 +26,6 @@ public class Template {
     @Lob @Column(columnDefinition="TEXT", nullable=false)
     private String html;
 
-    @Column(name="variables_json", columnDefinition="JSON")
-    private String variablesJson; // ["ownerName","courseName",...]
-
     @Column(name="user_vars_schema", columnDefinition="JSON")
     private String userVarSchema;
 
@@ -81,14 +78,6 @@ public class Template {
 
     public void setHtml(String html) {
         this.html = html;
-    }
-
-    public String getVariablesJson() {
-        return variablesJson;
-    }
-
-    public void setVariablesJson(String variablesJson) {
-        this.variablesJson = variablesJson;
     }
 
     public boolean isActive() {

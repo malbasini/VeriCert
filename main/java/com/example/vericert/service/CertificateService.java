@@ -64,12 +64,7 @@ public class CertificateService {
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
         Map<String,Object> sysVars = buildSysVarsForCertificate(code,serial,verifyUrl,qrBase64);
-        Map<String,Object> userVars = new HashMap<>();
-        userVars.put("ownerName", ownerName);
-        userVars.put("courseName", "Spring Boot");
-        userVars.put("courseCode", courseCode);
-        userVars.put("hours", 100);
-        userVars.put("grade", "A");
+        Map<String, Object> userVars = new HashMap<>(vars);
         userVars.put("iussueDate", Instant.now());
         String html = templateService.renderHtml(templateId, userVars, sysVars);
         byte[] pdf = PdfUtil.htmlToPdf(html);

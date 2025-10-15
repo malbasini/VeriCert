@@ -38,6 +38,10 @@ public class HomeController {
         Long templateId = templateRepo.findFirstProjectedByTenant_Id(tenantId)
                 .map(TemplateRepository.TemplateIdOnly::getId)
                 .orElse(null);
+        Template template = templateId == null ? null : templateRepo.findById(templateId).orElseThrow();
+        assert template != null;
+        String userVarSchema = template.getUserVarSchema();
+        model.addAttribute("userVarSchema", userVarSchema);
         model.addAttribute("tenantName", tenantName);
         model.addAttribute("templateId", templateId);
         // Ritorna la vista

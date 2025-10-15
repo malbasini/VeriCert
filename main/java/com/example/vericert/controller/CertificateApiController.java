@@ -2,15 +2,18 @@ package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.Stato;
+import com.example.vericert.domain.Template;
 import com.example.vericert.domain.Tenant;
 import com.example.vericert.dto.CertificateDto;
 import com.example.vericert.dto.CreateReq;
 import com.example.vericert.repo.CertificateRepository;
+import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CertificateService;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.UsageService;
 import jakarta.validation.Valid;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,12 +22,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,11 +38,9 @@ import java.util.stream.Collectors;
 public class CertificateApiController {
 
     private final CertificateService service;
-
     private final UsageService usageService;
     private final TenantRepository tenantRepo;
     private final CertificateRepository certRepo;
-
 
     public CertificateApiController(CertificateService service,
                                     UsageService usageService,
@@ -64,25 +67,30 @@ public class CertificateApiController {
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
-    @PostMapping()
-    public ResponseEntity<?> create(@Valid @RequestBody CreateReq req, BindingResult br) throws IOException {
+    @PostMapping("/{templateId}")
+    public ResponseEntity<?> create(
+            @PathVariable(name = "templateId") Long templateId,
+            @Valid @RequestBody CreateReq req,
+            BindingResult br) throws IOException {
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(
-                            fe -> fe.getField(),
-                            Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
+                            FieldError::getField,
+                            Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
         }
+        Map<String,Object> map = toMap(req);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
+        map.put("tenantName", tenantName);
         Certificate c = null;
         try {
             Tenant tenant = tenantRepo.findByName(tenantName);
             // controllo piano
             usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
-            c = service.issue(req.templateId(), req.vars(), req.ownerName(), req.ownerEmail(), req.courseCode());
+            c = service.issue(templateId, map, req.ownerName(), req.ownerEmail(), req.courseCode());
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -134,6 +142,7 @@ public class CertificateApiController {
                     certificate.getRevokedAt().toString()
             ));
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
@@ -161,6 +170,23 @@ public class CertificateApiController {
                 .toList();
         return ResponseEntity.ok(codes);
     }
+
+
+    public static Map<String, Object> toMap(Object record) {
+        try {
+            var c = record.getClass();
+            if (!c.isRecord()) throw new IllegalArgumentException("Not a record");
+            var map = new java.util.HashMap<String,Object>();
+            for (var comp : c.getRecordComponents()) {
+                var accessor = comp.getAccessor();
+                map.put(comp.getName(), accessor.invoke(record));
+            }
+            return map;
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }
 
 
