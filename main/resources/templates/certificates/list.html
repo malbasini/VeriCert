@@ -5,28 +5,46 @@
 </head>
 <body>
 <div th:replace="common/base :: headerFragment"></div>
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <br>
-    <br>
-    <br>
-    <button class="btn btn-primary" onclick="window.location.href='/certificati'">Nuovo certficato</button>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Certificati</span>
+        <div class="input-group input-group-sm" style="max-width: 320px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="q" class="form-control" placeholder="Cerca…">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light position-sticky top-0">
+            <tr>
+                <th>ID</th>
+                <th>Seriale</th>
+                <th>Owner</th>
+                <th>Stato</th>
+                <th>Azioni</th>
+            </tr>
+            </thead>
+            <tbody id="rows">
+            <!-- righe via JS -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer d-flex justify-content-between align-items-center">
+        <small class="text-body-secondary">Totale: <span id="total">0</span></small>
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <!-- costruisci la paginazione da Page<T> -->
+            </ul>
+        </nav>
+    </div>
 </div>
-<hr>
 <br>
-<h3>Lista certificati per tenant <th:block th:text="${tenantName}"></th:block></h3>
-<div id="msg"></div>
-<table class="table table-hover">
-    <thead><tr>
-        <th>ID</th><th>Serial</th><th>Owner</th><th>Open PDF</th><th>Status</th>
-    </tr></thead>
-    <tbody id="rows"></tbody>
-</table>
+<hr>
 <div id="result"></div>
 <script>
-    function msg(html, cls="info") {
-        document.getElementById("msg").innerHTML =
-            `<div class="alert alert-${cls} my-2">${html}</div>`;
-    }
+
     async function load() {
         const tbody = document.getElementById('rows');
         tbody.innerHTML = '';
@@ -38,17 +56,14 @@
                 // se è una pagina HTML (login), avvisa
                 const ct = res.headers.get('Content-Type') || '';
                 if (ct.includes('text/html')) {
-                    msg('Sei stato reindirizzato al login. Effettua l’accesso e riprova.', 'warning');
                     return;
                 }
-                msg(`Errore ${res.status}: ${text || 'Impossibile caricare i template'}`, 'danger');
                 return;
             }
             // 2) content-type deve essere JSON
             const ct = (res.headers.get('Content-Type') || '').toLowerCase();
             if (!ct.includes('application/json')) {
                 const text = await res.text().catch(() => '');
-                msg('La risposta non è JSON. Forse sei loggato? Prova a ricaricare la pagina.', 'warning');
                 console.error('Risposta non-JSON:', text);
                 return;
             }
@@ -59,32 +74,36 @@
             } catch (e) {
                 const raw = await res.text().catch(()=>'');
                 console.error('JSON parse error. Body:', raw);
-                msg('Errore nel parsing della risposta dal server.', 'danger');
                 return;
             }
             // 4) struttura attesa: { content: [...] }
             const items = Array.isArray(page.content) ? page.content : [];
             if (items.length === 0) {
-                msg('Nessun certificato trovato.', 'info');
                 return;
             }
             // 5) render righe
             for (const t of items) {
+                const revoked = String(t.status).toUpperCase() === 'REVOKED';
+                const badgeClass = revoked ? 'text-bg-danger' : 'text-bg-success';
+                const badgeText  = revoked ? 'Revocato'         : 'Valido';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
           <td>${t.id ?? ''}</td>
           <td>${t.serial ?? ''}</td>
           <td>${t.owner ?? ''}</td>
           <td>
-                    <button type="button" class="btn btn-outline-primary" onclick="window.open('${encodeURI(t.pdfUrl)}','_blank','noopener')">Apri</button>
-         </td>
-          <td>${t.status ?? ''}</td>`;
+          <span class="badge rounded-pill ${badgeClass}">${badgeText}</span>
+           </td>
+          <td>
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.open('${encodeURI(t.pdfUrl)}','_blank','noopener')">Apri</button>
+          </td>`
                 tbody.appendChild(tr);
             }
-            msg(`Caricati ${items.length} certificati.`, 'success');
+            let total = document.getElementById('total');
+            total.innerHTML = `${items.length}`;
         } catch (err) {
             console.error(err);
-            msg('Errore di rete o JS. Vedi console.', 'danger');
         }
     }
     // avvia al DOM pronto

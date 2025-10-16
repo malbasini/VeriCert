@@ -11,7 +11,7 @@ public record CertificateDto(
         String owner,
         String pdfUrl,
         @Enumerated(EnumType.STRING) @Column(name = "status", nullable=false)
-        com.example.vericert.domain.Stato status
+        com.example.vericert.domain.Stato status,
 
-)
+        String string)
 { }

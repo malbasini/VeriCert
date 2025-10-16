@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -82,6 +83,7 @@ public class TemplateAdminController {
 
     @PutMapping("/{id}/edit")
     public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
+                              RedirectAttributes ra,
                               @Valid @RequestBody TemplateUpsert req,
                              BindingResult br) {
         com.example.vericert.domain.Template t = null;
@@ -101,6 +103,7 @@ public class TemplateAdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
+        ra.addFlashAttribute("toast", "Template salvato con successo");
         return ResponseEntity.ok(new TemplateAdminController.VerificationUpdateResponse(
                 t.getId().toString(),
                 t.getName(),
