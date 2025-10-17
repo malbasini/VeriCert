@@ -1,0 +1,64 @@
+<!-- common/admin.html -->
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle} ?: 'Admin · VeriCert'">Admin · VeriCert</title>
+</head>
+<body>
+<div th:insert="common/base :: headerFragment"></div>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <aside class="col-12 col-md-3 col-lg-2 border-end bg-body-tertiary min-vh-100 py-3">
+            <div class="list-group list-group-flush small">
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                   th:classappend="${active=='dashboard'} ? ' active'"
+                   th:href="@{/admin}">
+                    <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+                </a>
+
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                   th:classappend="${active=='templates'} ? ' active'"
+                   th:href="@{/api/admin/templates/view}">
+                    <i class="bi bi-brush"></i><span>Template</span>
+                </a>
+
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                   th:classappend="${active=='certificates'} ? ' active'"
+                   th:href="@{/certificate/list}">
+                    <i class="bi bi-patch-check"></i><span>Certificati</span>
+                </a>
+
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                   th:classappend="${active=='users'} ? ' active'"
+                   th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')">
+                    <i class="bi bi-people"></i><span>Utenti & Ruoli</span>
+                </a>
+
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                   th:classappend="${active=='settings'} ? ' active'"
+                   th:href="@{/admin/settings}">
+                    <i class="bi bi-gear"></i><span>Impostazioni</span>
+                </a>
+
+                <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                   th:classappend="${active=='audit'} ? ' active'"
+                   th:href="@{/admin/audit}">
+                    <i class="bi bi-clipboard-data"></i><span>Audit & Utilizzo</span>
+                </a>
+            </div>
+        </aside>
+        <!-- Contenuto -->
+        <main class="col-12 col-md-9 col-lg-10 p-4">
+            <h1 class="h4 mb-4" th:text="${pageTitle} ?: 'Pannello di amministrazione'"></h1>
+            <!--<div th:insert="${content}"></div>-->
+        </main>
+    </div>
+</div>
+<div th:insert="common/footer :: footerFragment"></div>
+<!-- qui potresti caricare i file JS di Bootstrap, se serve -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</body>
+</html>

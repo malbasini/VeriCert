@@ -79,21 +79,24 @@
             // 4) struttura attesa: { content: [...] }
             const items = Array.isArray(page.content) ? page.content : [];
             if (items.length === 0) {
-                return;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5" class="text-center py-5 text-body-secondary">
+                                    <i class="bi bi-inbox me-1"></i> Nessun dato disponibile
+                                 </td>`
+                return tbody.appendChild(tr);
             }
             // 5) render righe
             for (const t of items) {
                 const revoked = String(t.status).toUpperCase() === 'REVOKED';
                 const badgeClass = revoked ? 'text-bg-danger' : 'text-bg-success';
                 const badgeText  = revoked ? 'Revocato'         : 'Valido';
-
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-          <td>${t.id ?? ''}</td>
-          <td>${t.serial ?? ''}</td>
-          <td>${t.owner ?? ''}</td>
-          <td>
-          <span class="badge rounded-pill ${badgeClass}">${badgeText}</span>
+           <td>${t.id ?? ''}</td>
+           <td>${t.serial ?? ''}</td>
+           <td>${t.owner ?? ''}</td>
+           <td>
+           <span class="badge rounded-pill ${badgeClass}">${badgeText}</span>
            </td>
           <td>
             <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.open('${encodeURI(t.pdfUrl)}','_blank','noopener')">Apri</button>

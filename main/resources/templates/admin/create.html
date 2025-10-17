@@ -39,39 +39,37 @@
 <script>
     async function createTemplate() {
 
-        const API_BASE = "http://localhost:8080/api/admin/templates";
+        try {
+            const API_BASE = "http://localhost:8080/api/admin/templates";
 
-        const name = document.getElementById("name").value.trim();
-        const version = document.getElementById("version").value.trim();
-        const html = document.getElementById("html").value.trim();
-        const variablesJson = document.getElementById("variablesJson").value.trim();
-        const active = document.getElementById("active").checked;
+            const name = document.getElementById("name").value.trim();
+            const version = document.getElementById("version").value.trim();
+            const html = document.getElementById("html").value.trim();
+            const variablesJson = document.getElementById("variablesJson").value.trim();
+            const active = document.getElementById("active").checked;
 
-        const response = await fetch(`${API_BASE}/new`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: name,
-                version: version,
-                html: html,
-                variablesJson: variablesJson,
-                active: active
-            })
-        });
-        const resultDiv = document.getElementById("result");
-        const data = await response.json();
-        if(!response.ok)
-        {
-            // Esempio: mostra il primo errore per campo
-            const errors = data.errors || {};
-            alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
-            return;
-        }
-        else
-        {
-            resultDiv.innerHTML = `
+            const response = await fetch(`${API_BASE}/new`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    version: version,
+                    html: html,
+                    variablesJson: variablesJson,
+                    active: active
+                })
+            });
+            const resultDiv = document.getElementById("result");
+            const data = await response.json();
+            if (!response.ok) {
+                // Esempio: mostra il primo errore per campo
+                const errors = data.errors || {};
+                alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
+                return;
+            } else {
+                resultDiv.innerHTML = `
                 <div class="alert alert-success">
                     ✅ <b>Template creato con successo</b><br>
                     <b>ID:</b> ${data.id}<br>
@@ -81,7 +79,20 @@
                     <b>Nome tenant:</b> ${data.tenant}<br>
                 </div>
             `;
+            }
         }
+        catch (error) {
+            console.error("Errore durante la creazione del template:", error);
+            showToast("Errore durante la creazione del template " + error);
+        }
+    }
+</script>
+<script>
+    function showToast(message) {
+        const toastEl = document.getElementById('appToast');
+        toastEl.querySelector('.toast-body').textContent = message;
+        const t = bootstrap.Toast.getOrCreateInstance(toastEl);
+        t.show();
     }
 </script>
 </body>

@@ -93,7 +93,8 @@ public class TemplatePreviewController {
             // Per coerenza, ritorna JSON anche qui (il client lo intercetta e mostra)
             var json = new ObjectMapper().writeValueAsBytes(Map.of("message","Validation failed","errors",errors));
             return ResponseEntity.badRequest()
-                    .contentType(MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"preview.pdf\"")
+                    .contentType(MediaType.APPLICATION_PDF)
                     .body(json);
         }
         Map<String,Object> map = toMap(dto);

@@ -28,55 +28,56 @@
     }
 
     async function load() {
-        const tbody = document.getElementById('rows');
-        tbody.innerHTML = '';
         try {
-            const res = await fetch('/api/admin/templates', { headers: { 'Accept': 'application/json' } });
+            const tbody = document.getElementById('rows');
+            tbody.innerHTML = '';
+            try {
+                const res = await fetch('/api/admin/templates', {headers: {'Accept': 'application/json'}});
 
-            // 1) non ok -> mostra errore
-            if (!res.ok) {
-                const text = await res.text().catch(() => '');
-                // se è una pagina HTML (login), avvisa
-                const ct = res.headers.get('Content-Type') || '';
-                if (ct.includes('text/html')) {
-                    msg('Sei stato reindirizzato al login. Effettua l’accesso e riprova.', 'warning');
+                // 1) non ok -> mostra errore
+                if (!res.ok) {
+                    const text = await res.text().catch(() => '');
+                    // se è una pagina HTML (login), avvisa
+                    const ct = res.headers.get('Content-Type') || '';
+                    if (ct.includes('text/html')) {
+                        msg('Sei stato reindirizzato al login. Effettua l’accesso e riprova.', 'warning');
+                        return;
+                    }
+                    msg(`Errore ${res.status}: ${text || 'Impossibile caricare i template'}`, 'danger');
                     return;
                 }
-                msg(`Errore ${res.status}: ${text || 'Impossibile caricare i template'}`, 'danger');
-                return;
-            }
 
-            // 2) content-type deve essere JSON
-            const ct = (res.headers.get('Content-Type') || '').toLowerCase();
-            if (!ct.includes('application/json')) {
-                const text = await res.text().catch(() => '');
-                msg('La risposta non è JSON. Forse sei loggato? Prova a ricaricare la pagina.', 'warning');
-                console.error('Risposta non-JSON:', text);
-                return;
-            }
+                // 2) content-type deve essere JSON
+                const ct = (res.headers.get('Content-Type') || '').toLowerCase();
+                if (!ct.includes('application/json')) {
+                    const text = await res.text().catch(() => '');
+                    msg('La risposta non è JSON. Forse sei loggato? Prova a ricaricare la pagina.', 'warning');
+                    console.error('Risposta non-JSON:', text);
+                    return;
+                }
 
-            // 3) parse sicuro
-            let page;
-            try {
-                page = await res.json();
-            } catch (e) {
-                const raw = await res.text().catch(()=>'');
-                console.error('JSON parse error. Body:', raw);
-                msg('Errore nel parsing della risposta dal server.', 'danger');
-                return;
-            }
+                // 3) parse sicuro
+                let page;
+                try {
+                    page = await res.json();
+                } catch (e) {
+                    const raw = await res.text().catch(() => '');
+                    console.error('JSON parse error. Body:', raw);
+                    msg('Errore nel parsing della risposta dal server.', 'danger');
+                    return;
+                }
 
-            // 4) struttura attesa: { content: [...] }
-            const items = Array.isArray(page.content) ? page.content : [];
-            if (items.length === 0) {
-                msg('Nessun template trovato.', 'info');
-                return;
-            }
+                // 4) struttura attesa: { content: [...] }
+                const items = Array.isArray(page.content) ? page.content : [];
+                if (items.length === 0) {
+                    msg('Nessun template trovato.', 'info');
+                    return;
+                }
 
-            // 5) render righe
-            for (const t of items) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
+                // 5) render righe
+                for (const t of items) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
           <td>${t.id ?? ''}</td>
           <td>${t.name ?? ''}</td>
           <td>${t.version ?? ''}</td>
@@ -87,13 +88,17 @@
             <button class="btn btn-sm btn-outline-success" onclick="activateTpl(${t.id})">Attiva</button>
             <button class="btn btn-sm btn-outline-danger" onclick="delTpl(${t.id})">Elimina</button>
           </td>`;
-                tbody.appendChild(tr);
-            }
+                    tbody.appendChild(tr);
+                }
 
-            msg(`Caricati ${items.length} template.`, 'success');
-        } catch (err) {
+                msg(`Caricati ${items.length} template.`, 'success');
+            } catch (err) {
+                console.error(err);
+                msg('Errore di rete o JS. Vedi console.', 'danger');
+            }
+        }catch (err) {
             console.error(err);
-            msg('Errore di rete o JS. Vedi console.', 'danger');
+            showToast(err)
         }
     }
 
@@ -113,6 +118,14 @@
     }
     // avvia al DOM pronto
     document.addEventListener('DOMContentLoaded', load);
+</script>
+<script>
+    function showToast(message) {
+        const toastEl = document.getElementById('appToast');
+        toastEl.querySelector('.toast-body').textContent = message;
+        const t = bootstrap.Toast.getOrCreateInstance(toastEl);
+        t.show();
+    }
 </script>
 </body>
 <div th:replace="common/footer :: footerFragment"></div>

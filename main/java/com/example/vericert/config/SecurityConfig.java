@@ -42,12 +42,13 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll() //
-                        .requestMatchers("/signup", "/login","/v/**","/home","/verify","/certificati","/revoke","/files/**").permitAll()
-                        .requestMatchers("/files/**").permitAll()
-                        .requestMatchers("/api/templates/*/preview", "/api/templates/*/preview.pdf").permitAll()
-                        .requestMatchers("/api/**").authenticated()
-                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/home","/verify","/certificati","/revoke").permitAll()
+                        .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/templates/**","/certificates/**").authenticated()
+                        .requestMatchers("/v/**","/signup","/login","/files/**","/actuator/health").permitAll()
                         .anyRequest().authenticated()
+
+
                 )
                 .formLogin(formLogin -> formLogin
                         .loginPage("/login")

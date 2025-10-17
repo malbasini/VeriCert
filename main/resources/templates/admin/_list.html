@@ -1,0 +1,118 @@
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="input-group w-auto">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="q" type="search" class="form-control" placeholder="Cerca per nome…" th:value="${q}">
+            <button class="btn btn-outline-secondary" onclick="location.href='?q='+encodeURIComponent(document.getElementById('q').value)">Cerca</button>
+        </div>
+        <a class="btn btn-primary" th:href="@{/admin/templates/new}">
+            <i class="bi bi-plus-lg"></i> Nuovo template
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Aggiornato</th>
+                <th>Usi</th>
+                <th class="text-end">Azioni</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${page.content}">
+                <td th:text="${t.id}">1</td>
+                <td>
+                    <span class="fw-semibold" th:text="${t.name}">Template A</span><br>
+                    <small class="text-muted" th:text="${#strings.abbreviate(t.description, 80)}">Descrizione…</small>
+                </td>
+                <td th:text="${#temporals.format(t.updatedAt, 'dd/MM/yyyy HH:mm')}">--</td>
+                <td><span class="badge text-bg-secondary" th:text="${t.usedCount ?: 0}">0</span></td>
+                <td class="text-end">
+                    <div class="btn-group">
+                        <a class="btn btn-outline-secondary btn-sm" th:href="@{|/admin/templates/${t.id}/edit|}">
+                            <i class="bi bi-pencil"></i> Modifica
+                        </a>
+                        <button class="btn btn-outline-primary btn-sm" th:attr="data-id=${t.id}" onclick="openPreview(this)">
+                            <i class="bi bi-eye"></i> Preview
+                        </button>
+                        <a class="btn btn-outline-dark btn-sm" th:href="@{|/api/admin/templates/${t.id}/export|}">
+                            <i class="bi bi-box-arrow-down"></i> Export
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${page.empty}">
+                <td colspan="5" class="text-center text-muted py-4">Nessun template trovato.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- paginazione -->
+    <nav th:if="${page.totalPages > 1}">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${page.first} ? ' disabled'">
+                <a class="page-link" th:href="@{|?q=${q}&page=${page.number-1}|}">«</a>
+            </li>
+            <li class="page-item" th:each="n : ${#numbers.sequence(0, page.totalPages-1)}"
+                th:classappend="${n==page.number} ? ' active'">
+                <a class="page-link" th:text="${n+1}" th:href="@{|?q=${q}&page=${n}|}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${page.last} ? ' disabled'">
+                <a class="page-link" th:href="@{|?q=${q}&page=${page.number+1}|}">»</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Modal Preview -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-eye"></i> Anteprima template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabHtml" type="button" role="tab">HTML</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPdf" type="button" role="tab">PDF</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabHtml" role="tabpanel">
+                            <iframe id="prevHtml" style="width:100%;height:70vh;border:1px solid #ddd;"></iframe>
+                        </div>
+                        <div class="tab-pane fade" id="tabPdf" role="tabpanel">
+                            <iframe id="prevPdf" style="width:100%;height:70vh;border:1px solid #ddd;"></iframe>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function openPreview(btn){
+            const id = btn.getAttribute('data-id');
+            // HTML
+            const h = await fetch(`/api/templates/${id}/preview`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+            document.getElementById('prevHtml').srcdoc = await h.text();
+            // PDF
+            const p = await fetch(`/api/templates/${id}/preview.pdf`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
+            const blob = await p.blob();
+            document.getElementById('prevPdf').src = URL.createObjectURL(blob);
+            // show modal
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+        }
+    </script>
+</div>

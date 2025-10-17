@@ -93,6 +93,11 @@ public class HomeController {
         return "certificates/list";
     }
 
+    @GetMapping("/admin/page")
+    public String admin(Model model) {
+        return "common/admin";
+    }
+
 
 
 

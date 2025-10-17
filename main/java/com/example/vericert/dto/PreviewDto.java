@@ -13,6 +13,9 @@ public record PreviewDto(
         @NotBlank(message = "L'intestatario è obbligatorio")
         String ownerName,
 
+        @NotBlank(message = "Email intestatario obbligatoria")
+        String ownerEmail,
+
         @NotBlank(message = "Il codice corso è obbligatorio")
         String courseCode,
 

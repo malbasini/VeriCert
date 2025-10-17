@@ -190,6 +190,14 @@
     document.addEventListener('DOMContentLoaded', buildForm);
     document.querySelector('form')?.addEventListener('submit', e => e.preventDefault());
 </script>
+<script>
+    function showToast(message) {
+        const toastEl = document.getElementById('appToast');
+        toastEl.querySelector('.toast-body').textContent = message;
+        const t = bootstrap.Toast.getOrCreateInstance(toastEl);
+        t.show();
+    }
+</script>
 </body>
 <div th:insert="common/footer :: footerFragment"></div>
 <!-- qui potresti caricare i file JS di Bootstrap, se serve -->
