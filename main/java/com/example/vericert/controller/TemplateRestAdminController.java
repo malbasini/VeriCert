@@ -1,20 +1,26 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.domain.Template;
 import com.example.vericert.dto.TemplateDto;
 import com.example.vericert.dto.TemplateUpsert;
 import com.example.vericert.repo.TemplateRepository;
+import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.TemplateAdminService;
 import com.example.vericert.service.TemplateService;
 import jakarta.validation.Valid;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,13 +28,13 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/admin/templates")
 @PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
-public class TemplateAdminController {
+public class TemplateRestAdminController {
 
     private final TemplateRepository repo;
     private final TemplateAdminService service;
     private final TemplateService renderService;
 
-    public TemplateAdminController(TemplateRepository repo,
+    public TemplateRestAdminController(TemplateRepository repo,
                                    TemplateAdminService service,
                                    TemplateService renderService) {
         this.repo = repo;
@@ -36,14 +42,23 @@ public class TemplateAdminController {
         this.renderService = renderService;
     }
 
-    @GetMapping
-    public Page<TemplateDto> list(@RequestParam(defaultValue = "0") int page,
-                                  @RequestParam(defaultValue = "10") int size) {
-        Long tenantId = currentTenantId();
-        var p = repo.findByTenantId(tenantId,
-                PageRequest.of(page, size, Sort.by("updatedAt").descending()));
-        return p.map(TemplateMapper::toDto);
+    @GetMapping("/admin/templates")
+    public String list(@AuthenticationPrincipal CustomUserDetails user,
+                       @RequestParam(required = false) String q,
+                       @PageableDefault(size=10, sort="updatedAt", direction=Sort.Direction.DESC) Pageable pageable,
+                       Model model) {
+
+        Long tenantId = user.getTenantId(); // oppure risolto da TenantResolver
+
+        Page<Template> page = (q == null || q.isBlank())
+                ? repo.findAllByTenantId(tenantId, pageable)
+                : repo.searchByName(tenantId, q, pageable);
+
+        model.addAttribute("page", page);
+        model.addAttribute("q", q);
+        return "admin/templates/list";
     }
+
 
     @GetMapping("/{id}")
     public TemplateDto getOne(@PathVariable Long id) {
@@ -64,7 +79,7 @@ public class TemplateAdminController {
         }
         var t = service.create(req);
 
-        return ResponseEntity.ok(new TemplateAdminController.VerificationResponse(
+        return ResponseEntity.ok(new TemplateRestAdminController.VerificationResponse(
                 t.getId().toString(),
                 t.getName(),
                 t.getVersion(),
@@ -83,15 +98,14 @@ public class TemplateAdminController {
 
     @PutMapping("/{id}/edit")
     public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
-                              RedirectAttributes ra,
                               @Valid @RequestBody TemplateUpsert req,
                              BindingResult br) {
         com.example.vericert.domain.Template t = null;
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(
-                            fe -> fe.getField(),
-                            Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
+                            FieldError::getField,
+                            Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
 
@@ -103,8 +117,7 @@ public class TemplateAdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
-        ra.addFlashAttribute("toast", "Template salvato con successo");
-        return ResponseEntity.ok(new TemplateAdminController.VerificationUpdateResponse(
+        return ResponseEntity.ok(new TemplateRestAdminController.VerificationUpdateResponse(
                 t.getId().toString(),
                 t.getName(),
                 t.getVersion(),

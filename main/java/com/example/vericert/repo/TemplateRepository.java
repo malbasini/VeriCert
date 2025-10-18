@@ -11,12 +11,15 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface TemplateRepository extends JpaRepository<Template, Long> {
+    Page<Template> searchByNameContainingIgnoreCase(String q, Pageable pageable);
+
+    Template findByName(String tenantName);
+
     // Se ti serve solo l'id, proiezione semplice
     interface TemplateIdOnly {
         Long getId();
     }
     Optional<TemplateIdOnly> findFirstProjectedByTenant_Id(Long tenantId);
-    Page<Template> findByTenantId(Long tenantId, Pageable pageable);
     Optional<Template> findByTenantIdAndId(Long tenantId, Long id);
     boolean existsByTenantIdAndNameAndVersion(Long tenantId, String name, String version);
 
@@ -24,4 +27,29 @@ public interface TemplateRepository extends JpaRepository<Template, Long> {
     @Query("update Template t set t.active=false where t.tenant.id=:tenantId")
     void deactivateAll(@Param("tenantId") Long tenantId);
 
+    @Query("""
+           select t
+           from Template t
+           where t.tenant.id = :tenantId
+           order by t.updatedAt desc
+           """)
+    Page<Template> findAllByTenantId(@Param("tenantId") Long tenantId, Pageable pageable);
+
+    @Query("""
+           select t
+           from Template t
+           where t.tenant.id = :tenantId
+             and lower(t.name) like lower(concat('%', :q, '%'))
+           order by t.updatedAt desc
+           """)
+    Page<Template> searchByName(@Param("tenantId") Long tenantId,
+                                @Param("q") String q,
+                                Pageable pageable);
+
+    Optional<Template> findByIdAndTenantId(Long id, Long tenantId);
+
+    @Modifying
+    @Query("delete from Template t where t.id = :id and t.tenant.id = :tenantId")
+    int deleteByIdAndTenantId(@Param("id") Long id, @Param("tenantId") Long tenantId);
 }
+

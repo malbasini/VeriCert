@@ -9,20 +9,13 @@ import org.hibernate.annotations.ParamDef;
 @MappedSuperclass
 @FilterDef(
         name = "tenantFilter",
-        parameters = @ParamDef(name = "tenantId", type = String.class)
+        parameters = @ParamDef(name = "tenantId", type = Long.class) // ✅
 )
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public abstract class BaseTenantEntity {
-
-    @Column(name = "tenant_id", nullable = false, insertable = false, updatable = false)
+    @Column(name="tenant_id", nullable=false, insertable=false, updatable=false)
     private Long tenantId;
-
-    // getter + setter
-    public Long getTenantId() {
-        return tenantId;
-    }
-
-    public void setTenantId(Long tenantId) {
-        this.tenantId = tenantId;
-    }
+    // getter/setter
+    public Long getTenantId() { return tenantId; }
+    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
 }

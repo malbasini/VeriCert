@@ -95,7 +95,7 @@ public class HomeController {
 
     @GetMapping("/admin/page")
     public String admin(Model model) {
-        return "common/admin";
+        return "admin";
     }
 
 
