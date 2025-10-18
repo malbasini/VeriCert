@@ -11,8 +11,8 @@
            Preview
         </button>
         <ul class="dropdown-menu">
-            <li><a class="dropdown-item" onclick="preview()" href="#" data-bs-toggle="modal" data-bs-target="#previewModal">Preview HTML</a></li>
-            <li><a class="dropdown-item" onclick="doPreviewPdf()" href="#" data-bs-toggle="modal" data-bs-target="#previewModal">Preview PDF</a></li>
+            <li><a class="dropdown-item" onclick="preview()" data-bs-toggle="modal" data-bs-target="#previewModal" id="html" href="#">Preview HTML</a></li>
+            <li><a class="dropdown-item" id="pdf" onclick="doPreviewPdf()" href="#" data-bs-toggle="modal" data-bs-target="#previewModal">Preview PDF</a></li>
         </ul>
     </div>
     <br>
@@ -194,6 +194,7 @@
         }
         async function preview() {
             try {
+                await hideModal();
                 setLoading(true);
                 const idEl = document.getElementById('id');
                 const id = idEl ? idEl.value : 1;
@@ -231,7 +232,6 @@
                     setIframeHtml(iframe, `<pre style="color:#b91c1c">Errore ${resp.status}\n${html}</pre>`);
                     return;
                 }
-                setIframeHtml(iframe, html);
             }
             catch (e) {
                 console.error('Errore nella preview HTML:', e);
@@ -239,6 +239,7 @@
             }
             finally {
                 setLoading(false);
+
             }
         }
         async function doPreviewPdf() {
@@ -310,6 +311,19 @@
             toastEl.querySelector('.toast-body').textContent = message;
             const t = bootstrap.Toast.getOrCreateInstance(toastEl);
             t.show();
+        }
+    </script>
+    <script>
+        async function hideModal() {
+            const modal = bootstrap.Modal.getOrCreateInstance('#previewModal');
+            modal.hide();
+        }
+        async function showModal() {
+            const container = document.getElementById("previewModal");
+            const modal = new bootstrap.Modal(container);
+            document.getElementById("html").addEventListener("click", function () {
+                modal.show();
+            });
         }
     </script>
     <!-- Modal -->
