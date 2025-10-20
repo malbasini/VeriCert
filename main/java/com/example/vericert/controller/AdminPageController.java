@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class AdminPageController {
     @GetMapping("/admin/templates/preview")
     public String templatePreviewPage() {
-        return "admin/template-preview";
+        return "admin/templates-preview";
     }
 }

@@ -1,0 +1,8 @@
+<th:block
+        th:with="pageTitle='Certificate', active='Certificates'"
+        th:replace="~{admin :: layout(
+                 pageTitle=${pageTitle},
+                 active=${active},
+                 content=~{/certificates/_new :: content(template=${template}, variablesUserJson=${variablesUserJson},pageTitle=${pageTitle}, active=${active})}
+               )}">
+</th:block>

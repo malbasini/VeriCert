@@ -50,7 +50,6 @@ public class PublicVerificationController {
                 token.getCode(),
                 certificate.getOwnerName(),
                 certificate.getOwnerEmail(),
-                certificate.getCourseCode(),
                 certificate.getIssuedAt().toString()
         ));
     }
@@ -60,7 +59,6 @@ public class PublicVerificationController {
             String code,
             String ownerName,
             String ownerEmail,
-            String courseCode,
             String issueDate
     ) {}
 

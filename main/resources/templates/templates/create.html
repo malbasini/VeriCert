@@ -1,9 +1,9 @@
-<!-- templates/admin/templates/list.html -->
+<!-- templates/admin/templates/update.html -->
 <th:block
         th:with="pageTitle='Template', active='templates'"
         th:replace="~{admin :: layout(
                  pageTitle=${pageTitle},
                  active=${active},
-                 content=~{admin/templates/_list :: content(page=${page}, q=${q})}
+                 content=~{/templates/_create :: content(pageTitle=${pageTitle},active=${active})}
                )}">
 </th:block>

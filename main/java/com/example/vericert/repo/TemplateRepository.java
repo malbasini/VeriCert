@@ -46,10 +46,13 @@ public interface TemplateRepository extends JpaRepository<Template, Long> {
                                 @Param("q") String q,
                                 Pageable pageable);
 
-    Optional<Template> findByIdAndTenantId(Long id, Long tenantId);
 
     @Modifying
     @Query("delete from Template t where t.id = :id and t.tenant.id = :tenantId")
     int deleteByIdAndTenantId(@Param("id") Long id, @Param("tenantId") Long tenantId);
+
+    Optional<Template> findByTenantIdAndActiveTrue(Long tenantId);
+    // opzionale se vuoi una fallback: il più recente tra gli attivi
+    Optional<Template> findFirstByTenantIdAndActiveTrueOrderByUpdatedAtDesc(Long tenantId);
 }
 

@@ -29,16 +29,16 @@
                 <div class="card-body">
                     <h5 class="card-title">Emetti un Certificato</h5>
                     <p class="card-text">Accedi con il tuo account per emettere certificati.</p>
-                    <a href="/certificate/list" class="btn btn-primary">Vai alle API</a>
+                    <a th:href="@{/admin/certificates}" class="btn btn-primary">Vai alle API</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card h-100 shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Revoca Certificato</h5>
-                    <p class="card-text">Accedi con il tuo account per revocare certificati.</p>
-                    <a th:href="@{/revoke}" class="btn btn-primary">Vai alle API</a>
+                    <h5 class="card-title">Templates</h5>
+                    <p class="card-text">Accedi con il tuo account per gestire i template.</p>
+                    <a th:href="@{/admin/templates}" class="btn btn-primary">Vai alle API</a>
                 </div>
             </div>
         </div>

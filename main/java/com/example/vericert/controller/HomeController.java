@@ -90,7 +90,7 @@ public class HomeController {
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
         model.addAttribute("tenantName", tenantName);
-        return "certificates/list";
+        return "_list";
     }
 
     @GetMapping("/admin/page")

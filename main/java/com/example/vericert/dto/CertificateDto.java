@@ -1,5 +1,6 @@
 package com.example.vericert.dto;
 
+import com.example.vericert.domain.Stato;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,7 +12,5 @@ public record CertificateDto(
         String owner,
         String pdfUrl,
         @Enumerated(EnumType.STRING) @Column(name = "status", nullable=false)
-        com.example.vericert.domain.Stato status,
-
-        String string)
+        Stato status)
 { }

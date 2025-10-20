@@ -39,4 +39,5 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     Optional<VerificationView> findViewByCode(@Param("code") String code);
 
     Optional<VerificationToken> findByCode(String code);
+
 }

@@ -10,8 +10,7 @@ public final class CertificateMapper {
                 t.getSerial(),
                 t.getOwnerName(),
                 t.getPdfUrl(),
-                t.getStatus(),
-                t.getRevokedReason()
+                t.getStatus()
         );
     }
 }

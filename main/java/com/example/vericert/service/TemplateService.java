@@ -35,7 +35,7 @@ public class TemplateService {
         if (userVars != null) model.putAll(userVars);
         if (sysVars != null) model.putAll(sysVars);
         ctx.setVariables(model);
-        // ATTENZIONE: qui `tpl.getHtml()` è il *contenuto* del template, non il nome file
+        // ATTENZIONE: qui `tpl.getHtml()` è il *contenuto* del templates, non il nome file
         return engine.process(tpl.getHtml(), ctx); // usa StringTemplateResolver
     }
 }

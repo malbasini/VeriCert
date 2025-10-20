@@ -13,6 +13,8 @@ import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,10 +55,11 @@ public class CertificateService {
     }
 
     @Transactional
-    public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, String courseCode) throws Exception {
+    public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail) throws Exception {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
+        Tenant tenant = tenantRepo.findByName(tenantName);
         Long tenantId = tenantRepo.findByName(tenantName).getId();
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = randomCode(24);
@@ -64,9 +67,8 @@ public class CertificateService {
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
         Map<String,Object> sysVars = buildSysVarsForCertificate(code,serial,verifyUrl,qrBase64);
-        Map<String, Object> userVars = new HashMap<>(vars);
-        userVars.put("iussueDate", Instant.now());
-        String html = templateService.renderHtml(templateId, userVars, sysVars);
+        vars.put("iussueDate", Instant.now());
+        String html = templateService.renderHtml(templateId, vars, sysVars);
         byte[] pdf = PdfUtil.htmlToPdf(html);
         String sha = HashUtil.sha256Hex(pdf);
         Files.createDirectories(Paths.get(storagePath));
@@ -76,10 +78,9 @@ public class CertificateService {
         c.setSerial(serial);
         c.setOwnerName(ownerName);
         c.setOwnerEmail(ownerEmail);
-        c.setCourseCode(courseCode);
+        c.setTemplateId(templateId);
         c.setPdfUrl(pdfUrl);
         c.setSha256(sha);
-        Tenant tenant = tenantRepo.getTenantById(tenantId);
         c.setTenant(tenant);
         c = certRepo.save(c);
         VerificationToken t = new VerificationToken();
@@ -149,5 +150,24 @@ public class CertificateService {
         // issuedAt (opzionale)
         sys.put("issuedAt", java.time.Instant.now());
         return sys;
+    }
+
+    public Page<Certificate> listForTenant(Long tenantId, String q, Stato status, Pageable pageable) {
+        return certRepo.search(tenantId, q, status, pageable);
+    }
+
+    public Certificate getForTenant(Long tenantId, Long id) {
+        return certRepo.findByIdAndTenantId(id, tenantId).orElseThrow();
+    }
+
+    @Transactional
+    public void revoke(Long tenantId, Long id, String reason, String byUser) {
+        Certificate c = getForTenant(tenantId, id);
+        if (c.getStatus() == Stato.REVOKED) return;
+        c.setStatus(Stato.REVOKED);
+        certRepo.save(c);
+        // opzionale: audit
+        // auditLog.infoRevoke(tenantId, id, reason, byUser);
+        // opzionale: invalidare token verifica (se vuoi far fallire la verifica)
     }
 }

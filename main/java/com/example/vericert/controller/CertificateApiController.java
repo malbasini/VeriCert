@@ -11,12 +11,15 @@ import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CertificateService;
 import com.example.vericert.service.CustomUserDetails;
+import com.example.vericert.service.TemplatePicker;
 import com.example.vericert.service.UsageService;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -41,36 +44,49 @@ public class CertificateApiController {
     private final UsageService usageService;
     private final TenantRepository tenantRepo;
     private final CertificateRepository certRepo;
+    private final TemplateRepository tempRepo;
+    private final TemplatePicker templatePicker;
 
     public CertificateApiController(CertificateService service,
                                     UsageService usageService,
                                     TenantRepository tenantRepo,
-                                    CertificateRepository certRepo) {
+                                    CertificateRepository certRepo,
+                                    TemplateRepository tempRepo,
+                                    TemplatePicker templatePicker) {
 
         this.service = service;
         this.usageService = usageService;
         this.tenantRepo = tenantRepo;
         this.certRepo = certRepo;
+        this.tempRepo = tempRepo;
+        this.templatePicker = templatePicker;
     }
-
     @GetMapping("/list")
-    public Page<CertificateDto> list(@RequestParam(defaultValue = "0") int page,
-                                     @RequestParam(defaultValue = "10") int size) {
-        Long tenantId = currentTenantId();
-        var p = certRepo.findByTenantId(tenantId,
-                PageRequest.of(page, size, Sort.by("status").ascending()));
-        return p.map(CertificateMapper::toDto);
+    public Page<Certificate> list(@RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "10") int size,
+                                  @RequestParam(required=false) String q,
+                                  @RequestParam(required=false) Stato status,
+                                  @PageableDefault(size=10, sort="updatedAt", direction=Sort.Direction.DESC) Pageable pageable) {
+
+        Long tenantId=currentTenantId(); // prendi dal tuo CustomUserDetails o threadlocal
+        return service.listForTenant(tenantId, q, status, pageable);
     }
 
+    @GetMapping("/{id}")
+    public Certificate detail(@PathVariable Long id) {
+        Long tenantId = currentTenantId();
+        return service.getForTenant(tenantId, id);
+    }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
-    @PostMapping("/{templateId}")
+    @PostMapping("/new/{ownerName}/{ownerEmail}")
     public ResponseEntity<?> create(
-            @PathVariable(name = "templateId") Long templateId,
-            @Valid @RequestBody CreateReq req,
+            @PathVariable(name="ownerName") String ownerName,
+            @PathVariable(name="ownerEmail") String ownerEmail,
+            @Valid @RequestBody Map<String,Object> map,
             BindingResult br) throws IOException {
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
@@ -80,17 +96,18 @@ public class CertificateApiController {
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
         }
-        Map<String,Object> map = toMap(req);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String tenantName = user.getTenantName();
         map.put("tenantName", tenantName);
+        Long tenantId = currentTenantId();
+        Template tpl = templatePicker.getActiveTemplateOrThrow(tenantId);
         Certificate c = null;
         try {
             Tenant tenant = tenantRepo.findByName(tenantName);
             // controllo piano
             usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
-            c = service.issue(templateId, map, req.ownerName(), req.ownerEmail(), req.courseCode());
+            c = service.issue(tpl.getId(), map, ownerName, ownerEmail);
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -136,7 +153,6 @@ public class CertificateApiController {
                     certificate.getId().toString(),
                     certificate.getOwnerName(),
                     certificate.getOwnerEmail(),
-                    certificate.getCourseCode(),
                     certificate.getIssuedAt().toString(),
                     certificate.getRevokedReason(),
                     certificate.getRevokedAt().toString()
@@ -154,7 +170,6 @@ public class CertificateApiController {
             String code,
             String ownerName,
             String ownerEmail,
-            String courseCode,
             String issuedAt,
             String revokedReason,
             String revokedAt
@@ -167,6 +182,15 @@ public class CertificateApiController {
                 .filter(z -> z.getStatus() != Stato.REVOKED)
                 .filter(z -> Objects.equals(z.getTenant().getId(), currentTenantId()))
                 .map(Certificate::getId)
+                .toList();
+        return ResponseEntity.ok(codes);
+    }
+    @GetMapping("/loadCodes")
+    public ResponseEntity<?> getTemplate() {
+        var codes = tempRepo.findAll().stream()
+                .filter(z -> Objects.equals(z.getTenant().getId(), currentTenantId()))
+                .filter(Template::isActive)
+                .map(Template::getId)
                 .toList();
         return ResponseEntity.ok(codes);
     }

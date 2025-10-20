@@ -1,0 +1,102 @@
+<div th:fragment="content(page, q,status,from,to)">
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h1 class="h3 mb-0">Certificati</h1>
+        <a class="btn btn-primary" th:href="@{/admin/certificates/new}"><i class="fa-solid fa-plus"></i>Nuovo certificato</a>
+    </div>
+
+    <!-- Filtri -->
+    <form class="row gy-2 gx-2 align-items-end mb-3" method="get">
+        <div class="input-group w-auto">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" name="q" placeholder="serial / email / corso / intestatario" th:value="${q}" >
+        </div>
+        <div class="col-sm-2">
+            <label class="form-label">Stato</label>
+            <select class="form-select" name="status">
+                <option th:selected="${status == null}" value="">Tutti</option>
+                <option th:selected="${status?.name() == 'ISSUED'}"  value="ISSUED">Emessi</option>
+                <option th:selected="${status?.name() == 'REVOKED'}" value="REVOKED">Revocati</option>
+            </select>
+        </div>
+
+        <div class="col-sm-2">
+            <label class="form-label">Da</label>
+            <input type="date" class="form-control" name="from" th:value="${from}">
+        </div>
+        <div class="col-sm-2">
+            <label class="form-label">A</label>
+            <input type="date" class="form-control" name="to" th:value="${to}">
+        </div>
+        <div class="col-sm-3">
+            <button class="btn btn-dark flex-fill" type="submit"><i class="fa-regular fa-circle-up"></i>Applica</button>
+            <a class="btn btn-outline-secondary flex-fill" th:href="@{/admin/certificates}"><i class="fa-regular fa-rectangle-list"></i>Reset</a>
+        </div>
+    </form>
+
+    <!-- Tabella -->
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Seriale</th>
+                        <th>Intestatario</th>
+                        <th>Corso</th>
+                        <th>Emesso il</th>
+                        <th>Stato</th>
+                        <th class="text-end">Azioni</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(page.content)}">
+                        <td colspan="6" class="text-center text-muted py-4">Nessun certificato trovato.</td>
+                    </tr>
+                    <tr th:each="c : ${page.content}">
+                        <td th:text="${c.serial}">SERIAL</td>
+                        <td>
+                            <div class="fw-semibold" th:text="${c.ownerName}">Nome Cognome</div>
+                            <div class="text-muted small" th:text="${c.ownerEmail}">email@example.com</div>
+                        </td>
+                        <td th:text="${#dates.format(T(java.util.Date).from(T(java.time.Instant).ofEpochMilli(c.issuedAt)),'dd/MM/yyyy HH:mm')}"></td>
+                        <td>
+                        <span class="badge rounded-pill"
+                        th:classappend="${c.status?.name()=='REVOKED'} ? ' text-bg-danger' : ' text-bg-success'"
+                        th:text="${c.status?.name()=='REVOKED'} ? 'Revocato' : 'Valido'">Valido</span>
+                        </td>
+
+                        <td class="text-end">
+                            <a th:if="${c.pdfUrl != null}" th:href="@{${c.pdfUrl}}"
+                               target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-regular fa-file-pdf"></i>PDF</a>
+                            <a th:href="@{'/admin/certificates/' + ${c.id}}"
+                               class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-info"></i>Dettaglio</a>
+                            <a th:href="@{'/admin/certificates/revoke' + ${c.id}}"
+                               class="btn btn-sm btn-outline-warning"><i class="fas fa-stop-circle"></i>Revoca</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav th:if="${page.totalPages > 1}" class="p-3">
+                <ul class="pagination mb-0">
+                    <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/certificates(page=${page.number-1}, size=${page.size}, q=${q}, status=${status}, from=${from}, to=${to})}">«</a>
+                    </li>
+                    <li class="page-item disabled">
+            <span class="page-link"
+                  th:text="${page.number + 1} + ' / ' + ${page.totalPages}">1 / 1</span>
+                    </li>
+                    <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/admin/certificates(page=${page.number+1}, size=${page.size}, q=${q}, status=${status}, from=${from}, to=${to})}">»</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+</div>

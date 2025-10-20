@@ -13,14 +13,14 @@ public class Certificate extends BaseTenantEntity {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
+    @Column(name="template_id", nullable=false)
+    private Long templateId;
     @Column(nullable=false, unique=true, length=64)
     private String serial;
     @Column(name = "owner_name", nullable=false)
     private String ownerName;
     @Column(name = "owner_email", nullable=false)
     private String ownerEmail;
-    @Column(name = "course_code", nullable=false)
-    private String courseCode;
     @Column(name = "pdf_url", nullable=false)
     private String pdfUrl;
     @Column(nullable=false, length=64)
@@ -80,14 +80,6 @@ public class Certificate extends BaseTenantEntity {
         this.ownerEmail = ownerEmail;
     }
 
-    public String getCourseCode() {
-        return courseCode;
-    }
-
-    public void setCourseCode(String courseCode) {
-        this.courseCode = courseCode;
-    }
-
     public String getPdfUrl() {
         return pdfUrl;
     }
@@ -135,5 +127,13 @@ public class Certificate extends BaseTenantEntity {
     public Stato setStatus(Stato status) {
         this.status = status;
         return status;
+    }
+
+    public Long getTemplateId() {
+        return templateId;
+    }
+
+    public void setTemplateId(Long templateId) {
+        this.templateId = templateId;
     }
 }

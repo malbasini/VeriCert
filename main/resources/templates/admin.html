@@ -16,7 +16,7 @@
             <div class="list-group list-group-flush small">
                 <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
                    th:classappend="${active=='dashboard'} ? ' active'"
-                   th:href="@{/templates/admin}">
+                   th:href="@{/templates/admin/templates/admin/templates/admin}">
                     <i class="bi bi-speedometer2"></i><span>Dashboard</span>
                 </a>
 
@@ -28,7 +28,7 @@
 
                 <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
                    th:classappend="${active=='certificates'} ? ' active'"
-                   th:href="@{/certificate/list}">
+                   th:href="@{/admin/certificates}">
                     <i class="bi bi-patch-check"></i><span>Certificati</span>
                 </a>
 

@@ -100,19 +100,4 @@
             </div>
         </div>
     </div>
-    <script>
-        async function openPreview(btn){
-            const id = btn.getAttribute('data-id');
-            // HTML
-            const h = await fetch(`/api/templates/${id}/${tenantEl}/preview`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
-            document.getElementById('prevHtml').srcdoc = await h.text();
-            // PDF
-            const p = await fetch(`/api/templates/${id}/${tenantEl}/preview.pdf`, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'});
-            const blob = await p.blob();
-            document.getElementById('prevPdf').src = URL.createObjectURL(blob);
-            // show modal
-            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
-            modal.show();
-        }
-    </script>
 </div>
