@@ -11,7 +11,6 @@ import java.time.Instant;
 @Table(name="audit_log")
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public class AuditLog extends BaseTenantEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

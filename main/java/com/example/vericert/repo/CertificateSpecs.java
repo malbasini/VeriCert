@@ -30,8 +30,7 @@ public class CertificateSpecs {
                 String like = "%" + q.trim().toLowerCase() + "%";
                 ps.add(cb.or(
                         cb.like(cb.lower(root.get("serial")), like),
-                        cb.like(cb.lower(root.get("ownerName")), like),
-                        cb.like(cb.lower(root.get("courseCode")), like)
+                        cb.like(cb.lower(root.get("ownerName")), like)
                 ));
             }
 

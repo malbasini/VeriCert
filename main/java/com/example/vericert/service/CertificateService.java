@@ -55,12 +55,11 @@ public class CertificateService {
     }
 
     @Transactional
-    public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail) throws Exception {
+    public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, Tenant tenant) throws Exception {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        String tenantName = user.getTenantName();
-        Tenant tenant = tenantRepo.findByName(tenantName);
-        Long tenantId = tenantRepo.findByName(tenantName).getId();
+        String tenantName = tenant.getName();
+        Long tenantId = tenant.getId();
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = randomCode(24);
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
@@ -74,11 +73,10 @@ public class CertificateService {
         Files.createDirectories(Paths.get(storagePath));
         String pdfUrl = savePdf(serial, pdf);
         Certificate c = new Certificate();
-        c.setTenantId(tenantId);
+        c.setTenant(tenant);
         c.setSerial(serial);
         c.setOwnerName(ownerName);
         c.setOwnerEmail(ownerEmail);
-        c.setTemplateId(templateId);
         c.setPdfUrl(pdfUrl);
         c.setSha256(sha);
         c.setTenant(tenant);
@@ -156,13 +154,13 @@ public class CertificateService {
         return certRepo.search(tenantId, q, status, pageable);
     }
 
-    public Certificate getForTenant(Long tenantId, Long id) {
-        return certRepo.findByIdAndTenantId(id, tenantId).orElseThrow();
+    public Certificate getForTenant(Long id) {
+        return certRepo.findById(id).orElseThrow();
     }
 
     @Transactional
     public void revoke(Long tenantId, Long id, String reason, String byUser) {
-        Certificate c = getForTenant(tenantId, id);
+        Certificate c = getForTenant(id);
         if (c.getStatus() == Stato.REVOKED) return;
         c.setStatus(Stato.REVOKED);
         certRepo.save(c);

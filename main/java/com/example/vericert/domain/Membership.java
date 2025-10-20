@@ -1,12 +1,13 @@
 package com.example.vericert.domain;
 
+import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Filter;
 
 @Entity
 @Table(name="membership")
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-public class Membership {
+public class Membership extends BaseTenantEntity {
 
     @EmbeddedId
     private MembershipId id;

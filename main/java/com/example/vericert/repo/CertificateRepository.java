@@ -15,7 +15,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     // elenco per tenant con ricerca semplice (nome/email/serial/course)
     @Query("""
      select c from Certificate c
-     where c.tenantId = :tenantId
+     where c.tenant.id = :tenantId
        and (
          :q is null or :q = '' or
          lower(c.ownerName) like lower(concat('%',:q,'%')) or

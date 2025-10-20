@@ -1,5 +1,6 @@
 package com.example.vericert.domain;
 
+import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Filter;
 
@@ -7,7 +8,7 @@ import org.hibernate.annotations.Filter;
 @Entity
 @Table(name="usage_meter")
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-public class UsageMeter {
+public class UsageMeter extends BaseTenantEntity {
 
     @EmbeddedId
     private UsageMeterId id;

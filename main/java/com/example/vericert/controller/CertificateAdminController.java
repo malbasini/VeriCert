@@ -67,8 +67,7 @@ public class CertificateAdminController {
                         cb.or(
                                 cb.like(cb.lower(root.get("serial")), like),
                                 cb.like(cb.lower(root.get("ownerName")), like),
-                                cb.like(cb.lower(root.get("ownerEmail")), like),
-                                cb.like(cb.lower(root.get("courseCode")), like)
+                                cb.like(cb.lower(root.get("ownerEmail")), like)
                         )
                 );
             }

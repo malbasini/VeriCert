@@ -75,7 +75,7 @@ public class CertificateApiController {
     @GetMapping("/{id}")
     public Certificate detail(@PathVariable Long id) {
         Long tenantId = currentTenantId();
-        return service.getForTenant(tenantId, id);
+        return service.getForTenant(id);
     }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -107,7 +107,7 @@ public class CertificateApiController {
             Tenant tenant = tenantRepo.findByName(tenantName);
             // controllo piano
             usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
-            c = service.issue(tpl.getId(), map, ownerName, ownerEmail);
+            c = service.issue(tpl.getId(), map, ownerName, ownerEmail,tenant);
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -13,8 +13,6 @@ public class Certificate extends BaseTenantEntity {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
-    @Column(name="template_id", nullable=false)
-    private Long templateId;
     @Column(nullable=false, unique=true, length=64)
     private String serial;
     @Column(name = "owner_name", nullable=false)
@@ -34,17 +32,9 @@ public class Certificate extends BaseTenantEntity {
     @Column(name="revoked_at")
     private Instant revokedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "tenant_id", nullable = false, insertable = false, updatable = false)
+    @ManyToOne(fetch=FetchType.LAZY, optional=false)
+    @JoinColumn(name="tenant_id", nullable=false)
     private Tenant tenant;
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
-    }
 
     // getters/setters
 
@@ -129,11 +119,11 @@ public class Certificate extends BaseTenantEntity {
         return status;
     }
 
-    public Long getTemplateId() {
-        return templateId;
+    public Tenant getTenant() {
+        return tenant;
     }
 
-    public void setTemplateId(Long templateId) {
-        this.templateId = templateId;
+    public void setTenant(Tenant tenant) {
+        this.tenant = tenant;
     }
 }
