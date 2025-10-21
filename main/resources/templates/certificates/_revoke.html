@@ -86,6 +86,10 @@
             try {
                 const id = document.getElementById("id").value;
                 const reason = document.getElementById("reason").value;
+                if (reason.trim() === "") {
+                    alert("Inserisci un motivo per la revoca del certificato");
+                    return;
+                }
                 const API_BASE = "http://localhost:8080/api/certificates";
                 const response = await fetch(`${API_BASE}/${id}/revoke`, {
                     method: "POST",

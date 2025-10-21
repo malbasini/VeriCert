@@ -4,6 +4,7 @@ import com.example.vericert.domain.Template;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.service.CustomUserDetails;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/admin/templates")
@@ -31,12 +34,14 @@ public class AdminTemplateController {
                        @PageableDefault(size=10, sort="updatedAt", direction=Sort.Direction.DESC) Pageable pageable,
                        Model model) {
 
+
+        if(Objects.equals(q, "null"))
+           q = null;
         Long tenantId = user.getTenantId(); // oppure risolto da TenantResolver
-        String tenantName = user.getTenantName();
-        Page<Template> page = (q == null || q.isBlank())
+        Page<Template> pageTemplate = (q == null || q.isBlank())
                 ? repo.findAllByTenantId(tenantId, pageable)
                 : repo.searchByName(tenantId, q, pageable);
-        model.addAttribute("page", page);
+        model.addAttribute("page", pageTemplate);
         model.addAttribute("q", q);
         return "templates/list";
     }
