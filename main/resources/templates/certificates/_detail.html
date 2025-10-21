@@ -1,12 +1,18 @@
 <!-- Dettaglio certificato (semplice, read-only) -->
+<div th:fragment="content(certificate,variablesUserJson,variablesDataJson, pageTitle, active,currentTenant,templateName)">
 <div class="container py-3">
     <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="h4 mb-0">Dettaglio certificato</h2>
-        <a class="btn btn-outline-secondary" th:href="@{/admin/certificates}">
-            <i class="bi bi-arrow-left"></i> Torna alla lista
-        </a>
+        <div class="input-group mb-3">
+            <a class="btn btn-outline-secondary" th:href="@{/admin/certificates}">
+                <i class="bi bi-arrow-left"></i> Torna alla lista
+            </a>&nbsp&nbsp
+            <a th:href="@{'/admin/certificates/' + ${certificate.id} + '/revoke'}"
+               class="btn btn-outline-secondary"><i class="fas fa-stop-circle"></i>Revoca certificato</a>
+        </div>
     </div>
-
+    <br>
+    <hr>
+    <h5 class="mb-3">Dati del certificato</h5>
     <div class="card shadow-sm">
         <div class="card-body">
             <!-- Header: stato + seriale -->
@@ -43,7 +49,7 @@
 
                 <div class="col-md-4">
                     <div class="form-floating">
-                        <input class="form-control" readonly th:value="${certificate.templateName}">
+                        <input class="form-control" readonly th:value="${templateName}">
                         <label>Template</label>
                     </div>
                 </div>
@@ -55,19 +61,6 @@
                         <label>Emesso il</label>
                     </div>
                 </div>
-
-                <div class="col-md-4">
-                    <div class="form-floating">
-                        <input class="form-control" readonly th:value="${certificate.verifyUrl}">
-                        <label>Verifica pubblica</label>
-                    </div>
-                    <div class="mt-1">
-                        <a class="btn btn-sm btn-outline-secondary" th:href="${certificate.verifyUrl}" target="_blank">
-                            Apri verifica
-                        </a>
-                    </div>
-                </div>
-
                 <div class="col-md-4">
                     <div class="form-floating">
                         <input class="form-control" readonly th:value="${certificate.pdfUrl}">
@@ -92,78 +85,75 @@
 
             <!-- Variabili utente (dinamiche, read-only) -->
             <h5 class="mb-3">Variabili utente</h5>
+            <!-- blob JSON sicuro da leggere in JS -->
+            <script type="application/json" id="schema-json" th:utext="${variablesUserJson}"></script>
+            <script type="application/json" id="values-json" th:utext="${variablesDataJson}"></script>
 
-            <!-- Mettiamo i JSON in <script type="application/json"> per non scappare i caratteri -->
-            <!-- Valori variabili utente (quelli salvati sul certificato) -->
-            <script id="userVarsData" type="application/json" th:utext="${userVarsJson}">{}</script>
-            <!-- Schema del template (per label/type/hint opzionali) -->
-            <script id="userVarsSchema" type="application/json" th:utext="${userVarsSchemaJson}">{}</script>
-
-            <div id="userVarsView" class="row g-3"></div>
-
+            <div id="varsForm" class="row g-3"></div>
         </div>
     </div>
 </div>
+    <script>
+        function readJson(id) {
+            try {
+                const el = document.getElementById(id);
+                return el ? JSON.parse(el.textContent) : {};
+            } catch(e) { console.error('JSON parse error for', id, e); return {}; }
+        }
 
-<!-- Render dinamico read-only -->
-<script>
-    (function renderUserVars(){
-        const dataTag   = document.getElementById('userVarsData');
-        const schemaTag = document.getElementById('userVarsSchema');
+        const schema = readJson('schema-json');   // oggetto: { ownerName: {label:'...', type:'text', ...}, ... }
+        const values = readJson('values-json');   // oggetto: { ownerName:'Mario', hours: 12, ... }
 
-        let data = {};
-        let schema = {};
-        try { data = JSON.parse(dataTag?.textContent || '{}'); } catch(_){}
-        try { schema = JSON.parse(schemaTag?.textContent || '{}'); } catch(_){}
+        buildForm(schema, values);
 
-        const root = document.getElementById('userVarsView');
-        if (!root) return;
+        function buildForm(schema, values) {
+            const root = document.getElementById('varsForm');
+            root.innerHTML = '';
+            Object.entries(schema).forEach(([name, spec]) => {
+                const col = document.createElement('div');
+                col.className = 'col-12 col-md-6';
 
-        // Se hai uno schema, usalo per ordinare e dare label; altrimenti mostra tutte le chiavi di data
-        const entries = [];
-        if (schema && typeof schema === 'object' && !Array.isArray(schema)) {
-            for (const [name, spec] of Object.entries(schema)) {
-                entries.push({ name, label: spec?.label || name, type: spec?.type || 'text', value: data?.[name] });
-            }
-            // Eventuali chiavi “extra” presenti nei dati ma non nello schema
-            for (const k of Object.keys(data)) {
-                if (!entries.find(e => e.name === k)) {
-                    entries.push({ name:k, label:k, type: typeof data[k], value: data[k] });
+                const group = document.createElement('div');
+                group.className = 'form-floating';
+
+                const inputType = (spec.type || 'text').toLowerCase();
+                let input;
+
+                if (inputType === 'boolean' || inputType === 'bool') {
+                    // per boolean meglio uno switch
+                    input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.className = 'form-check-input';
+                    input.checked = Boolean(values?.[name] ?? spec.default ?? false);
+                    input.disabled = true;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'form-check form-switch pt-3';
+                    const label = document.createElement('label');
+                    label.className = 'form-check-label';
+                    label.textContent = spec.label || name;
+                    wrapper.append(input, label);
+                    col.append(wrapper);
+                    root.append(col);
+                    return;
                 }
-            }
-        } else {
-            for (const [k, v] of Object.entries(data)) {
-                entries.push({ name:k, label:k, type: typeof v, value: v });
-            }
+
+                input = document.createElement('input');
+                input.className = 'form-control';
+                input.name = name;
+                input.readOnly = true;
+                input.disabled = true;
+                input.type = (['number','date','text'].includes(inputType) ? inputType : 'text');
+
+                const raw = (values?.[name] ?? spec.default ?? '');
+                input.value = (input.type === 'number' && raw === '') ? '' : raw;
+
+                const label = document.createElement('label');
+                label.textContent = spec.label || name;
+
+                group.append(input, label);
+                col.append(group);
+                root.append(col);
+            });
         }
-
-        // Render a griglia di floating-readonly
-        for (const e of entries) {
-            const col = document.createElement('div');
-            col.className = 'col-md-4';
-            const wrap = document.createElement('div');
-            wrap.className = 'form-floating';
-
-            const input = document.createElement('input');
-            input.className = 'form-control';
-            input.readOnly = true;
-            input.value = formatValue(e.value);
-            // metti monospace per valori non-triviali
-            if (typeof e.value === 'object') input.classList.add('font-monospace');
-
-            const label = document.createElement('label');
-            label.textContent = e.label;
-
-            wrap.append(input, label);
-            col.append(wrap);
-            root.append(col);
-        }
-
-        function formatValue(v){
-            if (v == null) return '';
-            if (typeof v === 'boolean') return v ? 'true' : 'false';
-            if (typeof v === 'object')  return JSON.stringify(v);
-            return String(v);
-        }
-    })();
-</script>
+    </script>
+</div>

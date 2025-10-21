@@ -1,16 +1,15 @@
 package com.example.vericert.service;
 
 import com.example.vericert.config.VericertProps;
-import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.Stato;
-import com.example.vericert.domain.Tenant;
-import com.example.vericert.domain.VerificationToken;
+import com.example.vericert.domain.*;
 import com.example.vericert.repo.CertificateRepository;
+import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.util.HashUtil;
 import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -40,33 +39,40 @@ public class CertificateService {
     private final TemplateService templateService;
     private final TenantRepository tenantRepo; // usa l'opzione A, o cambia tipo se usi Plain
     private final VericertProps props;
+    private final TemplateRepository tempRepo;
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
                               TemplateService templateService,
                               TenantRepository tenantRepo,
-                              VericertProps props){
+                              VericertProps props,
+                              TemplateRepository tempRepo){
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
         this.templateService = templateService;
         this.tenantRepo = tenantRepo;
         this.props = props;
+        this.tempRepo = tempRepo;
     }
 
     @Transactional
     public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, Tenant tenant) throws Exception {
+
+
+        Template template = tempRepo.findById(templateId).orElseThrow();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        String tenantName = tenant.getName();
-        Long tenantId = tenant.getId();
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = randomCode(24);
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
         Map<String,Object> sysVars = buildSysVarsForCertificate(code,serial,verifyUrl,qrBase64);
-        vars.put("iussueDate", Instant.now());
+        ObjectMapper om = new ObjectMapper();
+        String json = om.writeValueAsString(vars);   // -> "{\"nome\":\"Mario\",\"eta\":30}"
+        template.setUserVarJson(json);
+        tempRepo.save(template);
         String html = templateService.renderHtml(templateId, vars, sysVars);
         byte[] pdf = PdfUtil.htmlToPdf(html);
         String sha = HashUtil.sha256Hex(pdf);

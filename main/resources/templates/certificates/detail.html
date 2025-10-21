@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-
-</body>
-</html>
+<th:block
+        th:with="pageTitle='Detail certificate', active='Certificates'"
+        th:replace="~{admin :: layout(
+                 pageTitle=${pageTitle},
+                 active=${active},
+                 content=~{/certificates/_detail :: content(certificate=${certificate}, variablesUserJson=${variablesUserJson},variablesDataJson=${variablesDataJson},pageTitle=${pageTitle}, active=${active},currentTenant=${currentTenant},templateName=${templateName})}
+               )}">
+</th:block>

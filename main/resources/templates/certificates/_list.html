@@ -68,10 +68,8 @@
                         <td class="text-end">
                             <a th:if="${c.pdfUrl != null}" th:href="@{${c.pdfUrl}}"
                                target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-regular fa-file-pdf"></i>PDF</a>
-                            <a th:href="@{'/admin/certificates/' + ${c.id}}"
+                            <a th:href="@{'/admin/certificates/' + ${c.id} + '/detail'}"
                                class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-info"></i>Dettaglio</a>
-                            <a th:href="@{'/admin/certificates/revoke' + ${c.id}}"
-                               class="btn btn-sm btn-outline-warning"><i class="fas fa-stop-circle"></i>Revoca</a>
                         </td>
                     </tr>
                     </tbody>

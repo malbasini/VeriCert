@@ -1,6 +1,7 @@
 package com.example.vericert.domain;
 
 import com.example.vericert.tenancy.BaseTenantEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Filter;
 
@@ -26,6 +27,7 @@ public class Certificate extends BaseTenantEntity {
     @Enumerated(EnumType.STRING) @Column(name = "status", nullable=false)
     private Stato status = Stato.ISSUED;
     @Column(name="issued_at",nullable=false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Instant issuedAt = Instant.now();
     @Column(name="revoked_reason")
     private String revokedReason;

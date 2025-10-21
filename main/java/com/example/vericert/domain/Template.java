@@ -27,6 +27,9 @@ public class Template extends BaseTenantEntity {
     @Lob @Column(columnDefinition="TEXT", nullable=false)
     private String html;
 
+    @Column(name="user_vars_json", columnDefinition="JSON")
+    private String userVarJson;
+
     @Column(name="user_vars_schema", columnDefinition="JSON")
     private String userVarSchema;
 
@@ -119,5 +122,13 @@ public class Template extends BaseTenantEntity {
 
     public void setSysVarsScahema(String sysVarsScahema) {
         this.sysVarsScahema = sysVarsScahema;
+    }
+
+    public String getUserVarJson() {
+        return userVarJson;
+    }
+
+    public void setUserVarJson(String userVarJson) {
+        this.userVarJson = userVarJson;
     }
 }

@@ -3,7 +3,9 @@ package com.example.vericert.controller;
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.Stato;
 import com.example.vericert.domain.Template;
+import com.example.vericert.domain.Tenant;
 import com.example.vericert.repo.CertificateRepository;
+import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.TemplatePicker;
 import com.example.vericert.service.TenantService;
 import jakarta.persistence.criteria.Predicate;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -29,11 +32,14 @@ public class CertificateAdminController {
 
     private final CertificateRepository repo;
     private final TemplatePicker templatePicker;
+    private final TenantRepository tenantRepo;
 
     public CertificateAdminController(CertificateRepository repo,
-                                      TemplatePicker templatePicker) {
+                                      TemplatePicker templatePicker,
+                                      TenantRepository tenantRepo) {
         this.repo = repo;
         this.templatePicker = templatePicker;
+        this.tenantRepo = tenantRepo;
     }
 
     @GetMapping
@@ -115,4 +121,36 @@ public class CertificateAdminController {
         model.addAttribute("active", "certificates");
         return "certificates/new";
     }
+    @GetMapping("/{id}/detail")
+    public String Detail(@PathVariable Long id ,
+                         Model model) {
+        Long tenantId = currentTenantId();
+        Tenant tenant = tenantRepo.findById(tenantId).orElseThrow();
+        Certificate certificate = repo.findById(id).orElseThrow();
+        Template tpl = templatePicker.getActiveTemplateOrThrow(tenantId);
+        model.addAttribute("currentTenant", tenant.getName());
+        model.addAttribute("certificate", certificate);
+        model.addAttribute("variablesDataJson", tpl.getUserVarJson());
+        model.addAttribute("variablesUserJson", tpl.getUserVarSchema());
+        model.addAttribute("templateName", tpl.getName());
+        model.addAttribute("pageTitle", "Dettaglio certificato");
+        model.addAttribute("active", "certificates");
+        return "certificates/detail";
+    }
+
+    @GetMapping("/{id}/revoke")
+    public String revoke(@PathVariable Long id ,
+                         Model model) {
+        Long tenantId = currentTenantId();
+        Tenant tenant = tenantRepo.findById(tenantId).orElseThrow();
+        Certificate certificate = repo.findById(id).orElseThrow();
+        Template tpl = templatePicker.getActiveTemplateOrThrow(tenantId);
+        model.addAttribute("currentTenant", tenant.getName());
+        model.addAttribute("certificate", certificate);
+        model.addAttribute("templateName", tpl.getName());
+        model.addAttribute("pageTitle", "Revoca certificato");
+        model.addAttribute("active", "certificates");
+        return "certificates/revoke";
+    }
+
 }
