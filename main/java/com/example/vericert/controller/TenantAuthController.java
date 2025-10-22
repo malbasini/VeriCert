@@ -59,7 +59,7 @@ public class TenantAuthController {
             tenantId = tenantRepo.findByName(tenantName).get().getId();
             status = tenantRepo.findByName(tenantName).get().getStatus();
             Membership m = membershipRepo.findByTenant_Id(tenantId);
-            role = m.getRole();
+            role = m.getRole().name();
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

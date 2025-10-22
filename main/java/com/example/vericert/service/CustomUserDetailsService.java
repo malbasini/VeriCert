@@ -1,16 +1,18 @@
 package com.example.vericert.service;
 
-import com.example.vericert.domain.Membership;
-import com.example.vericert.domain.User;
-import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.*;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
+@Transactional
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -24,21 +26,26 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Trova user
-        User user = userRepository.findByUserName(username)
+        var user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato"));
 
-        // Trova membership con tenant
-        Membership membership = membershipRepository.findByUser(user)
+        // membership + tenant già risolti QUI (in transazione)
+        var membership = membershipRepository.findByUser(user)
                 .orElseThrow(() -> new UsernameNotFoundException("Nessuna membership trovata"));
 
-        var auths = List.of(new SimpleGrantedAuthority("ROLE_" + membership.getRole()));
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUserName())
-                .password(user.getPassword())
-                .authorities(auths)
-                .accountLocked(membership.getStatus() != Status.ACTIVE)
-                .build();
+        var tenant = membership.getTenant(); // OK se sei in transazione
+        var role = membership.getRole().name();     // es. "ADMIN" o "USER"
 
+        var auths = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+
+        return new CustomUserDetails(
+                user.getId(),
+                tenant.getId(),
+                tenant.getName(),
+                user.getUserName(),
+                user.getPassword(),
+                auths,
+                /* enabled */ true
+        );
     }
 }

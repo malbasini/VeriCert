@@ -1,10 +1,10 @@
 package com.example.vericert.service;
 
 import com.example.vericert.domain.Membership;
+import com.example.vericert.domain.MembershipId;
 import com.example.vericert.dto.MembershipResp;
 import com.example.vericert.dto.PageResp;
 import com.example.vericert.enumerazioni.Role;
-import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.MembershipRepository;
 import jakarta.transaction.Transactional;
@@ -25,11 +25,11 @@ public class MembershipAdminService {
     }
 
     @Transactional
-    public void changeRole(Long membershipId, Role newRole, String actor) {
+    public void changeRole(MembershipId membershipId, Role newRole, String actor) {
         var m = repo.findById(membershipId)
                 .orElseThrow(() -> new IllegalArgumentException("Membership non trovata"));
 
-        Role old = Role.valueOf(m.getRole());
+        Role old = Role.valueOf(m.getRole().name());
         if (old == newRole) return;
 
         Long tenantId = m.getTenant().getId();
@@ -42,12 +42,12 @@ public class MembershipAdminService {
             }
         }
 
-        m.setRole(String.valueOf(newRole));
+        m.setRole(Role.valueOf(newRole.name()));
         repo.save(m);
     }
 
     @Transactional
-    public void setStatus(Long membershipId, Status status, String actor, String currentUsername) {
+    public void setStatus(MembershipId membershipId, Status status, String actor, String currentUsername) {
         Long tid = currentTenantId();
         var m = repo.findByIdAndTenantId(membershipId, tid)
                 .orElseThrow(() -> new IllegalArgumentException("Membership non trovata"));
@@ -67,13 +67,13 @@ public class MembershipAdminService {
     }
 
     @Transactional
-    public void bulkRole(List<Long> ids, Role newRole, String actor) {
-        for (Long id : ids) changeRole(id, newRole, actor);
+    public void bulkRole(List<MembershipId> ids, Role newRole, String actor) {
+        for (MembershipId id : ids) changeRole(id, newRole, actor);
     }
 
     @Transactional
-    public void bulkStatus(List<Long> ids, Status status, String actor, String currentUser) {
-        for (Long id : ids) setStatus(id, status, actor, currentUser);
+    public void bulkStatus(List<MembershipId> ids, Status status, String actor, String currentUser) {
+        for (MembershipId id : ids) setStatus(id, status, actor, currentUser);
     }
 
     private Long currentTenantId()

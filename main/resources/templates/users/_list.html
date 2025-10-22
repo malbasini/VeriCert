@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="it">
+<div th:fragment="content(page, q)">
+    <body class="bg-light">
+    <div class="container py-4">
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h1 class="h3 mb-0">Utenti</h1>
+            <a th:href="@{/admin}" class="btn btn-outline-secondary">← Indietro</a>
+        </div>
+
+        <!-- Filtro -->
+        <form class="row g-2 align-items-end mb-3" method="get" th:action="@{/admin/users}">
+            <div class="col-sm-6">
+                <label class="form-label">Cerca (username o email)</label>
+                <input class="form-control" type="search" name="q" placeholder="es. mario"
+                       th:value="${q}">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" type="submit">Filtra</button>
+            </div>
+            <div class="col-auto" th:if="${q}">
+                <a class="btn btn-outline-secondary" th:href="@{/admin/users}">Pulisci</a>
+            </div>
+        </form>
+
+        <!-- Tabella -->
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 60px;">ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th style="width: 120px;">Ruolo</th>
+                        <th style="width: 120px;">Stato</th>
+                        <th style="width: 140px;">Azioni</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${page.empty}">
+                        <td colspan="6" class="text-center text-muted py-4">Nessun utente trovato.</td>
+                    </tr>
+
+                    <tr th:each="u : ${page.content}">
+                        <td th:text="${u.userId}">1</td>
+                        <td th:text="${u.userName}">mrossi</td>
+                        <td>
+                            <a th:href="'mailto:'+${u.email}" th:text="${u.email}">mail@example.com</a>
+                        </td>
+
+                        <!-- Badge ruolo -->
+                        <td>
+            <span class="badge text-bg-secondary"
+                  th:classappend="${u.role}=='ADMIN' ? ' text-bg-primary' :
+                                  (${u.role}=='MANAGER' ? ' text-bg-info' : ' text-bg-secondary')"
+                  th:text="${u.role}">ADMIN</span>
+                        </td>
+
+                        <!-- Badge stato -->
+                        <td>
+            <span class="badge"
+                  th:classappend="${u.status}=='ACTIVE' ? ' text-bg-success' :
+                                  (${u.status}=='SUSPENDED' ? ' text-bg-warning' : ' text-bg-secondary')"
+                  th:text="${u.status}">ACTIVE</span>
+                        </td>
+
+                        <!-- Azioni -->
+                        <td class="text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary"
+                               th:href="@{|/admin/users/${u.userId}|}">Dettaglio</a>
+                            <a class="btn btn-sm btn-outline-danger"
+                               th:href="@{|/admin/users/${u.userId}/revoke|}"
+                               onclick="return confirm('Confermi la revoca del ruolo?');">Revoca</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginazione -->
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div>
+                    <small th:text="'Pagina ' + ${page.number + 1} + ' di ' + ${page.totalPages}
+                        + ' — ' + ${page.totalElements} + ' risultati'">
+                        Pagina 1 di 1 — 1 risultati
+                    </small>
+                </div>
+                <nav aria-label="Paginazione">
+                    <ul class="pagination mb-0">
+                        <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${page.number - 1}, size=${page.size}, q=${q})}">«</a>
+                        </li>
+
+                        <li class="page-item" th:each="i : ${#numbers.sequence(0, page.totalPages-1)}"
+                            th:classappend="${i} == ${page.number} ? 'active'">
+                            <a class="page-link"
+                               th:text="${i + 1}"
+                               th:href="@{/admin/users(page=${i}, size=${page.size}, q=${q})}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/users(page=${page.number + 1}, size=${page.size}, q=${q})}">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    </body>
+</div>
+</html>

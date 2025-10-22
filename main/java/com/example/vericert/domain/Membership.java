@@ -1,5 +1,6 @@
 package com.example.vericert.domain;
 
+import com.example.vericert.enumerazioni.Role;
 import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
@@ -16,8 +17,8 @@ public class Membership extends BaseTenantEntity {
     private Long userId;
     @Column(name="tenant_id",nullable = false,insertable = false,updatable = false)
     private Long tenantId;
-    @Column(nullable = false)
-    private String role;
+    @Enumerated(EnumType.STRING) @Column(name = "role", nullable=false)
+    private Role role;
     @Enumerated(EnumType.STRING) @Column(name = "status", nullable=false)
     private Status status = Status.ACTIVE;
 
@@ -47,14 +48,6 @@ public class Membership extends BaseTenantEntity {
 
     public void setUser_id(Long user_id) {
         this.userId = user_id;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public Tenant getTenant() {
@@ -87,5 +80,13 @@ public class Membership extends BaseTenantEntity {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

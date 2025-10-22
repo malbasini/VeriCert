@@ -54,17 +54,17 @@ public class SignupService {
         // 3) LOCK sul tenant per evitare race condition sul “primo admin”
         Tenant locked = tenantRepo.lockById(tenant.getId());
 
-        // 4) calcola ruolo: se zero membership → ADMIN, altrimenti ruolo base
+        // 4) calcola ruolo: se zero users → ADMIN, altrimenti ruolo base
         long count = membershipRepo.countByTenantId(locked.getId());
         Role roleToAssign = (count == 0) ? Role.ADMIN : Role.VIEWER; // o VIEWER
 
-        // 5) crea membership (se non esiste per (tenant,user))
+        // 5) crea users (se non esiste per (tenant,user))
         boolean already = membershipRepo.existsByTenantIdAndUserId(tenant.getId(), user.getId());
         if (!already) {
             Membership m = new Membership();
             m.setTenant(locked);
             m.setUser(user);
-            m.setRole(String.valueOf(roleToAssign));
+            m.setRole(Role.valueOf(roleToAssign.name()));
             m.setStatus(Status.ACTIVE);
             membershipRepo.save(m);
         }

@@ -11,7 +11,7 @@ public record MembershipResp(
         var u = m.getUser();
         return new MembershipResp(
                 m.getId(), u.getId(), u.getUserName(), u.getEmail(),
-                m.getRole(), m.getStatus().name()
+                m.getRole().name(), m.getStatus().name()
         );
     }
 }

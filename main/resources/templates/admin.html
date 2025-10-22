@@ -16,7 +16,7 @@
             <div class="list-group list-group-flush small">
                 <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
                    th:classappend="${active=='dashboard'} ? ' active'"
-                   th:href="@{/templates/admin/templates/admin/templates/admin}">
+                   th:href="@{/admin/templates}">
                     <i class="bi bi-speedometer2"></i><span>Dashboard</span>
                 </a>
 
@@ -34,7 +34,7 @@
 
                 <a class="list-group-item list-group-item-action d-flex align-items-center gap-2"
                    th:classappend="${active=='users'} ? ' active'"
-                   th:href="@{/api/admin/memberships}" sec:authorize="hasRole('ADMIN')">
+                   th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')">
                     <i class="bi bi-people"></i><span>Utenti & Ruoli</span>
                 </a>
 
