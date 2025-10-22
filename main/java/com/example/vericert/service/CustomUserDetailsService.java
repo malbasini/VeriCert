@@ -2,6 +2,7 @@ package com.example.vericert.service;
 
 import com.example.vericert.domain.Membership;
 import com.example.vericert.domain.User;
+import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,14 +32,13 @@ public class CustomUserDetailsService implements UserDetailsService {
         Membership membership = membershipRepository.findByUser(user)
                 .orElseThrow(() -> new UsernameNotFoundException("Nessuna membership trovata"));
 
-        String role = membership.getRole(); // es: "ADMIN"
+        var auths = List.of(new SimpleGrantedAuthority("ROLE_" + membership.getRole()));
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUserName())
+                .password(user.getPassword())
+                .authorities(auths)
+                .accountLocked(membership.getStatus() != Status.ACTIVE)
+                .build();
 
-        return new CustomUserDetails(
-                user.getUserName(),
-                user.getPassword(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + role)),
-                membership.getTenant().getId(),
-                membership.getTenant().getName()
-        );
     }
 }

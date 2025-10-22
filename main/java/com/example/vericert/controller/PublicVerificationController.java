@@ -1,7 +1,7 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.Stato;
+import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;

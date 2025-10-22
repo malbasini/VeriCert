@@ -1,12 +1,11 @@
 package com.example.vericert.service;
 
-import com.example.vericert.domain.Plan;
+import com.example.vericert.enumerazioni.Plan;
 import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.UsageMeter;
 import com.example.vericert.domain.UsageMeterId;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.UsageMeterRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.YearMonth;
 //Consumi nel mese

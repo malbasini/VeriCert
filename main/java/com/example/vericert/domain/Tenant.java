@@ -1,4 +1,5 @@
 package com.example.vericert.domain;
+import com.example.vericert.enumerazioni.Plan;
 import jakarta.persistence.*;
 import java.time.Instant;
 

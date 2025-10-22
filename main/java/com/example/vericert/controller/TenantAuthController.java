@@ -54,10 +54,10 @@ public class TenantAuthController {
         String status="";
         String role="";
         try {
-            signup.register(request);
+            signup.signup(request);
             tenantName = request.tenantName();
-            tenantId = tenantRepo.findByName(tenantName).getId();
-            status = tenantRepo.findByName(tenantName).getStatus();
+            tenantId = tenantRepo.findByName(tenantName).get().getId();
+            status = tenantRepo.findByName(tenantName).get().getStatus();
             Membership m = membershipRepo.findByTenant_Id(tenantId);
             role = m.getRole();
         }

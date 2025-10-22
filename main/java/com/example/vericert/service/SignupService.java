@@ -2,60 +2,72 @@ package com.example.vericert.service;
 
 import com.example.vericert.domain.*;
 import com.example.vericert.dto.SignupRequest;
+import com.example.vericert.enumerazioni.Role;
+import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+
 //Insert Tenant, User, Membership
 @Service
 public class SignupService {
+    private final TenantRepository tenantRepo;
+    private final UserRepository userRepo;
+    private final MembershipRepository membershipRepo;
+    private final PasswordEncoder encoder;
 
-    private final TenantRepository tenantRepository;
-    private final UserRepository userRepository;
-    private final MembershipRepository membershipRepository;
-    private final PasswordEncoder passwordEncoder;
-
-    public SignupService(TenantRepository tenantRepository,
-                         UserRepository userRepository,
-                         MembershipRepository membershipRepository,
-                         PasswordEncoder passwordEncoder) {
-        this.tenantRepository = tenantRepository;
-        this.userRepository = userRepository;
-        this.membershipRepository = membershipRepository;
-        this.passwordEncoder = passwordEncoder;
+    public SignupService(TenantRepository tenantRepo,
+                         UserRepository userRepo,
+                         MembershipRepository membershipRepo,
+                         PasswordEncoder encoder) {
+        this.tenantRepo = tenantRepo;
+        this.userRepo = userRepo;
+        this.membershipRepo = membershipRepo;
+        this.encoder = encoder;
     }
 
     @Transactional
-    public void register(SignupRequest req) {
-        // 1. crea utente
-        var user = new User();
-        user.setUserName(req.username());
-        user.setEmail(req.email());
-        user.setPassword(passwordEncoder.encode(req.password()));
-        userRepository.save(user);
-
-        // 2. crea tenant se non esiste
-        Tenant tenant = tenantRepository.findIdByName(req.tenantName())
+    public void signup(SignupRequest req) {
+        // 1) trova o crea il tenant
+        Tenant tenant = tenantRepo.findByName(req.tenantName())
                 .orElseGet(() -> {
                     Tenant t = new Tenant();
                     t.setName(req.tenantName());
-                    return tenantRepository.save(t);
+                    t.setStatus(String.valueOf(Status.ACTIVE));
+                    return tenantRepo.save(t);
                 });
 
-        // 3. controlla se ci sono già membership nel tenant
-        boolean tenantHasUsers = membershipRepository.existsByTenant(tenant);
+        // 2) crea l’utente (se non esiste)
+        User user = userRepo.findByUserName(req.username()).orElseGet(() -> {
+            User u = new User();
+            u.setUserName(req.username());
+            u.setPassword(encoder.encode(req.password()));
+            u.setEmail(req.email());
+            return userRepo.save(u);
+        });
 
-        // 4. assegna ruolo
-        String role = tenantHasUsers ? "USER" : "ADMIN";
+        // 3) LOCK sul tenant per evitare race condition sul “primo admin”
+        Tenant locked = tenantRepo.lockById(tenant.getId());
 
-        var membership = new Membership();
-        var membershipId = new MembershipId(user.getId(), tenant.getId());
-        membership.setId(membershipId);
-        membership.setUser(user);
-        membership.setTenant(tenant);
-        membership.setRole(role);
-        membershipRepository.save(membership);
+        // 4) calcola ruolo: se zero membership → ADMIN, altrimenti ruolo base
+        long count = membershipRepo.countByTenantId(locked.getId());
+        Role roleToAssign = (count == 0) ? Role.ADMIN : Role.VIEWER; // o VIEWER
+
+        // 5) crea membership (se non esiste per (tenant,user))
+        boolean already = membershipRepo.existsByTenantIdAndUserId(tenant.getId(), user.getId());
+        if (!already) {
+            Membership m = new Membership();
+            m.setTenant(locked);
+            m.setUser(user);
+            m.setRole(String.valueOf(roleToAssign));
+            m.setStatus(Status.ACTIVE);
+            membershipRepo.save(m);
+        }
+        // (opzionale) audit log
     }
 }

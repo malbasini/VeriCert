@@ -1,11 +1,9 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.Stato;
+import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.domain.Template;
 import com.example.vericert.domain.Tenant;
-import com.example.vericert.dto.CertificateDto;
-import com.example.vericert.dto.CreateReq;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
@@ -16,7 +14,6 @@ import com.example.vericert.service.UsageService;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -104,7 +101,8 @@ public class CertificateApiController {
         Template tpl = templatePicker.getActiveTemplateOrThrow(tenantId);
         Certificate c = null;
         try {
-            Tenant tenant = tenantRepo.findByName(tenantName);
+            Optional<Tenant> t = tenantRepo.findByName(tenantName);
+            Tenant tenant = t.orElseThrow();
             // controllo piano
             usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
             c = service.issue(tpl.getId(), map, ownerName, ownerEmail,tenant);

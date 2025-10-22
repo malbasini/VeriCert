@@ -1,6 +1,6 @@
 package com.example.vericert.dto;
 
-import com.example.vericert.domain.Stato;
+import com.example.vericert.enumerazioni.Stato;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;

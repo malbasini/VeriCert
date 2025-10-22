@@ -1,18 +1,16 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.Stato;
+import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.domain.Template;
 import com.example.vericert.domain.Tenant;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.TemplatePicker;
-import com.example.vericert.service.TenantService;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -24,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin/certificates")

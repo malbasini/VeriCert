@@ -2,7 +2,7 @@ package com.example.vericert.repo;
 
 // Specs (builder dei filtri)
 import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.Stato;
+import com.example.vericert.enumerazioni.Stato;
 import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Predicate;
 import java.time.Instant;

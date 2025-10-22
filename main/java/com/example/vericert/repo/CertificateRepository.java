@@ -1,6 +1,6 @@
 package com.example.vericert.repo;
 import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.Stato;
+import com.example.vericert.enumerazioni.Stato;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,0 +1,140 @@
+<!-- memberships/_list.html -->
+<th:block th:fragment="content">
+    <div class="d-flex gap-2 align-items-center mb-3">
+        <input id="q" class="form-control" placeholder="Cerca utente o email…" style="max-width:380px">
+        <button class="btn btn-outline-secondary" onclick="reload()">Cerca</button>
+        <div class="ms-auto d-flex gap-2">
+            <select id="bulkValue" class="form-select form-select-sm w-auto">
+                <option disabled selected>Bulk…</option>
+                <optgroup label="Ruolo">
+                    <option value="ROLE:ADMIN">ADMIN</option>
+                    <option value="ROLE:MANAGER">MANAGER</option>
+                    <option value="ROLE:ISSUER">ISSUER</option>
+                    <option value="ROLE:VIEWER">VIEWER</option>
+                </optgroup>
+                <optgroup label="Stato">
+                    <option value="STATUS:ACTIVE">Attiva</option>
+                    <option value="STATUS:SUSPENDED">Sospendi</option>
+                </optgroup>
+            </select>
+            <button class="btn btn-sm btn-outline-primary" onclick="applyBulk()">Applica</button>
+            <a class="btn btn-sm btn-outline-success" href="/api/admin/memberships/export.csv">Export CSV</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
+                <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th>
+            </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+    <nav><ul class="pagination" id="pager"></ul></nav>
+
+    <script>
+        const API = '/api/admin/memberships';
+        const ROLES = ['ADMIN','MANAGER','ISSUER','VIEWER'];
+        let currentPage = 0, lastQuery = '';
+
+        function checkbox(id){ const cb=document.createElement('input'); cb.type='checkbox'; cb.dataset.id=id; return cb; }
+
+        function roleSelect(current, id) {
+            const sel = document.createElement('select');
+            sel.className = 'form-select form-select-sm w-auto';
+            ROLES.forEach(r => { const o=document.createElement('option'); o.value=r; o.text=r; if(r===current) o.selected=true; sel.appendChild(o); });
+            sel.addEventListener('change', async () => {
+                try{
+                    await api(`${API}/${id}/role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({role: sel.value})});
+                    toast('Ruolo aggiornato');
+                }catch(e){ toast(e.message,true); }
+            });
+            return sel;
+        }
+
+        function statusSwitch(status, id){
+            const wrap = document.createElement('div'); wrap.className='form-check form-switch';
+            const inp = document.createElement('input'); inp.type='checkbox'; inp.className='form-check-input';
+            inp.checked = (status==='ACTIVE');
+            inp.onchange = async ()=> {
+                const newSt = inp.checked ? 'ACTIVE':'SUSPENDED';
+                try{
+                    await api(`${API}/${id}/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status:newSt})});
+                    toast('Stato aggiornato');
+                }catch(e){ toast(e.message,true); inp.checked = !inp.checked; }
+            };
+            wrap.appendChild(inp);
+            return wrap;
+        }
+
+        function render(page){
+            currentPage = page.number;
+            const rows = document.getElementById('rows'); rows.innerHTML='';
+            page.content.forEach(m=>{
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td></td>
+          <td>${m.id}</td>
+          <td>${m.userName}</td>
+          <td>${m.email??''}</td>
+          <td></td>
+          <td></td>`;
+                rows.appendChild(tr);
+                tr.children[0].appendChild(checkbox(m.id));
+                tr.children[4].appendChild(roleSelect(m.role, m.id));
+                tr.children[5].appendChild(statusSwitch(m.status, m.id));
+            });
+
+            const pager = document.getElementById('pager'); pager.innerHTML='';
+            const mk=(label, pageNum, disabled=false, active=false)=> {
+                const li=document.createElement('li'); li.className=`page-item ${disabled?'disabled':''} ${active?'active':''}`;
+                const a=document.createElement('a'); a.className='page-link'; a.href='#'; a.textContent=label;
+                a.onclick=(e)=>{e.preventDefault(); if(!disabled) load(pageNum);}; li.appendChild(a); pager.appendChild(li);
+            };
+            mk('«', page.number-1, page.first);
+            for(let i=0;i<page.totalPages;i++) mk(String(i+1), i, false, i===page.number);
+            mk('»', page.number+1, page.last);
+        }
+
+        async function api(url,opt={}) {
+            const r = await fetch(url, {credentials:'include', ...opt});
+            if(!r.ok){ let msg='Errore'; try{const p=await r.json(); msg=p.message||JSON.stringify(p);}catch(_){msg=await r.text();} throw new Error(msg); }
+            return r;
+        }
+
+        async function load(page=0){
+            const q = document.getElementById('q').value.trim();
+            lastQuery=q;
+            const url = new URL(API, window.location.origin);
+            url.searchParams.set('page', page);
+            if(q) url.searchParams.set('q', q);
+            const data = await (await api(url)).json();
+            render(data);
+        }
+        function reload(){ load(0); }
+        function toggleAll(src){ document.querySelectorAll('tbody #rows input[type=checkbox]').forEach(cb=>cb.checked=src.checked); }
+        async function applyBulk(){
+            const ids=[...document.querySelectorAll('#rows input[type=checkbox]:checked')].map(cb=>parseInt(cb.dataset.id));
+            if(ids.length===0) return toast('Seleziona almeno un utente', true);
+            const v = document.getElementById('bulkValue').value;
+            if(!v) return;
+            const [kind,val] = v.split(':'); // ROLE:ADMIN oppure STATUS:ACTIVE
+            try{
+                if(kind==='ROLE'){
+                    await api(`${API}/bulk/role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids, value:val})});
+                } else {
+                    await api(`${API}/bulk/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids, value:val})});
+                }
+                toast('Operazione completata'); reload();
+            }catch(e){ toast(e.message,true); }
+        }
+        function toast(msg, err=false){
+            // sostituisci con il tuo sistema di toast; per ora alert
+            alert((err?'❌ ':'✅ ')+msg);
+        }
+        document.addEventListener('DOMContentLoaded', ()=> load());
+    </script>
+</th:block>

@@ -1,3 +1,3 @@
-package com.example.vericert.domain;
+package com.example.vericert.enumerazioni;
 
 public enum Plan { FREE, PRO, BUSINESS, ENTERPRISE }

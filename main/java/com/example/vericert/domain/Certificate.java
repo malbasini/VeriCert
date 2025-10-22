@@ -1,5 +1,6 @@
 package com.example.vericert.domain;
 
+import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.tenancy.BaseTenantEntity;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;

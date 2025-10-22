@@ -1,5 +1,6 @@
 package com.example.vericert.domain;
 
+import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Filter;
@@ -17,6 +18,8 @@ public class Membership extends BaseTenantEntity {
     private Long tenantId;
     @Column(nullable = false)
     private String role;
+    @Enumerated(EnumType.STRING) @Column(name = "status", nullable=false)
+    private Status status = Status.ACTIVE;
 
     // relazione Tenant → senza duplicare tenant_id
     @MapsId("tenantId")
@@ -76,5 +79,13 @@ public class Membership extends BaseTenantEntity {
 
     public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

@@ -2,6 +2,7 @@ package com.example.vericert.service;
 
 import com.example.vericert.config.VericertProps;
 import com.example.vericert.domain.*;
+import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
