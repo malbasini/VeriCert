@@ -24,7 +24,7 @@ public class Membership extends BaseTenantEntity {
 
     // relazione Tenant → senza duplicare tenant_id
     @MapsId("tenantId")
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 
@@ -42,11 +42,11 @@ public class Membership extends BaseTenantEntity {
         this.id = id;
     }
 
-   public Long getUser_id() {
+   public Long getUserId() {
         return userId;
     }
 
-    public void setUser_id(Long user_id) {
+    public void setUserId(Long user_id) {
         this.userId = user_id;
     }
 

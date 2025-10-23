@@ -66,6 +66,12 @@ public class SignupService {
             m.setUser(user);
             m.setRole(Role.valueOf(roleToAssign.name()));
             m.setStatus(Status.ACTIVE);
+            m.setTenantId(tenant.getId());
+            m.setUserId(user.getId());
+            MembershipId id = new MembershipId(tenant.getId(), user.getId());
+            m.setId(id);
+            id.setTenantId(tenant.getId());
+            id.setUserId(user.getId());
             membershipRepo.save(m);
         }
         // (opzionale) audit log

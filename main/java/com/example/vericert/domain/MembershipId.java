@@ -8,44 +8,38 @@ import java.util.Objects;
 
 @Embeddable
 public class MembershipId implements Serializable {
-    @Column(name="tenant_id")
-    private Long tenantId; // mappa tenant_id
-    @Column(name="user_id",insertable = false,updatable = false)
-    private Long userId;
+        @Column(name = "tenant_id")
+        private Long tenantId;
+        @Column(name = "user_id")
+        private Long userId;
+        // getter/setter con camelCase coerenti con i field names
+        public Long getTenantId() {
+            return tenantId;
+        }
+        public void setTenantId(Long tenantId) {
+            this.tenantId = tenantId;
+        }
+        public Long getUserId() {
+            return userId;
+        }
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+        public MembershipId() {}
+        public MembershipId(Long tenantId, Long userId) {
+            this.tenantId = tenantId;
+            this.userId = userId;
+        }
 
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            MembershipId that = (MembershipId) o;
+            return Objects.equals(tenantId, that.tenantId) && Objects.equals(userId, that.userId);
+        }
 
-    public Long getTenant_id() {
-        return tenantId;
-    }
-
-    public void setTenant_id(Long tenant_id) {
-        this.tenantId = tenant_id;
-    }
-
-    public Long getUser_id() {
-        return userId;
-    }
-
-    public void setUser_id(Long user_id) {
-        this.userId = user_id;
-    }
-
-
-    public MembershipId() {}
-
-    public MembershipId(Long tenantId, Long userId) {
-        this.tenantId = tenantId;
-        this.userId = userId;
-    }
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        MembershipId that = (MembershipId) o;
-        return Objects.equals(tenantId, that.tenantId) && Objects.equals(userId, that.userId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tenantId, userId);
-    }
+        @Override
+        public int hashCode() {
+            return Objects.hash(tenantId, userId);
+        }
 }
