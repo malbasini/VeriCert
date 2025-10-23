@@ -1,0 +1,8 @@
+<th:block
+        th:with="pageTitle='Detail user', active='Utenti & Ruoli'"
+        th:replace="~{admin :: layout(
+                 pageTitle=${pageTitle},
+                 active=${active},
+                 content=~{/users/_detail :: content(membership=${membership},user=${user},pageTitle=${pageTitle}, active=${active},currentTenant=${currentTenant})}
+               )}">
+</th:block>

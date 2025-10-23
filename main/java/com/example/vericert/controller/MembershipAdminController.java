@@ -2,6 +2,7 @@ package com.example.vericert.controller;
 
 import com.example.vericert.domain.Membership;
 import com.example.vericert.domain.MembershipId;
+import com.example.vericert.domain.User;
 import com.example.vericert.dto.UserRow;
 import com.example.vericert.enumerazioni.Role;
 import com.example.vericert.enumerazioni.Status;
@@ -70,13 +71,6 @@ public class MembershipAdminController {
     @PatchMapping("/{id}/role")
     public ResponseEntity<?> changeRole(@PathVariable MembershipId id, @RequestBody ChangeRoleReq req, Principal principal) {
         service.changeRole(id, Role.valueOf(req.role().toUpperCase()), principal.getName());
-        return ResponseEntity.noContent().build();
-    }
-
-    public record ChangeStatusReq(String status) {}
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<?> changeStatus(@PathVariable MembershipId id, @RequestBody ChangeStatusReq req, Principal principal) {
-        service.setStatus(id, Status.valueOf(req.status().toUpperCase()), principal.getName(), principal.getName());
         return ResponseEntity.noContent().build();
     }
 
