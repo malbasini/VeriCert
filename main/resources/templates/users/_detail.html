@@ -55,7 +55,30 @@
                             <label>Utente creato il</label>
                         </div>
                     </div>
+                    <hr>
+                    <div class="d-flex gap-2 align-items-center mb-3">
+                        <div class="ms-auto d-flex gap-2">
+                            <select id="bulkValue" class="form-select form-select-sm w-auto">
+                                <option disabled selected>Bulk…</option>
+                                <optgroup label="Ruolo">
+                                    <option value="ROLE:ADMIN">ADMIN</option>
+                                    <option value="ROLE:MANAGER">MANAGER</option>
+                                    <option value="ROLE:ISSUER">ISSUER</option>
+                                    <option value="ROLE:VIEWER">VIEWER</option>
+                                </optgroup>
+                                <optgroup label="Stato">
+                                    <option value="STATUS:ACTIVE">Attiva</option>
+                                    <option value="STATUS:SUSPENDED">Sospendi</option>
+                                </optgroup>
+                            </select>
+                            <button class="btn btn-sm btn-outline-primary" onclick="applyBulk()">Applica</button>
+                            <a class="btn btn-sm btn-outline-success" href="/api/admin/memberships/export.csv">Export CSV</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+</div>
+
