@@ -3,10 +3,10 @@
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security" lang="it">
 <div th:fragment="content">
 <body>
-                <div class="d-flex gap-2 align-items-center mb-3">
+                <div class="d-flex gap-2 align-items-center mb-3 only-list">
                     <input id="q" class="form-control" placeholder="Cerca utente o email…" style="max-width:380px">
                     <button class="btn btn-outline-secondary" onclick="reload()">Cerca</button>
-                    <div class="ms-auto d-flex gap-2">
+                    <div id= "div1" class="ms-auto d-flex gap-2">
                         <select id="bulkValue" class="form-select form-select-sm w-auto">
                             <option disabled selected>Bulk…</option>
                             <optgroup label="Ruolo">
@@ -30,7 +30,7 @@
                         <thead>
                         <tr>
                             <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
-                            <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th>
+                            <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th>
                         </tr>
                         </thead>
                         <tbody id="rows"></tbody>
@@ -57,6 +57,15 @@
             return sel;
         }
 
+        function creaDetail(id)
+        {
+            const nuovoLink = document.createElement('a');
+            nuovoLink.setAttribute('href', `/admin/users/${id}/detail`);
+            nuovoLink.textContent = 'Dettaglio';
+            nuovoLink.className = 'btn btn-sm btn-outline-secondary';
+
+            return nuovoLink;
+        }
         function statusSwitch(status, id){
             const wrap = document.createElement('div'); wrap.className='form-check form-switch';
             const inp = document.createElement('input'); inp.type='checkbox'; inp.className='form-check-input';
@@ -83,11 +92,13 @@
           <td>${m.userName}</td>
           <td>${m.email??''}</td>
           <td></td>
+          <td></td>
           <td></td>`;
                 rows.appendChild(tr);
                 tr.children[0].appendChild(checkbox(m.id));
                 tr.children[4].appendChild(roleSelect(m.role, m.id));
                 tr.children[5].appendChild(statusSwitch(m.status, m.id));
+                tr.children[6].appendChild(creaDetail(m.id));
             });
 
             const pager = document.getElementById('pager'); pager.innerHTML='';
