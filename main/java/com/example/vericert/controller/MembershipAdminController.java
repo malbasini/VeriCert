@@ -108,7 +108,7 @@ public class MembershipAdminController {
     public ResponseEntity<String> export(@RequestParam(required=false) String q) {
         var page = service.list(q, PageRequest.of(0, 10_000));
         var sb = new StringBuilder("id,userName,email,role,status\n");
-        page.content().forEach(m -> sb.append(m.id()).append(',')
+        page.content().forEach(m -> sb.append(m.id().getUserId()).append(',')
                 .append(escape(m.userName())).append(',').append(escape(m.email()))
                 .append(',').append(m.role()).append(',').append(m.status()).append('\n'));
         return ResponseEntity.ok()

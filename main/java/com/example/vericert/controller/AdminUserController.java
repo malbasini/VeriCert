@@ -26,13 +26,10 @@ import java.security.Principal;
 public class AdminUserController {
 
     private final MembershipRepository membershipRepository;
-    private final MembershipAdminService service;
     private final UserRepository userRepository;
     public AdminUserController(MembershipRepository membershipRepository,
-                               MembershipAdminService service,
                                UserRepository userRepository) {
         this.membershipRepository = membershipRepository;
-        this.service = service;
         this.userRepository = userRepository;
     }
 
@@ -55,15 +52,6 @@ public class AdminUserController {
         return "users/list"; // <- il nome del template HTML qui sotto
     }
 
-    @GetMapping("/{id}/revoke")
-    public String revoke(@PathVariable Long id, Principal principal) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        Long tenantId = user.getTenantId();
-        MembershipId mId = new MembershipId(tenantId, id);
-        service.setStatus(mId, Status.SUSPENDED, principal.getName(), principal.getName());
-        return "redirect:/admin/users";
-    }
     @GetMapping("/{id}/detail")
     public String detail(@PathVariable Long id, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
