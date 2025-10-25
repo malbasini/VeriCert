@@ -47,12 +47,10 @@ public class MembershipAdminController {
                                    @RequestParam(defaultValue = "0") int page,
                                    @RequestParam(defaultValue = "10") int size) {
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        Long tenantId = user.getTenantId();
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("user.userName").ascending());
 
-        var spec = Specification.where(MembershipSpecs.byTenant(tenantId))
+        var spec = Specification.where(MembershipSpecs.byTenant(getCurrentTenantId()))
                 .and(MembershipSpecs.keyword(q));
 
         Page<Membership> p = membershipRepository.findAll(spec, pageable);
@@ -69,22 +67,42 @@ public class MembershipAdminController {
 
 
     @PatchMapping("/{id}/role")
-    public ResponseEntity<?> changeRole(@PathVariable MembershipId id, @RequestBody ChangeRoleReq req, Principal principal) {
-        service.changeRole(id, Role.valueOf(req.role().toUpperCase()), principal.getName());
+    public ResponseEntity<?> changeRole(@PathVariable Long id, @RequestBody ChangeRoleReq req, Principal principal) {
+        MembershipId mid = new MembershipId(id, getCurrentTenantId());
+        service.changeRole(mid, Role.valueOf(req.role().toUpperCase()), principal.getName());
         return ResponseEntity.noContent().build();
     }
 
-    public record BulkReq(List<MembershipId> ids, String value) {}
+    public record BulkReq(List<Long> ids, String value) {}
     @PatchMapping("/bulk/role")
     public ResponseEntity<?> bulkRole(@RequestBody BulkReq req, Principal p){
-        service.bulkRole(req.ids(), Role.valueOf(req.value().toUpperCase()), p.getName());
+        Long tenantId = getCurrentTenantId();
+        List<MembershipId> mid = new java.util.ArrayList<>(List.of());
+        for (Long id : req.ids) {
+            if (id == null) continue;
+            mid.add(new MembershipId(tenantId, id));
+        }
+        service.bulkRole(mid, Role.valueOf(req.value().toUpperCase()), p.getName());
         return ResponseEntity.noContent().build();
     }
     @PatchMapping("/bulk/status")
     public ResponseEntity<?> bulkStatus(@RequestBody BulkReq req, Principal p){
-        service.bulkStatus(req.ids(), Status.valueOf(req.value().toUpperCase()), p.getName(), p.getName());
+        Long tenantId = getCurrentTenantId();
+        List<MembershipId> mid = new java.util.ArrayList<>(List.of());
+        for (Long id : req.ids) {
+            if (id == null) continue;
+            mid.add(new MembershipId(tenantId,id));
+        }
+        service.bulkStatus(mid, Status.valueOf(req.value().toUpperCase()), p.getName(), p.getName());
         return ResponseEntity.noContent().build();
     }
+
+    private Long getCurrentTenantId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
+        return user.getTenantId();
+    }
+
 
     @GetMapping(value="/export.csv", produces="text/csv")
     public ResponseEntity<String> export(@RequestParam(required=false) String q) {
