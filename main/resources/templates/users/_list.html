@@ -51,8 +51,8 @@
             sel.addEventListener('change', async () => {
                 try{
                     await api(`${API}/${id}/role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({role: sel.value})});
-                    toast('Ruolo aggiornato');
-                }catch(e){ toast(e.message,true); }
+                    showToast('Ruolo aggiornato',{ colorClass: 'bg-success' });
+                }catch(e){ showToast(e.message,{ colorClass: 'bg-danger'})};
             });
             return sel;
         }
@@ -74,7 +74,7 @@
                 const newSt = inp.checked ? 'ACTIVE':'SUSPENDED';
                 try{
                     await api(`${API}/${id}/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status:newSt})});
-                    toast('Stato aggiornato');
+                    showToast('Stato aggiornato',{ colorClass: 'bg-success' });
                 }catch(e){ toast(e.message,true); inp.checked = !inp.checked; }
             };
             wrap.appendChild(inp);
@@ -131,7 +131,7 @@
         function toggleAll(src){ document.querySelectorAll('tbody #rows input[type=checkbox]').forEach(cb=>cb.checked=src.checked); }
         async function applyBulk(){
             const ids=[...document.querySelectorAll('#rows input[type=checkbox]:checked')].map(cb=>parseInt(cb.dataset.id));
-            if(ids.length===0) return toast('Seleziona almeno un utente');
+            if(ids.length===0) return showToast('Seleziona almeno un utente',{ colorClass: 'bg-warning' });
             const v = document.getElementById('bulkValue').value;
             if(!v) return;
             const [kind,val] = v.split(':'); // ROLE:ADMIN oppure STATUS:ACTIVE
@@ -141,15 +141,8 @@
                 } else {
                     await api(`${API}/bulk/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids, value:val})});
                 }
-                toast('Operazione completata'); reload();
-            }catch(e){ toast(e.message,true); }
-        }
-        function toast(msg, err=false){
-            // sostituisci con il tuo sistema di toast; per ora alert
-            const toastEl = document.getElementById('appToast');
-            toastEl.querySelector('.toast-body').textContent = msg;
-            const t = bootstrap.Toast.getOrCreateInstance(toastEl);
-            t.show();
+                showToast('Operazione completata',{ colorClass: 'bg-success' }); reload();
+            }catch(e){ showToast(e.message,{ colorClass: 'bg-danger' }); }
         }
         document.addEventListener('DOMContentLoaded', ()=> load());
     </script>

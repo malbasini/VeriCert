@@ -91,32 +91,6 @@
         </main>
     </div>
 </div>
-
-<!-- Toast container globale -->
-<div class="position-fixed top-0 end-0 p-3" style="z-index: 1080">
-    <div id="toastArea" class="toast align-items-center text-bg-danger border-0"
-         role="alert" aria-live="assertive" aria-atomic="true" style="display:none;">
-        <div class="d-flex">
-            <div class="toast-body" id="toastMsg">Errore</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                    onclick="document.getElementById('toastArea').style.display='none'"></button>
-        </div>
-    </div>
-</div>
-<script>
-    // helper toast globale
-    function showToast(msg) {
-        const toastEl = document.getElementById('toastArea');
-        const bodyEl = document.getElementById('toastMsg');
-        bodyEl.textContent = msg;
-        toastEl.style.display = 'block';
-        const bsToast = new bootstrap.Toast(toastEl);
-        bsToast.show();
-    }
-</script>
-
-
-
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
