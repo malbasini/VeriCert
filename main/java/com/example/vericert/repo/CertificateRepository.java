@@ -31,4 +31,6 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
             Pageable pageable);
 
     Optional<Certificate> findByIdAndTenantId(Long id, Long tenantId);
+
+    long countByTenantId(Long tenantId);
 }

@@ -77,6 +77,17 @@ public interface MembershipRepository extends JpaRepository<Membership, Membersh
             @Param("kw") String keywordOrNull,
             Pageable pageable
     );
+    @Query("""
+    select count(m)
+    from Membership m
+    where m.tenant.id = :tenantId
+      and m.status = :status
+""")
+    long countActiveUsersByTenant(@Param("tenantId") Long tenantId,
+                                  @Param("status") com.example.vericert.enumerazioni.Status status);
+
+
+
 
 }
 

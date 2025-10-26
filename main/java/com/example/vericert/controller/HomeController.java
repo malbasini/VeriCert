@@ -5,6 +5,8 @@ import com.example.vericert.domain.Template;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CustomUserDetails;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -12,6 +14,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/")
@@ -64,7 +69,7 @@ public class HomeController {
     @GetMapping("/api/admin/templates/view")
     public String Template() {
         // Ritorna la vista
-        return "admin/templates";
+        return "templates";
     }
     @GetMapping("/api/admin/templates/create")
     public String CreateTemplate() {
@@ -80,25 +85,6 @@ public class HomeController {
         model.addAttribute("tenantName", tenantName);
         // Ritorna la vista
         model.addAttribute("template", template);
-        return "admin/update";
+        return "template/update";
     }
-
-    @GetMapping("/certificate/list")
-    public String certificateList(Model model) {
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
-        String tenantName = user.getTenantName();
-        model.addAttribute("tenantName", tenantName);
-        return "_list";
-    }
-
-    @GetMapping("/admin/page")
-    public String admin(Model model) {
-        return "admin";
-    }
-
-
-
-
 }

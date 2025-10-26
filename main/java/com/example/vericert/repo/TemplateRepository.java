@@ -15,6 +15,8 @@ public interface TemplateRepository extends JpaRepository<Template, Long> {
 
     Template findByName(String tenantName);
 
+    long countByTenantId(Long tenantId);
+
     // Se ti serve solo l'id, proiezione semplice
     interface TemplateIdOnly {
         Long getId();

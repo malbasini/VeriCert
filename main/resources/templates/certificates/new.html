@@ -1,8 +1,10 @@
+<div th:fragment="emptyActions"></div>
 <th:block
         th:with="pageTitle='Certificate', active='Certificates'"
         th:replace="~{admin :: layout(
-                 pageTitle=${pageTitle},
-                 active=${active},
-                 content=~{/certificates/_new :: content(template=${template}, variablesUserJson=${variablesUserJson},pageTitle=${pageTitle}, active=${active})}
-               )}">
+        ${pageTitle},
+        ${active},
+        ~{certificates/new :: emptyActions},
+        ~{/certificates/_new :: content(template=${template}, variablesUserJson=${variablesUserJson},pageTitle=${pageTitle}, active=${active})}
+        )}">
 </th:block>

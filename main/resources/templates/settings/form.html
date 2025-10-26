@@ -1,0 +1,10 @@
+<div th:fragment="emptyActions"></div>
+<th:block
+        th:with="pageTitle='Settings', active='Impostazioni'"
+        th:replace="~{admin :: layout(
+    ${pageTitle},
+    ${active},
+    ~{settings/form :: emptyActions},
+    ~{/settings/_form :: content(form=${form},usage=${usage},pageTitle=${pageTitle}, active=${active})}
+ )}">
+</th:block>
