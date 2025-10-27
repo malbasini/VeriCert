@@ -38,38 +38,40 @@ public class CertificateService {
     private final CertificateRepository certRepo;
     private final VerificationTokenRepository tokRepo;
     private final TemplateService templateService;
-    private final TenantRepository tenantRepo; // usa l'opzione A, o cambia tipo se usi Plain
+    private final TenantSettingsService tenantSettingsService; // usa l'opzione A, o cambia tipo se usi Plain
     private final VericertProps props;
     private final TemplateRepository tempRepo;
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
                               TemplateService templateService,
-                              TenantRepository tenantRepo,
+                              TenantSettingsService tenantSettingsService,
                               VericertProps props,
                               TemplateRepository tempRepo){
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
         this.templateService = templateService;
-        this.tenantRepo = tenantRepo;
+        this.tenantSettingsService = tenantSettingsService;
         this.props = props;
         this.tempRepo = tempRepo;
     }
 
     @Transactional
     public Certificate issue(Long templateId, Map<String,Object> vars, String ownerName, String ownerEmail, Tenant tenant) throws Exception {
-
-
         Template template = tempRepo.findById(templateId).orElseThrow();
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = randomCode(24);
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
-        Map<String,Object> sysVars = buildSysVarsForCertificate(code,serial,verifyUrl,qrBase64);
+        Map<String,Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenant.getId());
+        sysVars.put("serial", serial);
+        sysVars.put("code", code);
+        sysVars.put("verifyUrl", verifyUrl);
+        sysVars.put("qrBase64", qrBase64);
+        sysVars.put("issuedAt", Instant.now());   // o formattato in stringa
+        sysVars.put("tenantName", tenant.getName());
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(vars);   // -> "{\"nome\":\"Mario\",\"eta\":30}"
         template.setUserVarJson(json);
@@ -133,38 +135,12 @@ public class CertificateService {
     private void audit(String actor, String action, String entity, String entityId, Map<String,Object> payload) {
         // puoi persistere in audit_log (omesso per brevità) o loggare in JSON
     }
-
-    public Map<String,Object> buildSysVarsForCertificate(String code, String serial, String verifyUrl, String qrBase64) {
-        Map<String,Object> sys = new HashMap<>();
-        sys.put("serial", serial);
-        sys.put("verifyUrl", verifyUrl);
-        sys.put("qrBase64", qrBase64);
-
-        // tenantName: se lo hai nel SecurityContext (CustomUserDetails) o da DB
-        String tenantName = "VeriCert";
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cud) {
-            tenantName = cud.getTenantName();
-            // issuerName/role opzionali
-            sys.put("issuerName", cud.getUsername());
-            sys.put("issuerRole", cud.getAuthorities().stream()
-                    .findFirst().map(GrantedAuthority::getAuthority).orElse("USER"));
-        }
-        sys.put("tenantName", tenantName);
-
-        // issuedAt (opzionale)
-        sys.put("issuedAt", java.time.Instant.now());
-        return sys;
-    }
-
     public Page<Certificate> listForTenant(Long tenantId, String q, Stato status, Pageable pageable) {
         return certRepo.search(tenantId, q, status, pageable);
     }
-
     public Certificate getForTenant(Long id) {
         return certRepo.findById(id).orElseThrow();
     }
-
     @Transactional
     public void revoke(Long tenantId, Long id, String reason, String byUser) {
         Certificate c = getForTenant(id);

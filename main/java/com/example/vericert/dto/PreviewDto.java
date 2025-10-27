@@ -14,6 +14,7 @@ public record PreviewDto(
         String ownerName,
 
         @NotBlank(message = "Email intestatario obbligatoria")
+        @Email(message = "Email non valida")
         String ownerEmail,
 
         @NotBlank(message = "Il codice corso è obbligatorio")

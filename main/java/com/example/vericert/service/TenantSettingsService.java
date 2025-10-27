@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 public class TenantSettingsService {
 
@@ -149,4 +152,27 @@ public class TenantSettingsService {
             }
         }
     }
+
+    /**
+     * Costruisce variabili di sistema comuni usate durante l'emissione dei certificati.
+     * Questo NON include serial/code/qr perché quelli sono specifici del certificato
+     * e verranno aggiunti dal CertificateService.
+     */
+    public Map<String,Object> buildBaseSysVarsForTenant(Long tenantId) {
+        TenantSettingsDto dto = loadForTenant(tenantId);
+        Map<String,Object> map = new HashMap<>();
+        map.put("issuerName", dto.issuerName());
+        map.put("issuerTitle", dto.issuerRole());
+        map.put("themeColor", dto.primaryColor());
+        map.put("publicBaseUrl", dto.website());
+        // puoi aggiungere anche logoUrl, footerText ecc. in futuro
+        return map;
+    }
+
+
+
+
+
+
+
 }

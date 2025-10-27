@@ -16,9 +16,12 @@ import java.util.UUID;
 public class SystemVarsBuilder {
 
     private final VericertProps props;
-
-    public SystemVarsBuilder(TenantRepository tenantRepo, VericertProps props) {
+    private final TenantSettingsService tenantSettingsService;
+    public SystemVarsBuilder(TenantRepository tenantRepo,
+                             VericertProps props,
+                             TenantSettingsService tenantSettingsService) {
         this.props = props;
+        this.tenantSettingsService = tenantSettingsService;
     }
 
     public Map<String, Object> buildPreviewVars() {
@@ -27,11 +30,16 @@ public class SystemVarsBuilder {
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
-        java.util.Map<String, Object> vars = new HashMap<>();
+        Map<String, Object> vars = tenantSettingsService.buildBaseSysVarsForTenant(currentTenantId());
         vars.put("serial", serial);
         vars.put("verifyUrl", verifyUrl);
         vars.put("qrBase64", qrBase64);
         vars.put("issuedAt", Instant.now());
         return vars;
+    }
+    private Long currentTenantId() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
+        return user.getTenantId();
     }
 }

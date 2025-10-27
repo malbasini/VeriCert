@@ -11,21 +11,23 @@ public class TenantSettings {
     @Column(name = "tenant_id")
     private Long tenantId;
 
-    // Salviamo il JSON come stringa grezza.
-    // Se vuoi, più avanti, puoi mappare oggetti embedded + @Convert.
-    @Lob
-    @Column(name = "json_settings", nullable = false, columnDefinition = "JSON")
+    // JSON salvato come testo normale -> NIENTE @Lob
+    @Column(
+            name = "json_settings",
+            nullable = false,
+            columnDefinition = "JSON"
+    )
     private String jsonSettings;
 
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt = Instant.now();
+    // Lasciamo che MySQL lo mantenga con DEFAULT ... ON UPDATE ...
+    @Column(
+            name = "updated_at",
+            nullable = false,
+            insertable = false,
+            updatable = false
+    )
+    private Instant updatedAt;
 
-    @PreUpdate
-    public void touch() {
-        this.updatedAt = Instant.now();
-    }
-
-    // costruttori
     public TenantSettings() {}
 
     public TenantSettings(Long tenantId, String jsonSettings) {
@@ -33,16 +35,12 @@ public class TenantSettings {
         this.jsonSettings = jsonSettings;
     }
 
-    // getter/setter
     public Long getTenantId() { return tenantId; }
-
     public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
 
     public String getJsonSettings() { return jsonSettings; }
-
     public void setJsonSettings(String jsonSettings) { this.jsonSettings = jsonSettings; }
 
     public Instant getUpdatedAt() { return updatedAt; }
-
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; } // opzionale, ma la puoi lasciare
 }

@@ -4,6 +4,7 @@ import com.example.vericert.dto.PreviewDto;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.SystemVarsBuilder;
 import com.example.vericert.service.TemplateService;
+import com.example.vericert.service.TenantSettingsService;
 import com.example.vericert.util.PdfUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -28,7 +29,6 @@ import java.util.stream.Collectors;
 public class TemplatePreviewController {
     private final TemplateService templateService;
     private final SystemVarsBuilder sysVars; // tua classe che calcola serial, verifyUrl, qrBase64, ecc.
-
     public TemplatePreviewController(TemplateService templateService,
                                      SystemVarsBuilder sysVars) {
         this.templateService = templateService;
@@ -56,6 +56,7 @@ public class TemplatePreviewController {
         Map<String,Object> map = toMap(dto);
         map.put("tenantName", tenant);
         Map<String,Object> sys = sysVars.buildPreviewVars();
+
         String html = templateService.renderHtml(id, map, sys);
         return ResponseEntity.ok(html);
     }

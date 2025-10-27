@@ -166,5 +166,8 @@
     </form>
 </div>
 </body>
+    <script th:if="${saved}" >
+        showToast("Impostazioni salvate con successo",{ colorClass: 'bg-success', icon: 'fa-check' });
+    </script>
 </div>
 </html>
