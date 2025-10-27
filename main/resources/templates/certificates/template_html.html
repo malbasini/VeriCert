@@ -4,6 +4,17 @@
     <meta charset="UTF-8"></meta>
     <title>Certificato</title>
     <style>
+        :root{
+            --primary:[[${themeColor}]];
+            --ink:#222;
+            --muted:#6c757d;
+            --border:#e5e7eb;
+            --bg:#fff;
+            --badge-bg:#eef2ff;
+            --badge-fg:#3730a3;
+            --verify-bg:#f8fafc;
+        }
+        *{ box-sizing:border-box; }
         @page { size: A4; margin: 16mm; }
         * { box-sizing: border-box; }
         body {
@@ -64,15 +75,233 @@
         .pill {
             display: inline-block; padding: 2px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 10pt; font-weight: 700;
         }
+
+        *{ box-sizing:border-box; }
+        html,body{
+            margin:0;
+            padding:0;
+            font-family: "Inter","Helvetica Neue",Arial,sans-serif;
+            color:var(--ink);
+        }
+        .page{
+            width:210mm;
+            min-height:297mm;
+            padding:22mm;
+            background:var(--bg);
+            position:relative;
+            border:2px solid var(--primary);
+            border-radius:12px;
+        }
+
+        header{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            margin-bottom:16mm;
+            border-bottom:2px solid var(--border);
+            padding-bottom:6mm;
+        }
+        .brand{
+            display:flex;
+            align-items:flex-start;
+            gap:10px;
+        }
+        .logo{
+            width:38px;
+            height:38px;
+            border-radius:10px;
+            background:var(--primary);
+        }
+        .brand-left h1{
+            font-size:16pt;
+            margin:0;
+            color:var(--primary);
+            font-weight:600;
+        }
+        .brand-left small{
+            color:var(--muted);
+            font-size:9pt;
+            line-height:1.3;
+        }
+
+        .meta{
+            text-align:right;
+            font-size:9pt;
+            color:var(--muted);
+        }
+        .meta-row{
+            margin-bottom:2mm;
+        }
+        .meta-label{
+            font-weight:500;
+            color:var(--ink);
+        }
+        .serial-box{
+            font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;
+            background:#f1f5f9;
+            padding:2px 6px;
+            border-radius:6px;
+            border:1px solid var(--border);
+            font-size:9pt;
+            display:inline-block;
+        }
+
+        .title{
+            text-align:center;
+            margin:6mm 0 10mm;
+        }
+        .title h2{
+            font-size:22pt;
+            margin:0 0 3mm;
+            font-weight:600;
+            color:var(--ink);
+        }
+        .subtitle{
+            color:var(--muted);
+            font-size:10pt;
+            margin:0;
+        }
+
+        .card{
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:10mm;
+            margin-bottom:8mm;
+        }
+        .row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8mm;
+        }
+        .col{
+            flex:1;
+            min-width:60mm;
+        }
+
+        .kv{
+            margin:4mm 0;
+        }
+        .kv label{
+            display:block;
+            font-size:9pt;
+            color:var(--muted);
+            margin-bottom:1mm;
+            font-weight:500;
+        }
+        .kv .v{
+            font-size:12pt;
+            font-weight:600;
+            color:var(--ink);
+        }
+
+        .pill{
+            display:inline-block;
+            padding:2px 8px;
+            border-radius:999px;
+            background:var(--badge-bg);
+            color:var(--badge-fg);
+            font-size:10pt;
+            font-weight:600;
+        }
+
+        .verify{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8mm;
+            align-items:center;
+            background:var(--verify-bg);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:8mm;
+            margin-top:10mm;
+        }
+        .verify .qrbox img{
+            width:120px;
+            height:120px;
+            border:1px solid var(--border);
+            border-radius:8px;
+        }
+        .verify .desc{
+            font-size:10pt;
+            line-height:1.4;
+            color:var(--ink);
+            min-width:60mm;
+        }
+        .verify .desc .strong{
+            font-weight:600;
+            color:#198754;
+            word-break:break-all;
+        }
+        .verify small{
+            color:var(--muted);
+        }
+
+        .signatures{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:space-between;
+            align-items:flex-end;
+            margin-top:14mm;
+            gap:12mm;
+        }
+        .sigblock{
+            flex:1;
+            min-width:60mm;
+            text-align:center;
+        }
+        .sigline{
+            width:100%;
+            border-top:1px solid var(--ink);
+            padding-top:2mm;
+            font-size:10pt;
+            line-height:1.4;
+        }
+        .siglabel{
+            font-size:9pt;
+            color:var(--muted);
+        }
+
+        footer{
+            position:absolute;
+            bottom:14mm;
+            left:22mm;
+            right:22mm;
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:space-between;
+            color:var(--muted);
+            font-size:8.5pt;
+            line-height:1.4;
+        }
+        .foot-left{
+            flex:1;
+            min-width:60mm;
+        }
+        .foot-right{
+            text-align:right;
+            flex:1;
+            min-width:60mm;
+        }
+
+
+
+
+
     </style>
 </head>
 <body>
-<div class="wrap">
+<div class="page">
     <!-- Header -->
     <div class="header">
         <div class="brand">
-            <span class="logo"></span>
-            <span class="brand-title">VeriCert</span>
+            <div class="logo"></div>
+            <div class="brand-left">
+                <h1>[[${tenantName}]]</h1>
+                <small>
+                    [[${issuerName}]]<br>
+                    [[${issuerTitle}]]
+                </small>
+            </div>
         </div>
         <div class="meta">
             <div th:text="${tenantName}">Tenant</div>
@@ -129,22 +358,38 @@
         </div>
     </div>
 
-    <!-- Firme -->
-    <div class="sign">
-        <div class="sigbox">
-            <div class="sigline">Firma Emettitore</div>
-            <div style="font-size:9pt; color:#6b7280;">Responsabile</div>
+    <!-- FIRME -->
+    <section class="signatures">
+        <div class="sigblock">
+            <div class="sigline">
+                [[${issuerName}]]
+            </div>
+            <div class="siglabel">
+                [[${issuerTitle}]]
+            </div>
         </div>
-        <div class="sigbox">
-            <div class="sigline">Firma Destinatario</div>
-            <div style="font-size:9pt; color:#6b7280;">Conferma ricezione</div>
+
+        <div class="sigblock">
+            <div class="sigline">
+                [[${tenantName}]]
+            </div>
+            <div class="siglabel">
+                Autorità Emettente
+            </div>
         </div>
-    </div>
-    <!-- Footer -->
-    <div class="footer">
-        <div>© <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2025</span> · VeriCert</div>
-        <div>Questo attestato è verificabile online.</div>
-    </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="foot-left">
+            © [[${#temporals.format(issuedAt, 'yyyy')}]] · [[${tenantName}]]
+        </div>
+
+        <div class="foot-right">
+            Questo attestato è verificabile online.<br>
+            [[${verifyUrl}]]
+        </div>
+    </footer>
 </div>
 </body>
 </html>
