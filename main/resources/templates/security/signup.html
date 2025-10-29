@@ -89,9 +89,11 @@
                     <b>Ruolo:</b> ${data.role}<br>
                 </div>
             `;
+            showToast( "Registrazione avvenuta con successo",{ colorClass: 'bg-success' })
         }
         else {
             resultDiv.innerHTML = `<div class="alert alert-danger">❌ Si è verificato un errore</div>`;
+            showToast( "Si è verificato un errore",{ colorClass: 'bg-danger' })
             return;
         }
         div.style.visibility = "visible";

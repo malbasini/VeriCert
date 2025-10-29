@@ -32,9 +32,10 @@ public class SignupService {
     }
 
     @Transactional
-    public void signup(SignupRequest req) {
+    public User signup(SignupRequest req) {
         // 1) trova o crea il tenant
-        Tenant tenant = tenantRepo.findByName(req.tenantName())
+        Tenant tenant = null;
+        tenant = tenantRepo.findByName(req.tenantName())
                 .orElseGet(() -> {
                     Tenant t = new Tenant();
                     t.setName(req.tenantName());
@@ -73,7 +74,10 @@ public class SignupService {
             id.setTenantId(tenant.getId());
             id.setUserId(user.getId());
             membershipRepo.save(m);
+            return user;
         }
+        else
+            return user;
         // (opzionale) audit log
     }
 }

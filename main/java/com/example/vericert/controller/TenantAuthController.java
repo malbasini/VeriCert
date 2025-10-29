@@ -1,17 +1,20 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.domain.Membership;
+import com.example.vericert.domain.MembershipId;
+import com.example.vericert.domain.Tenant;
+import com.example.vericert.domain.User;
 import com.example.vericert.dto.SignupRequest;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.SignupService;
 import jakarta.validation.Valid;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,8 +45,8 @@ public class TenantAuthController {
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(
-                            fe -> fe.getField(),
-                            Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
+                            FieldError::getField,
+                            Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
         }
@@ -54,11 +57,12 @@ public class TenantAuthController {
         String status="";
         String role="";
         try {
-            signup.signup(request);
-            tenantName = request.tenantName();
+            User user = signup.signup(request);
+            tenantName = tenantRepo.findByName(tenantName).get().getName();
             tenantId = tenantRepo.findByName(tenantName).get().getId();
             status = tenantRepo.findByName(tenantName).get().getStatus();
-            Membership m = membershipRepo.findByTenant_Id(tenantId);
+            MembershipId id = new MembershipId(tenantId, user.getId());
+            Membership m = membershipRepo.findById(id).orElseThrow();
             role = m.getRole().name();
         }
         catch (Exception e) {
