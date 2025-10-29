@@ -25,32 +25,29 @@ public class AdminHealthApiController {
     private final AppInfoService appInfoService;
     private final LogTailService logTailService;
     private final HealthInfoService healthInfoService;
-    private final DefaultTransactionDefinition defaultTransactionDefinition;
 
     public AdminHealthApiController(
             AppInfoService appInfoService,
             LogTailService logTailService,
-            HealthInfoService healthInfoService,
-            DefaultTransactionDefinition defaultTransactionDefinition) {
+            HealthInfoService healthInfoService) {
+
         this.appInfoService = appInfoService;
         this.logTailService = logTailService;
         this.healthInfoService = healthInfoService;
-        this.defaultTransactionDefinition = defaultTransactionDefinition;
     }
 
     @GetMapping("/health")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> health() throws JsonProcessingException {
         // stato generale
-
-        // dettagli noti (dipende da cosa hai attivato in actuator)
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> info = healthInfoService.currentHealthInfo();
         String stato = null;
+        String statusDisk = null;
         String status = info.get("status").toString(); // "UP", "DOWN", ...
         var details = (Map<String, Object>) info.get("components");
         if (details != null) {
-            for (var key: details.keySet()) {
+            for (var key : details.keySet()) {
                 System.out.println("key: " + key);
                 if (key.equals("db")) {
                     var obj = (Map<String, Object>) details.get(key);
@@ -60,11 +57,15 @@ public class AdminHealthApiController {
                             stato = dbStatus.toString();
                         }
                     }
-                }
-                else if (key.equals("diskSpace")) {
+                } else if (key.equals("diskSpace")) {
                     var obj = (Map<String, Object>) details.get(key);
                     if (obj != null) {
                         map = (Map<String, Object>) obj.get("details");
+                        for (var k : obj.keySet()) {
+                            if (k.equals("status")) {
+                                statusDisk = obj.get(k).toString();
+                            }
+                        }
                     }
                 }
             }
@@ -72,10 +73,14 @@ public class AdminHealthApiController {
         }
 
         assert stato != null;
+        assert map != null;
+        assert statusDisk != null;
+
         return ResponseEntity.ok(Map.of(
                 "status", status,
                 "db",stato,
                 "disk",map,
+                "disk1",statusDisk,
                 "timestamp", Instant.now().toString(),
                 "app", appInfoService.currentInfo()  // versione, uptime ecc.
         ));
