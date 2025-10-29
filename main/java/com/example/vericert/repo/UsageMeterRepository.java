@@ -1,22 +1,60 @@
 package com.example.vericert.repo;
 
 import com.example.vericert.domain.UsageMeter;
-import com.example.vericert.domain.UsageMeterId;
-import jakarta.transaction.Transactional;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import com.example.vericert.domain.UsageMeterKey;
+import com.example.vericert.dto.DailyUsageDTO;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
-public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMeterId> {
-    Optional<UsageMeter> findByIdTenantIdAndIdYm(Long tenantId, String ym);
-    @Modifying
-    @Transactional
-    @Query(value = """
-    INSERT INTO usage_meter (tenant_id, ym, cert_count, api_calls, storage_bytes)
-    VALUES (:tenantId, :ym, :delta, 0, 0)
-    ON DUPLICATE KEY UPDATE cert_count = cert_count + :delta
-    """, nativeQuery = true)
-    void upsertCertCount(@Param("tenantId") Long tenantId, @Param("ym") String ym, @Param("delta") int delta);
+public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMeterKey> {
+
+    @Query("""
+        SELECT u
+        FROM UsageMeter u
+        WHERE u.id.tenantId = :tenantId
+          AND u.id.usageDay = :day
+    """)
+    Optional<UsageMeter> findByTenantAndDay(
+            @Param("tenantId") Long tenantId,
+            @Param("day") LocalDate day
+    );
+
+    @Query("""
+        SELECT new com.example.vericert.dto.DailyUsageDTO(
+            u.id.tenantId,
+            u.id.usageDay,
+            u.certsGenerated,
+            u.apiCalls,
+            u.pdfStorageMb
+        )
+        FROM UsageMeter u
+        WHERE u.id.tenantId = :tenantId
+          AND u.id.usageDay BETWEEN :fromDay AND :toDay
+        ORDER BY u.id.usageDay ASC
+    """)
+    List<DailyUsageDTO> getUsageHistoryForTenant(
+            @Param("tenantId") Long tenantId,
+            @Param("fromDay") LocalDate fromDay,
+            @Param("toDay") LocalDate toDay
+    );
+
+    @Query("""
+        SELECT new com.example.vericert.dto.DailyUsageDTO(
+            u.id.tenantId,
+            u.id.usageDay,
+            u.certsGenerated,
+            u.apiCalls,
+            u.pdfStorageMb
+        )
+        FROM UsageMeter u
+        WHERE u.id.usageDay = :day
+        ORDER BY u.certsGenerated DESC
+    """)
+    List<DailyUsageDTO> getTopTenantsToday(
+            @Param("day") LocalDate day
+    );
 }

@@ -1,17 +1,21 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.dto.DailyUsageDTO;
 import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CustomUserDetails;
+import com.example.vericert.service.UsageMeterService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/admin")
@@ -21,17 +25,20 @@ public class AdminDashboardController {
     private final CertificateRepository certRepo;
     private final MembershipRepository membershipRepo;
     private final TenantRepository tenantRepo;
+    private final UsageMeterService usageMeterService;
 
     public AdminDashboardController(
             TemplateRepository templateRepo,
             CertificateRepository certRepo,
             MembershipRepository membershipRepo,
-            TenantRepository tenantRepo
+            TenantRepository tenantRepo,
+            UsageMeterService usageMeterService
     ) {
         this.templateRepo = templateRepo;
         this.certRepo = certRepo;
         this.membershipRepo = membershipRepo;
         this.tenantRepo = tenantRepo;
+        this.usageMeterService = usageMeterService;
     }
 
     @GetMapping
@@ -47,7 +54,7 @@ public class AdminDashboardController {
             tenantId = tenantRepo.findByName(tenantName).get().getId();
         }
 
-        long totalTemplates   = (tenantId != null)
+        long totalTemplates = (tenantId != null)
                 ? templateRepo.countByTenantId(tenantId)
                 : 0L;
 
@@ -59,6 +66,7 @@ public class AdminDashboardController {
                 ? membershipRepo.countActiveUsersByTenant(tenantId, Status.ACTIVE)
                 : 0L;
 
+
         model.addAttribute("pageTitle", "Dashboard");
         model.addAttribute("active", "dashboard");
 
@@ -69,4 +77,16 @@ public class AdminDashboardController {
 
         return "dashboard";
     }
+    @GetMapping("/usage_meter")
+    public String usage(Model model) {
+        // classifica dei tenant più "pesanti" oggi
+        List<DailyUsageDTO> topUsageToday = usageMeterService.getTopTenantsToday();
+        model.addAttribute("topUsageToday", topUsageToday);
+        return "usage/usage";
+    }
+
+
+
+
+
 }

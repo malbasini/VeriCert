@@ -41,13 +41,15 @@ public class CertificateService {
     private final TenantSettingsService tenantSettingsService; // usa l'opzione A, o cambia tipo se usi Plain
     private final VericertProps props;
     private final TemplateRepository tempRepo;
+    private final UsageMeterService usageMeterService;
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
                               TemplateService templateService,
                               TenantSettingsService tenantSettingsService,
                               VericertProps props,
-                              TemplateRepository tempRepo){
+                              TemplateRepository tempRepo,
+                              UsageMeterService usageMeterService) {
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
@@ -55,6 +57,7 @@ public class CertificateService {
         this.tenantSettingsService = tenantSettingsService;
         this.props = props;
         this.tempRepo = tempRepo;
+        this.usageMeterService = usageMeterService;
     }
 
     @Transactional
@@ -94,6 +97,7 @@ public class CertificateService {
         t.setCode(code);
         t.setCertificateId(c.getId());
         tokRepo.save(t);
+        usageMeterService.incrementCertsGenerated(tenant.getId());
         return c;
     }
     private String savePdf(String serial, byte[] pdf) {

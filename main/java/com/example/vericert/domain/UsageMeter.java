@@ -1,84 +1,71 @@
 package com.example.vericert.domain;
 
-import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Filter;
-
+import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
-@Table(name="usage_meter")
-@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
-public class UsageMeter extends BaseTenantEntity {
+@Table(name = "usage_meter")
+public class UsageMeter {
 
     @EmbeddedId
-    private UsageMeterId id;
-    @Column(nullable=false,insertable=false,updatable=false)
-    private String ym;
-    @Column(name="cert_count",nullable=false)
-    private int certCount = 0;
-    @Column(name="api_calls", nullable=false)
-    private int apiCalls = 0;
-    @Column(name="storage_bytes",nullable=false)
-    private Long storageBytes = 0L;
+    private UsageMeterKey id;
 
-    // relazione Tenant → senza duplicare tenant_id
-    @MapsId("tenantId") // dice a Hibernate: tenant_id viene da UsageMeterId
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tenant_id", nullable = false)
-    private Tenant tenant;
+    @Column(name = "certs_generated", nullable = false)
+    private Integer certsGenerated = 0;
+
+    @Column(name = "pdf_storage_mb", nullable = false, precision = 10, scale = 2)
+    private BigDecimal pdfStorageMb = BigDecimal.ZERO;
+
+    @Column(name = "api_calls", nullable = false)
+    private Integer apiCalls = 0;
+
+    @Column(name = "last_update_ts", nullable = false)
+    private Instant lastUpdateTs = Instant.now();
 
     public UsageMeter() {}
-    public UsageMeter(Long tenantId, String ym) {
-        this.id = new UsageMeterId();
-        this.id.setTenantId(tenantId);
-        this.id.setYm(ym);
-    }
 
-    public UsageMeterId getId() {
-        return id;
-    }
-
-    public void setId(UsageMeterId id) {
+    public UsageMeter(UsageMeterKey id) {
         this.id = id;
     }
 
-    public String getYm() {
-        return ym;
+    public UsageMeterKey getId() {
+        return id;
     }
 
-    public void setYm(String ym) {
-        this.ym = ym;
+    public void setId(UsageMeterKey id) {
+        this.id = id;
     }
 
-    public int getCertCount() {
-        return certCount;
+    public Integer getCertsGenerated() {
+        return certsGenerated;
     }
 
-    public void setCertCount(int certCount) {
-        this.certCount = certCount;
+    public void setCertsGenerated(Integer certsGenerated) {
+        this.certsGenerated = certsGenerated;
     }
 
-    public int getApi_calls() {
+    public BigDecimal getPdfStorageMb() {
+        return pdfStorageMb;
+    }
+
+    public void setPdfStorageMb(BigDecimal pdfStorageMb) {
+        this.pdfStorageMb = pdfStorageMb;
+    }
+
+    public Integer getApiCalls() {
         return apiCalls;
     }
 
-    public void setApi_calls(int api_calls) {
-        this.apiCalls = api_calls;
+    public void setApiCalls(Integer apiCalls) {
+        this.apiCalls = apiCalls;
     }
 
-    public Long getStorage_bytes() {
-        return storageBytes;
+    public Instant getLastUpdateTs() {
+        return lastUpdateTs;
     }
 
-    public void setStorage_bytes(Long storage_bytes) {
-        this.storageBytes = storage_bytes;
-    }
-
-    public Tenant getTenant() {
-        return tenant;
-    }
-
-    public void setTenant(Tenant tenant) {
-        this.tenant = tenant;
+    public void setLastUpdateTs(Instant lastUpdateTs) {
+        this.lastUpdateTs = lastUpdateTs;
     }
 }

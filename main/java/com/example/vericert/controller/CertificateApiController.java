@@ -103,8 +103,6 @@ public class CertificateApiController {
         try {
             Optional<Tenant> t = tenantRepo.findByName(tenantName);
             Tenant tenant = t.orElseThrow();
-            // controllo piano
-            usageService.assertCanIssue(tenant.getId(), tenant.getPlan());
             c = service.issue(tpl.getId(), map, ownerName, ownerEmail,tenant);
         }
         catch (Exception e) {
