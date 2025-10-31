@@ -22,22 +22,20 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
         """, nativeQuery = true)
     Optional<Long> findTenantIdByCode(@Param("code") String code);
 
-    // 2) Vista completa per la pagina pubblica (bypassa filtri)
-    @Query(value = """
-        select vt.code as code,
-               c.serial as serial,
-               c.owner_name as ownerName,
-               c.course_code as courseCode,
-               c.issued_at as issuedAt,
-               c.revoked_at as revoked,
-               c.revoked_reason as revokedReason,
-               c.tenant_id as tenantId
-        from verification_token vt
-        join certificate c on c.id = vt.certificate_id
-        where vt.code = :code
-        """, nativeQuery = true)
-    Optional<VerificationView> findViewByCode(@Param("code") String code);
-
     Optional<VerificationToken> findByCode(String code);
 
+    Optional<VerificationToken> findByJti(String jti);
+
+
+    @Query("""
+      SELECT new com.example.vericert.repo.VerificationView(
+          t.code, t.jti, t.kid, t.expiresAt,
+          t.certificateId, c.serial, c.ownerName, c.issuedAt, c.pdfUrl, t.compactJws, t.sha256Cached,
+          c.tenantId
+      )
+      FROM VerificationToken t
+      JOIN Certificate c ON c.id = t.certificateId
+      WHERE t.code = :code
+    """)
+    Optional<VerificationView> findViewByCode(@Param("code") String code);
 }

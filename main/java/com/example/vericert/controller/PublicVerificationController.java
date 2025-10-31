@@ -5,10 +5,12 @@ import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
+import com.example.vericert.service.QrVerificationService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @RestController
@@ -17,11 +19,14 @@ public class PublicVerificationController {
 
     private final VerificationTokenRepository verificationRepo;
     private final CertificateRepository certificateRepo;
+    private final QrVerificationService service;
 
     public PublicVerificationController(VerificationTokenRepository verificationRepo,
-                                        CertificateRepository certificateRepo) {
+                                        CertificateRepository certificateRepo,
+                                        QrVerificationService service) {
         this.verificationRepo = verificationRepo;
         this.certificateRepo = certificateRepo;
+        this.service = service;
     }
 
     /**
@@ -29,7 +34,7 @@ public class PublicVerificationController {
      * Esempio: GET /v/ABC123XYZ
      */
     @GetMapping(value="/v/{code}", produces= MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> verifyCertificate(@PathVariable("code") String code) {
+    public ResponseEntity<?> verifyCertificate(@PathVariable("code") String code) throws IOException {
         Optional<VerificationToken> tokenOpt = verificationRepo.findByCode(code);
 
         if (tokenOpt.isEmpty()) {
@@ -44,7 +49,7 @@ public class PublicVerificationController {
             return ResponseEntity.status(410) // Gone
                     .body("❌ Certificato revocato");
         }
-
+        service.verify(certificate.getTenant().getId(),code, QrVerificationService.Source.API);
         // Puoi restituire un DTO con i dati del certificato
         return ResponseEntity.ok(new VerificationResponse(
                 token.getCode(),
@@ -61,13 +66,5 @@ public class PublicVerificationController {
             String ownerEmail,
             String issueDate
     ) {}
-
-    @GetMapping("/v/codes")
-    public ResponseEntity<?> getValidCodes() {
-        var codes = verificationRepo.findAll().stream()
-                .map(VerificationToken::getCode)
-                .toList();
-        return ResponseEntity.ok(codes);
-    }
 
 }

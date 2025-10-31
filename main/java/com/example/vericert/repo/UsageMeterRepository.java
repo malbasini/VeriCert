@@ -29,7 +29,8 @@ public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMet
             u.id.usageDay,
             u.certsGenerated,
             u.apiCalls,
-            u.pdfStorageMb
+            u.pdfStorageMb,
+            u.verificationsCount
         )
         FROM UsageMeter u
         WHERE u.id.tenantId = :tenantId
@@ -48,7 +49,8 @@ public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMet
             u.id.usageDay,
             u.certsGenerated,
             u.apiCalls,
-            u.pdfStorageMb
+            u.pdfStorageMb,
+            u.verificationsCount
         )
         FROM UsageMeter u
         WHERE u.id.usageDay = :day
@@ -57,4 +59,6 @@ public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMet
     List<DailyUsageDTO> getTopTenantsToday(
             @Param("day") LocalDate day
     );
+
+
 }

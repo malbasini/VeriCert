@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
 <head>
     <meta charset="UTF-8">
     <title>Verifica certificato</title>
@@ -14,7 +14,6 @@
         <ul class="list-group">
             <li class="list-group-item"><b>Serial:</b> <span th:text="${serial}">—</span></li>
             <li class="list-group-item"><b>Intestatario:</b> <span th:text="${ownerName}">—</span></li>
-            <li class="list-group-item"><b>Corso:</b> <span th:text="${courseName}">—</span></li>
             <li class="list-group-item">
                 <b>Emesso il:</b>
                 <span th:text="${#temporals.format(issuedAt, 'dd/MM/yyyy HH:mm')}">—</span>

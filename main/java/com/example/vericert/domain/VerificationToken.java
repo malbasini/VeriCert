@@ -14,6 +14,14 @@ public class VerificationToken {
     private Instant createdAt = Instant.now();
     @Column(name="expires_at")
     private Instant expiresAt;
+    @Column(name="kid")
+    private String kid;
+    @Column(name="jti")
+    private String jti;
+    @Column(name="sha256_cached")
+    private String sha256Cached;// opzionale
+    @Column(name="compact_jws")
+    private String compactJws;
 
     public String getCode() {
         return code;
@@ -45,5 +53,37 @@ public class VerificationToken {
 
     public void setCertificateId(Long certificateId) {
         this.certificateId = certificateId;
+    }
+
+    public String getKid() {
+        return kid;
+    }
+
+    public void setKid(String kid) {
+        this.kid = kid;
+    }
+
+    public String getJti() {
+        return jti;
+    }
+
+    public void setJti(String jti) {
+        this.jti = jti;
+    }
+
+    public String getSha256Cached() {
+        return sha256Cached;
+    }
+
+    public void setSha256Cached(String sha256Cached) {
+        this.sha256Cached = sha256Cached;
+    }
+
+    public String getCompactJws() {
+        return compactJws;
+    }
+
+    public void setCompactJws(String compactJws) {
+        this.compactJws = compactJws;
     }
 }

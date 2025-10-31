@@ -23,6 +23,9 @@ public class UsageMeter {
     @Column(name = "last_update_ts", nullable = false)
     private Instant lastUpdateTs = Instant.now();
 
+    @Column(name = "verifications_count", nullable = false)
+    private Integer verificationsCount = 0;
+
     public UsageMeter() {}
 
     public UsageMeter(UsageMeterKey id) {
@@ -67,5 +70,13 @@ public class UsageMeter {
 
     public void setLastUpdateTs(Instant lastUpdateTs) {
         this.lastUpdateTs = lastUpdateTs;
+    }
+
+    public Integer getVerificationsCount() {
+        return verificationsCount;
+    }
+
+    public void setVerificationsCount(Integer verificationsCount) {
+        this.verificationsCount = verificationsCount;
     }
 }

@@ -1,6 +1,8 @@
 package com.example.vericert.domain;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -18,6 +20,15 @@ public class TenantSettings {
             columnDefinition = "JSON"
     )
     private String jsonSettings;
+
+    @Column(name = "max_storage_mb", precision = 10, scale = 2)
+    private BigDecimal maxStorageMb; // es 500.00
+
+    @Column(name = "max_certs_per_month")
+    private Integer maxCertsPerMonth; // es 1000
+
+    @Column(name = "max_api_calls_per_day")
+    private Integer maxApiCallsPerDay; // es 2000
 
     // Lasciamo che MySQL lo mantenga con DEFAULT ... ON UPDATE ...
     @Column(
@@ -43,4 +54,28 @@ public class TenantSettings {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; } // opzionale, ma la puoi lasciare
+
+    public BigDecimal getMaxStorageMb() {
+        return maxStorageMb;
+    }
+
+    public void setMaxStorageMb(BigDecimal maxStorageMb) {
+        this.maxStorageMb = maxStorageMb;
+    }
+
+    public Integer getMaxCertsPerMonth() {
+        return maxCertsPerMonth;
+    }
+
+    public void setMaxCertsPerMonth(Integer maxCertsPerMonth) {
+        this.maxCertsPerMonth = maxCertsPerMonth;
+    }
+
+    public Integer getMaxApiCallsPerDay() {
+        return maxApiCallsPerDay;
+    }
+
+    public void setMaxApiCallsPerDay(Integer maxApiCallsPerDay) {
+        this.maxApiCallsPerDay = maxApiCallsPerDay;
+    }
 }

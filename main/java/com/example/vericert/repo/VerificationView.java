@@ -2,11 +2,15 @@ package com.example.vericert.repo;
 
 public interface VerificationView {
     String getCode();
+    String getJti();
+    String getKid();
+    java.time.Instant expiresAt();
+    Long getCertificateId();
     String getSerial();
     String getOwnerName();
-    String getCourseCode();
     java.time.Instant getIssuedAt();
-    java.time.Instant getRevokedAt();
-    String getRevokedReason();
+    String getPdfUrl();
+    String getCompactJws();
+    String getSha256Cached();
     Long getTenantId();
 }

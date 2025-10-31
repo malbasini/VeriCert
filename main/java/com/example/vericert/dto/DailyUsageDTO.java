@@ -9,16 +9,20 @@ public class DailyUsageDTO {
     private final Integer certsGenerated;
     private final Integer apiCalls;
     private final BigDecimal pdfStorageMb;
+    private final Integer verificationsCount;   // NEW
 
-    public DailyUsageDTO(Long tenantId, LocalDate day,
+    public DailyUsageDTO(Long tenantId,
+                         LocalDate day,
                          Integer certsGenerated,
                          Integer apiCalls,
-                         BigDecimal pdfStorageMb) {
+                         BigDecimal pdfStorageMb,
+                         Integer verificationsCount) {
         this.tenantId = tenantId;
         this.day = day;
         this.certsGenerated = certsGenerated;
         this.apiCalls = apiCalls;
         this.pdfStorageMb = pdfStorageMb;
+        this.verificationsCount = verificationsCount;
     }
 
     public Long getTenantId() {
@@ -39,5 +43,9 @@ public class DailyUsageDTO {
 
     public BigDecimal getPdfStorageMb() {
         return pdfStorageMb;
+    }
+
+    public Integer getVerificationsCount() {
+        return verificationsCount;
     }
 }

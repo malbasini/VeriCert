@@ -1,12 +1,14 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.dto.DailyUsageDTO;
+import com.example.vericert.dto.TenantUsageStatusDTO;
 import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CustomUserDetails;
+import com.example.vericert.service.TenantUsageStatusService;
 import com.example.vericert.service.UsageMeterService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,20 +27,21 @@ public class AdminDashboardController {
     private final CertificateRepository certRepo;
     private final MembershipRepository membershipRepo;
     private final TenantRepository tenantRepo;
-    private final UsageMeterService usageMeterService;
+    private final TenantUsageStatusService tenantUsageStatusService;
 
     public AdminDashboardController(
             TemplateRepository templateRepo,
             CertificateRepository certRepo,
             MembershipRepository membershipRepo,
             TenantRepository tenantRepo,
-            UsageMeterService usageMeterService
+            UsageMeterService usageMeterService,
+            TenantUsageStatusService tenantUsageStatusService
     ) {
         this.templateRepo = templateRepo;
         this.certRepo = certRepo;
         this.membershipRepo = membershipRepo;
         this.tenantRepo = tenantRepo;
-        this.usageMeterService = usageMeterService;
+        this.tenantUsageStatusService = tenantUsageStatusService;
     }
 
     @GetMapping
@@ -79,9 +82,10 @@ public class AdminDashboardController {
     }
     @GetMapping("/usage_meter")
     public String usage(Model model) {
-        // classifica dei tenant più "pesanti" oggi
-        List<DailyUsageDTO> topUsageToday = usageMeterService.getTopTenantsToday();
-        model.addAttribute("topUsageToday", topUsageToday);
+        // stato consumo di tutti i tenant oggi, con limiti e semaforo storage
+        List<TenantUsageStatusDTO> todayStatus =
+                tenantUsageStatusService.buildTodayStatusForAllTenants();
+        model.addAttribute("todayStatus", todayStatus);
         return "usage/usage";
     }
 
