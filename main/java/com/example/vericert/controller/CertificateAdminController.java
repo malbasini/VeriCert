@@ -98,6 +98,7 @@ public class CertificateAdminController {
         model.addAttribute("from", from);
         model.addAttribute("to", to);
         model.addAttribute("sort", sort);
+        model.addAttribute("tenantId", tenantId);
 
         return "certificates/list";
     }

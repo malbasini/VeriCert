@@ -107,7 +107,8 @@ public class CertificateService {
         byte[] pdf  = PdfUtil.htmlToPdf(html); // tua util
 
         // Costruisci URL pubblico coerente
-        String pdfUrl = savePdf(serial, pdf,tenant);
+        String Url = savePdf(serial, pdf,tenant);
+        String pdfUrl = "/files/" + tenant.getId().toString() + "/" + serial + ".pdf";
         String sha = HashUtils.base64UrlSha256(pdf);
         // 3) Prepara Certificate (senza id ancora) e salva
         Certificate c = new Certificate();

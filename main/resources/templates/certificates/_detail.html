@@ -67,7 +67,7 @@
                         <label>PDF</label>
                     </div>
                     <div class="mt-1">
-                        <a class="btn btn-sm btn-outline-secondary" th:href="@{${certificate.pdfUrl}}" target="_blank">
+                        <a class="btn btn-sm btn-outline-secondary" th:href="@{/files/{t}/{f}(t=${certificate.getTenantId()}, f=${certificate.serial + '.pdf'})}" target="_blank">
                             Apri PDF
                         </a>
                     </div>

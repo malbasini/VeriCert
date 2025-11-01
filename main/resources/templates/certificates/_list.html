@@ -1,4 +1,4 @@
-<div th:fragment="content(page, q,status,from,to)">
+<div th:fragment="content(page, q,status,from,to,tenantId)">
 <div class="container py-4">
     <div class="d-flex align-items-center justify-content-between mb-3">
         <h1 class="h3 mb-0">Certificati</h1>
@@ -66,7 +66,7 @@
                         </td>
 
                         <td class="text-end">
-                            <a th:if="${c.pdfUrl != null}" th:href="@{${c.pdfUrl}}"
+                            <a th:if="${c.pdfUrl != null}" th:href="@{/files/{t}/{f}(t=${tenantId}, f=${c.serial + '.pdf'})}"
                                target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-regular fa-file-pdf"></i>PDF</a>
                             <a th:href="@{'/admin/certificates/' + ${c.id} + '/detail'}"
                                class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-info"></i>Dettaglio</a>

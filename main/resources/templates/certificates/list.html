@@ -5,6 +5,6 @@
         ${pageTitle},
         ${active},
         ~{certificates/list :: emptyActions},
-        ~{/certificates/_list :: content(page=${page}, q=${q}, status=${status}, from=${from}, to=${to})}
+        ~{/certificates/_list :: content(page=${page}, q=${q}, status=${status}, from=${from}, to=${to},tenantId=${tenantId})}
         )}">
 </th:block>
