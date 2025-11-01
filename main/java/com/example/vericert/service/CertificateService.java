@@ -40,6 +40,7 @@ public class CertificateService {
     @Value("${vericert.base-url}") String baseUrl;
     @Value("${vericert.storage.local-path}") String storagePath;
     @Value("${vericert.public-base-url:/files/certificates}") String publicBaseUrl;
+    @Value("${vericert.public-base-url-verify}") String publicBaseUrlVerify;
 
 
     private final CertificateRepository certRepo;
@@ -88,7 +89,7 @@ public class CertificateService {
         String serial = UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
         String code   = randomCode(24);
         Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenant.getId());
-        String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
+        String verifyUrl = props.getBaseUrlVerify() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
         sysVars.put("serial", serial);

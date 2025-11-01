@@ -16,6 +16,8 @@ public class VericertProps {
     private String baseUrl;
     @Value("${vericert.storage.local-path}")
     private String storageLocalPath;
+    @Value("${vericert.public-base-url-verify}")
+    private String baseUrlVerify;
 
     public String getPublicBaseUrl() { return publicBaseUrl; }
 
@@ -36,4 +38,12 @@ public class VericertProps {
     public String getStorageLocalPath() {return storageLocalPath;}
 
     public void setStorageLocalPath(String storageLocalPath) {this.storageLocalPath = storageLocalPath;}
+
+    public String getBaseUrlVerify() {
+        return baseUrlVerify;
+    }
+
+    public void setBaseUrlVerify(String baseUrlVerify) {
+        this.baseUrlVerify = baseUrlVerify;
+    }
 }
