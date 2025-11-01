@@ -1,13 +1,8 @@
 package com.example.vericert.controller;
 
-import com.example.vericert.domain.Certificate;
-import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.dto.VerificationOutcome;
-import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
-import com.example.vericert.repo.VerificationView;
 import com.example.vericert.service.CertificateStorageService;
-import com.example.vericert.service.QrSignerOkp;
 import com.example.vericert.service.QrVerificationService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -16,8 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Map;
 
 @Controller
 public class PublicVerificationHtmlController {
@@ -50,7 +43,7 @@ public class PublicVerificationHtmlController {
         String compactJws = view.getCompactJws();   // <-- recuperato da DB; NON rigenerare
 
         // 2) Carica i byte REALI del PDF emesso (non rigenerarlo da HTML!)
-        byte[] pdfBytes = storageService.loadPdfBytesByUrl(view.getPdfUrl());
+        byte[] pdfBytes = storageService.loadPdfBytes(view.getTenantId(),view.getSerial());
 
         // 3) Verifica firma + scadenza + revoca + integrità
         VerificationOutcome v = service.verify(

@@ -36,16 +36,14 @@ public class QrVerificationService {
     public VerificationOutcome verify(Long tenantId, String compactJws, Source src) throws IOException {
         // recupera dal token DB il certId per caricare i bytes:
         String jti = extractJti(compactJws); // oppure passa dal repo prima, o parse jws due volte
-
         Long certId = repository.findByJti(jti).orElseThrow().getCertificateId();
-        Certificate c = repo.getById(certId);
+        Certificate c = repo.findById(certId).orElseThrow();
 
         // in pratica: prima parse o chiama verifier una prima volta solo per leggere certId dal payload
         // qui semplifico assumendo che tu abbia i bytes:
         byte[] certBytes = certStorage.loadPdfBytes(tenantId,c.getSerial());
 
         VerificationOutcome out = verifier.verify(compactJws, certBytes);
-
         // metering
         usageMeterService.incrementVerifications(tenantId);
         if (src == Source.API) usageMeterService.incrementApiCalls(tenantId);

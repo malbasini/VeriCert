@@ -14,6 +14,7 @@ import com.example.vericert.util.HashUtils;
 import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSObject;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -85,7 +86,7 @@ public class CertificateService {
         // 0) Precondizioni/base
         Template template = tempRepo.findById(templateId).orElseThrow();
         String serial = UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
-        String code   = randomCode(24); // tuo metodo
+        String code   = randomCode(24);
         Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenant.getId());
         String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
@@ -105,11 +106,6 @@ public class CertificateService {
         String html = templateService.renderHtml(templateId, vars, sysVars);
         byte[] pdf  = PdfUtil.htmlToPdf(html); // tua util
 
-        // path: {base}/{tenantId}/{serial}.pdf   es. /opt/vericert/storage/12/ABC123.pdf
-        Path tenantDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());
-        Files.createDirectories(tenantDir);
-        String fileName = serial + ".pdf";
-        Path pdfPath = tenantDir.resolve(fileName);
         // Costruisci URL pubblico coerente
         String pdfUrl = savePdf(serial, pdf,tenant);
         String sha = HashUtils.base64UrlSha256(pdf);
@@ -127,7 +123,6 @@ public class CertificateService {
         // 4) Token di verifica (JWS compatto nel QR)
         long now = Instant.now().getEpochSecond();
         long exp = now + 31536000;                 // es. +1 anno
-        String jti = UUID.randomUUID().toString();
         Long tenantId = tenant.getId();
         Long certId   = c.getId();
 
@@ -140,7 +135,7 @@ public class CertificateService {
         Map<String,Object> payloads = Map.of(
                 "tenantId", tenantId,
                 "certId",   certId,
-                "sha256",   "base64urlsha...",
+                "sha256",   sha,
                 "iat",      System.currentTimeMillis()/1000,
                 "exp",      (System.currentTimeMillis()/1000) + 31536000,
                 "jti",      java.util.UUID.randomUUID().toString()
@@ -154,7 +149,7 @@ public class CertificateService {
         t.setCertificateId(certId);
         t.setCode(code);                     // se usi anche un codice human-friendly
         t.setKid(props.getKid());           // ✅ NON publicBaseUrl: serve il KID della chiave di firma
-        t.setJti(jti);
+        t.setJti(extractJti(compactJws));
         t.setCreatedAt(Instant.ofEpochSecond(now));
         t.setExpiresAt(Instant.ofEpochSecond(exp));
         t.setSha256Cached(sha);             // utile per verifiche veloci
@@ -163,6 +158,16 @@ public class CertificateService {
 
         return c;
     }
+
+    private String extractJti(String compactJws) {
+        try {
+            var j = JWSObject.parse(compactJws);
+            return (String) j.getPayload().toJSONObject().get("jti");
+        } catch (Exception e) { return null; }
+    }
+
+
+
     private String savePdf(String serial, byte[] pdf, Tenant tenant) {
         try {
             Path baseDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());

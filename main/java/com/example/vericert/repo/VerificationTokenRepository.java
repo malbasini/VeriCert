@@ -1,6 +1,7 @@
 package com.example.vericert.repo;
 
 import com.example.vericert.domain.VerificationToken;
+import com.example.vericert.dto.VerificationView;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,11 +29,9 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
 
 
     @Query("""
-      SELECT new com.example.vericert.repo.VerificationView(
+      SELECT new com.example.vericert.dto.VerificationView(
           t.code, t.jti, t.kid, t.expiresAt,
-          t.certificateId, c.serial, c.ownerName, c.issuedAt, c.pdfUrl, t.compactJws, t.sha256Cached,
-          c.tenantId
-      )
+          t.certificateId, c.serial, c.ownerName, c.issuedAt, c.pdfUrl, t.compactJws, t.sha256Cached, c.tenantId)
       FROM VerificationToken t
       JOIN Certificate c ON c.id = t.certificateId
       WHERE t.code = :code
