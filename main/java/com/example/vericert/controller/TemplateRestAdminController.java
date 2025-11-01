@@ -56,7 +56,7 @@ public class TemplateRestAdminController {
 
         model.addAttribute("page", page);
         model.addAttribute("q", q);
-        return "admin/templates/list";
+        return "templates/list";
     }
 
 

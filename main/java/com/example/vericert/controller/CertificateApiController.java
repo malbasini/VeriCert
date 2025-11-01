@@ -68,12 +68,6 @@ public class CertificateApiController {
         Long tenantId=currentTenantId(); // prendi dal tuo CustomUserDetails o threadlocal
         return service.listForTenant(tenantId, q, status, pageable);
     }
-
-    @GetMapping("/{id}")
-    public Certificate detail(@PathVariable Long id) {
-        Long tenantId = currentTenantId();
-        return service.getForTenant(id);
-    }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
@@ -154,7 +148,6 @@ public class CertificateApiController {
                     certificate.getRevokedAt().toString()
             ));
         } catch (Exception e) {
-            //noinspection CallToPrintStackTrace
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
@@ -190,23 +183,6 @@ public class CertificateApiController {
                 .toList();
         return ResponseEntity.ok(codes);
     }
-
-
-    public static Map<String, Object> toMap(Object record) {
-        try {
-            var c = record.getClass();
-            if (!c.isRecord()) throw new IllegalArgumentException("Not a record");
-            var map = new java.util.HashMap<String,Object>();
-            for (var comp : c.getRecordComponents()) {
-                var accessor = comp.getAccessor();
-                map.put(comp.getName(), accessor.invoke(record));
-            }
-            return map;
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }
 
 

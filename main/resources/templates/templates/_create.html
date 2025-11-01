@@ -13,7 +13,7 @@
     </div>
     <div class="input-group mb-3">
         <span class="input-group-text" id="inputGroup-sizing-sm4">Template Html</span>
-        <textarea id="html1" class="form-control" name="html" aria-label="Small" rows="10" cols="18" aria-describedby="inputGroup-sizing-sm4"></textarea>
+        <textarea id="html" class="form-control" name="html" aria-label="Small" rows="10" cols="18" aria-describedby="inputGroup-sizing-sm4"></textarea>
     </div>
     <div class="input-group mb-3">
         <span class="input-group-text" id="inputGroup-sizing-sm5">Variabili JSON</span>
@@ -117,7 +117,7 @@
             const API_BASE = "http://localhost:8080/api/admin/templates";
             const name = document.getElementById("name").value.trim();
             const version = document.getElementById("version").value.trim();
-            const html = document.getElementById("html1").value.trim();
+            const html = document.getElementById("html").value.trim();
             const variablesUserJson = document.getElementById("variablesUserJson").value.trim();
             const active = document.getElementById("active").checked;
             const response = await fetch(`${API_BASE}/new`, {
@@ -152,6 +152,7 @@
                 </div>
             `;
             }
+            showToast("Template creato con successo",{ colorClass: 'bg-success' });
         }
         catch (error) {
             console.error("Errore durante la creazione del template:", error);

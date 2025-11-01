@@ -100,5 +100,4 @@ public class QrVerifier {
     }
 }
 
-// VerificationOutcome.java
 

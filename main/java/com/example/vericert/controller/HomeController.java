@@ -71,6 +71,13 @@ public class HomeController {
         // Ritorna la vista
         return "templates";
     }
+
+    @GetMapping("/login")
+    public String loginForm() {
+        return "security/login"; // carica login.html
+    }
+
+
     @GetMapping("/api/admin/templates/create")
     public String CreateTemplate() {
         // Ritorna la vista

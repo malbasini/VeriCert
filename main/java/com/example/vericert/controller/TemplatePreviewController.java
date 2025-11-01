@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.example.vericert.util.MapUtils.toMap;
+
 @RestController
 @RequestMapping()
 public class TemplatePreviewController {
@@ -60,23 +62,6 @@ public class TemplatePreviewController {
         String html = templateService.renderHtml(id, map, sys);
         return ResponseEntity.ok(html);
     }
-
-
-    public static Map<String, Object> toMap(Object record) {
-        try {
-            var c = record.getClass();
-            if (!c.isRecord()) throw new IllegalArgumentException("Not a record");
-            var map = new java.util.HashMap<String,Object>();
-            for (var comp : c.getRecordComponents()) {
-                var accessor = comp.getAccessor();
-                map.put(comp.getName(), accessor.invoke(record));
-            }
-            return map;
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @PostMapping(value="/api/templates/{id}/{tenant}/preview.pdf",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_PDF_VALUE)
