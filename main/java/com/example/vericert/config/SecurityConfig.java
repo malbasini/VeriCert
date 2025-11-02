@@ -41,10 +41,12 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/js/**", "/images/**").permitAll() //
-                        .requestMatchers("/home","/verify","/certificati","/revoke").permitAll()
+                        .requestMatchers("/home","/certificati","/revoke").permitAll()
                         .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/templates/**","/certificates/**").authenticated()
                         .requestMatchers("/v/**","/signup","/login","/files/**","/actuator/health").permitAll()
+                        .requestMatchers("/api/payments/stripe/**", "/webhooks/stripe", "/checkout/**").permitAll()
+                        .requestMatchers("/api/payments/paypal/**", "/paypal/**").permitAll()
                         .anyRequest().authenticated()
 
 

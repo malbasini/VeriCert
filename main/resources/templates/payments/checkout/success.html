@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Pagamento riuscito</title></head>
+<body>
+<div class="container">
+<h2>Pagamento riuscito ✅</h2>
+<p th:text="'Totale: ' + ${amount} + ' ' + ${currency}"></p>
+<a href="/">Torna alla home</a>
+</div>
+</body>
+</html>

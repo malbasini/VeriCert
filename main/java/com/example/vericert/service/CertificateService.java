@@ -210,4 +210,8 @@ public class CertificateService {
     public Certificate getForTenant(Long id) {
         return certRepo.findById(id).orElseThrow();
     }
+
+    public void unlockOrIssue() {
+
+    }
 }

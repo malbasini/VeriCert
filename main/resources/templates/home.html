@@ -18,15 +18,6 @@
         <div class="col-md-3">
             <div class="card h-100 shadow">
                 <div class="card-body">
-                    <h5 class="card-title">Verifica Pubblica</h5>
-                    <p class="card-text">Chiunque può controllare l’autenticità di un certificato scansionando il QR.</p>
-                    <a th:href="@{/verify}" class="btn btn-primary">Verifica</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card h-100 shadow">
-                <div class="card-body">
                     <h5 class="card-title">Emetti un Certificato</h5>
                     <p class="card-text">Accedi con il tuo account per emettere certificati.</p>
                     <a th:href="@{/admin/certificates}" class="btn btn-primary">Vai alle API</a>
@@ -45,6 +36,15 @@
         <div class="col-md-3">
             <div class="card h-100 shadow">
                 <div class="card-body">
+                    <h5 class="card-title">Utenti & Ruoli</h5>
+                    <p class="card-text">Accedi con il tuo account per gestire gli utenti.</p>
+                    <a th:href="@{/admin/users}" class="btn btn-primary">Vai alle API</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100 shadow">
+                <div class="card-body">
                     <h5 class="card-title">Documentazione</h5>
                     <p class="card-text">Consulta le guide per integrare VeriCert con i tuoi sistemi.</p>
                     <a href="/docs" class="btn btn-primary">Vai alla Docs</a>
@@ -57,5 +57,8 @@
 <!-- qui potresti caricare i file JS di Bootstrap, se serve -->
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
 </body>
 </html>
