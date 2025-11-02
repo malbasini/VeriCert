@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="base :: headerFragment"></div>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>VeriCert – Piani</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background:#0b1020; color:#e8ecf7; }
+        .pricing-card { border:1px solid #1f2942; border-radius:16px; background:#111834; box-shadow:0 10px 30px rgba(0,0,0,.25); height:100%; }
+        .price { font-size:2rem; font-weight:700; }
+        .subtitle { color:#9fb0ff; }
+        .feature { color:#cfd6ff; }
+        .badge-plan { background:linear-gradient(135deg,#5b8cff,#8f5bff); }
+        .btn-outline-light { border-color:#5b8cff; color:#e8ecf7; }
+        .btn-outline-light:hover { background:#5b8cff; }
+        .btn-paypal { background:#ffc439; color:#1a1a1a; border:none; }
+        .btn-paypal:hover { filter:brightness(.95); }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <input type="hidden" id="tenantId" th:value="${tenantId}"/>
+        <h1 class="fw-bold">Scegli il tuo piano</h1>
+        <p class="subtitle mb-3">Mensile o Annuale con <strong>20% di sconto</strong>.</p>
+
+        <!-- Toggle mensile/annuale -->
+        <div class="d-inline-flex align-items-center gap-2">
+            <span>Mensile</span>
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="billingToggle">
+            </div>
+            <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- FREE -->
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">FREE</h3><span class="badge badge-plan">Inizia ora</span>
+                </div>
+                <div class="price" data-price-id="FREE">€0<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per test e uso personale</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ 5 certificati/mese</li>
+                    <li class="feature">✔ 100 chiamate API/mese</li>
+                    <li class="feature">✔ 100 MB storage</li>
+                    <li class="feature">— Supporto community</li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor" value="0" data-amount-id="FREE"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="description" value="Piano FREE (Mensile)" data-desc-id="FREE"/>
+                        <button type="submit" class="btn btn-outline-light w-100">Attiva GRATIS</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRO -->
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">PRO</h3><span class="badge badge-plan">Più usato</span>
+                </div>
+                <div class="price" data-price-id="PRO">€9,90<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per professionisti e freelance</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ 100 certificati/mese</li>
+                    <li class="feature">✔ 50.000 chiamate API/mese</li>
+                    <li class="feature">✔ 5 GB storage</li>
+                    <li class="feature">✔ Supporto email</li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor" value="990" data-amount-id="PRO"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="description" value="Piano PRO (Mensile)" data-desc-id="PRO"/>
+                        <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
+                    </form>
+                    <button class="btn btn-paypal w-100"
+                            data-plan="PRO" data-amount="990" data-desc="Piano PRO (Mensile)"
+                            onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUSINESS -->
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">BUSINESS</h3><span class="badge badge-plan">Team</span>
+                </div>
+                <div class="price" data-price-id="BUSINESS">€29,90<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per piccoli team e aziende</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ 500 certificati/mese</li>
+                    <li class="feature">✔ 200.000 chiamate API/mese</li>
+                    <li class="feature">✔ 25 GB storage</li>
+                    <li class="feature">✔ Supporto prioritario</li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor" value="2990" data-amount-id="BUSINESS"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="description" value="Piano BUSINESS (Mensile)" data-desc-id="BUSINESS"/>
+                        <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
+                    </form>
+                    <button class="btn btn-paypal w-100"
+                            data-plan="BUSINESS" data-amount="2990" data-desc="Piano BUSINESS (Mensile)"
+                            onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENTERPRISE -->
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">ENTERPRISE</h3><span class="badge badge-plan">Scalabilità</span>
+                </div>
+                <div class="price" data-price-id="ENTERPRISE">€99,90<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per grandi volumi e SLA</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ 5.000 certificati/mese</li>
+                    <li class="feature">✔ 1M chiamate API/mese</li>
+                    <li class="feature">✔ 200 GB storage</li>
+                    <li class="feature">✔ Supporto Enterprise & SLA</li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor" value="9990" data-amount-id="ENTERPRISE"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="description" value="Piano ENTERPRISE (Mensile)" data-desc-id="ENTERPRISE"/>
+                        <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
+                    </form>
+                    <button class="btn btn-paypal w-100"
+                            data-plan="ENTERPRISE" data-amount="9990" data-desc="Piano ENTERPRISE (Mensile)"
+                            onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-center mt-4" style="color:#a6b3ff">
+        * Sconto annuale applicato al totale (12 mesi) — modificabile in seguito.
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    const TENANT_ID = document.getElementById('tenantId').value;
+    // Prezzi mensili (in centesimi)
+    const monthly = {
+        FREE: 0,
+        PRO: 990,
+        BUSINESS: 2990,
+        ENTERPRISE: 9990
+    };
+    const DISCOUNT = 0.20; // -20% annuale
+
+    const fmt = cents => (cents/100).toLocaleString('it-IT', { style:'currency', currency:'EUR' });
+
+    function setBillingPeriod(annual) {
+        // Aggiorna label (/mese → /anno)
+        document.querySelectorAll('.price-period').forEach(el => el.textContent = annual ? '/anno' : '/mese');
+
+        // Per ogni piano: calcola prezzo da mostrare + importi reali
+        Object.keys(monthly).forEach(plan => {
+            const priceEl = document.querySelector(`[data-price-id="${plan}"]`);
+            const amountInput = document.querySelector(`[data-amount-id="${plan}"]`);
+            const descInput = document.querySelector(`[data-desc-id="${plan}"]`);
+            const paypalBtn = document.querySelector(`button.btn-paypal[data-plan="${plan}"]`);
+
+            // Importo: mensile vs annuale (12 mesi scontati)
+            const monthlyCents = monthly[plan];
+            const annualCents = Math.round(monthlyCents * 12 * (1 - DISCOUNT));
+            const displayCents = annual ? annualCents : monthlyCents;
+
+            // Update prezzo mostrato
+            if (priceEl) {
+                const base = fmt(displayCents);
+                priceEl.innerHTML = `${base}<span class="fs-6 fw-normal price-period">${annual ? '/anno' : '/mese'}</span>`;
+            }
+
+            // Update hidden inputs (Stripe)
+            if (amountInput) amountInput.value = displayCents;
+            if (descInput)   descInput.value = `Piano ${plan} (${annual ? 'Annuale' : 'Mensile'})`;
+
+            // Update pulsante PayPal
+            if (paypalBtn) {
+                paypalBtn.setAttribute('data-amount', displayCents.toString());
+                paypalBtn.setAttribute('data-desc', `Piano ${plan} (${annual ? 'Annuale' : 'Mensile'})`);
+            }
+        });
+    }
+
+    // Toggle handler
+    const toggle = document.getElementById('billingToggle');
+    toggle.addEventListener('change', e => setBillingPeriod(e.target.checked));
+    // Stato iniziale = mensile
+    setBillingPeriod(false);
+
+    // PayPal: crea ordine e redirigi all'approveUrl
+    async function buyWithPaypal(btn) {
+        const amountMinor = btn.getAttribute('data-amount');
+        const description = btn.getAttribute('data-desc');
+        const params = new URLSearchParams({
+            tenantId: TENANT_ID,
+            amountMinor,
+            currency: 'EUR',
+            description
+        });
+        const res = await fetch(/*[[@{/api/payments/paypal/order}]]*/'/api/payments/paypal/order', {
+            method: 'POST',
+            headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            body: params
+        });
+        if (!res.ok) { alert('Errore PayPal'); return; }
+        const data = await res.json();
+        window.location.href = data.approveUrl;
+    }
+    window.buyWithPaypal = buyWithPaypal; // esponi al DOM
+</script>
+</body>
+<div th:insert="footer :: footerFragment"></div>
+</html>

@@ -31,7 +31,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     // Opzionale: Configura la mappatura della home senza controller
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("home");
+        registry.addViewController("/").setViewName("index");
     }
 
     @Value("${vericert.storage.local-path}")   // es: /opt/vericert/storage/
