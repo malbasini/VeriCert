@@ -5,7 +5,6 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>VeriCert – Piani</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background:#0b1020; color:#e8ecf7; }
         .pricing-card { border:1px solid #1f2942; border-radius:16px; background:#111834; box-shadow:0 10px 30px rgba(0,0,0,.25); height:100%; }
@@ -27,16 +26,32 @@
         <p class="subtitle mb-3">Mensile o Annuale con <strong>20% di sconto</strong>.</p>
 
         <!-- Toggle mensile/annuale -->
-        <div class="d-inline-flex align-items-center gap-2">
-            <span>Mensile</span>
-            <div class="form-check form-switch m-0">
-                <input class="form-check-input" type="checkbox" id="billingToggle">
+        <div class="d-inline-flex align-items-center gap-3 mb-2">
+            <div class="d-inline-flex align-items-center gap-2">
+                <span>Mensile</span>
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" id="billingToggle">
+                </div>
+                <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
             </div>
-            <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
-        </div>
-    </div>
 
-    <div class="row g-4">
+            <!-- NUOVO: Toggle IVA -->
+            <div class="d-inline-flex align-items-center gap-2 ms-4">
+                <span>IVA</span>
+                <div class="form-check form-switch m-0" title="Solo visuale: non influisce sul pagamento">
+                    <input class="form-check-input" type="checkbox" id="vatToggle" checked>
+                </div>
+                <span>inclusa</span>
+            </div>
+        </div>
+        <div id="annualBadge" class="small" style="color:#a6b3ff; display:none;">
+            Prezzo mostrato al mese, <strong>fatturato annualmente (-20%)</strong>.
+        </div>
+        <div id="vatBadge" class="small" style="color:#a6b3ff;">
+            Prezzi mostrati <strong>IVA inclusa (22%)</strong>. Il toggle è solo visivo.
+        </div>
+        </div>
+        <div class="row g-4">
         <!-- FREE -->
         <div class="col-12 col-md-6 col-xl-3 d-flex">
             <div class="pricing-card p-4 d-flex flex-column w-100">
@@ -157,80 +172,94 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
 <script th:inline="javascript">
     const TENANT_ID = document.getElementById('tenantId').value;
-    // Prezzi mensili (in centesimi)
-    const monthly = {
-        FREE: 0,
-        PRO: 990,
-        BUSINESS: 2990,
-        ENTERPRISE: 9990
-    };
-    const DISCOUNT = 0.20; // -20% annuale
+    // Prezzi mensili listino (centesimi, NETTI). I pagamenti usano questi importi (o il totale annuale scontato).
+    const monthly = { FREE: 0, PRO: 990, BUSINESS: 2990, ENTERPRISE: 9990 };
+    const DISCOUNT = 0.20;       // -20% annuale (totale)
+    const VAT_RATE = 0.22;       // 22% IT
+    let annualMode = false;      // false = mensile, true = annuale (fatturato annualmente)
+    let vatIncluded = true;      // solo display
 
     const fmt = cents => (cents/100).toLocaleString('it-IT', { style:'currency', currency:'EUR' });
 
-    function setBillingPeriod(annual) {
-        // Aggiorna label (/mese → /anno)
-        document.querySelectorAll('.price-period').forEach(el => el.textContent = annual ? '/anno' : '/mese');
+    // Calcola i CENTESIMI da MOSTRARE (applica IVA solo a video)
+    function displayCentsFrom(baseCents) {
+        const withVat = vatIncluded ? Math.round(baseCents * (1 + VAT_RATE)) : baseCents;
+        return withVat;
+    }
 
-        // Per ogni piano: calcola prezzo da mostrare + importi reali
+    function refreshPrices() {
+        // badge
+        document.getElementById('annualBadge').style.display = annualMode ? 'block' : 'none';
+        document.getElementById('vatBadge').innerHTML =
+            `Prezzi mostrati <strong>IVA ${vatIncluded ? 'inclusa' : 'esclusa' } (${Math.round(VAT_RATE*100)}%)</strong>. Il toggle è solo visivo.`;
+
+        // la label vicino al numero resta “/mese” (anche in annuale mostriamo la media mensile)
+        document.querySelectorAll('.price-period').forEach(el => el.textContent = '/mese');
+
         Object.keys(monthly).forEach(plan => {
-            const priceEl = document.querySelector(`[data-price-id="${plan}"]`);
-            const amountInput = document.querySelector(`[data-amount-id="${plan}"]`);
-            const descInput = document.querySelector(`[data-desc-id="${plan}"]`);
-            const paypalBtn = document.querySelector(`button.btn-paypal[data-plan="${plan}"]`);
+            const priceEl   = document.querySelector(`[data-price-id="${plan}"]`);
+            const amountInp = document.querySelector(`[data-amount-id="${plan}"]`); // IMPORTO REALE per Stripe (non IVA)
+            const descInp   = document.querySelector(`[data-desc-id="${plan}"]`);
+            const ppBtn     = document.querySelector(`button.btn-paypal[data-plan="${plan}"]`);
 
-            // Importo: mensile vs annuale (12 mesi scontati)
-            const monthlyCents = monthly[plan];
-            const annualCents = Math.round(monthlyCents * 12 * (1 - DISCOUNT));
-            const displayCents = annual ? annualCents : monthlyCents;
+            const monthNet = monthly[plan]; // netto di listino
 
-            // Update prezzo mostrato
-            if (priceEl) {
-                const base = fmt(displayCents);
-                priceEl.innerHTML = `${base}<span class="fs-6 fw-normal price-period">${annual ? '/anno' : '/mese'}</span>`;
-            }
+            if (!annualMode) {
+                // Vista MENSILE → display = mensile (+IVA se selezionata), pagamento = mensile netto
+                const show = displayCentsFrom(monthNet);
+                if (priceEl) priceEl.innerHTML = `${fmt(show)}<span class="fs-6 fw-normal price-period">/mese</span>`;
+                if (amountInp) amountInp.value = monthNet; // pagamento invariato (netto)
+                if (descInp)   descInp.value   = `Piano ${plan} (Mensile)`;
+                if (ppBtn) {
+                    ppBtn.setAttribute('data-amount', String(monthNet));
+                    ppBtn.setAttribute('data-desc',   `Piano ${plan} (Mensile)`);
+                }
+            } else {
+                // Vista ANNUALE → display = media mensile del totale annuo scontato (+IVA se selezionata)
+                const annualTotalNet = Math.round(monthNet * 12 * (1 - DISCOUNT)); // netto fatturato
+                const monthlyAvgNet  = Math.round(annualTotalNet / 12);
 
-            // Update hidden inputs (Stripe)
-            if (amountInput) amountInput.value = displayCents;
-            if (descInput)   descInput.value = `Piano ${plan} (${annual ? 'Annuale' : 'Mensile'})`;
-
-            // Update pulsante PayPal
-            if (paypalBtn) {
-                paypalBtn.setAttribute('data-amount', displayCents.toString());
-                paypalBtn.setAttribute('data-desc', `Piano ${plan} (${annual ? 'Annuale' : 'Mensile'})`);
+                const show = displayCentsFrom(monthlyAvgNet);
+                if (priceEl) priceEl.innerHTML = `${fmt(show)}<span class="fs-6 fw-normal price-period">/mese</span>`;
+                if (amountInp) amountInp.value = annualTotalNet; // pagamento = totale annuo NETTO
+                if (descInp)   descInp.value   = `Piano ${plan} (Annuale -20%)`;
+                if (ppBtn) {
+                    ppBtn.setAttribute('data-amount', String(annualTotalNet));
+                    ppBtn.setAttribute('data-desc',   `Piano ${plan} (Annuale -20%)`);
+                }
             }
         });
     }
 
-    // Toggle handler
-    const toggle = document.getElementById('billingToggle');
-    toggle.addEventListener('change', e => setBillingPeriod(e.target.checked));
-    // Stato iniziale = mensile
-    setBillingPeriod(false);
+    // Toggle handlers
+    const billingToggle = document.getElementById('billingToggle');
+    billingToggle.addEventListener('change', e => { annualMode = e.target.checked; refreshPrices(); });
 
-    // PayPal: crea ordine e redirigi all'approveUrl
+    const vatToggle = document.getElementById('vatToggle');
+    vatToggle.addEventListener('change', e => { vatIncluded = e.target.checked; refreshPrices(); });
+
+    // Stato iniziale
+    annualMode = false; vatIncluded = true; refreshPrices();
+
+    // PayPal: crea ordine e redirigi all'approveUrl (IMPORTI NETTI inviati, IVA solo visuale)
     async function buyWithPaypal(btn) {
-        const amountMinor = btn.getAttribute('data-amount');
+        const amountMinor = btn.getAttribute('data-amount');    // importo NETTO
         const description = btn.getAttribute('data-desc');
-        const params = new URLSearchParams({
-            tenantId: TENANT_ID,
-            amountMinor,
-            currency: 'EUR',
-            description
-        });
-        const res = await fetch(/*[[@{/api/payments/paypal/order}]]*/'/api/payments/paypal/order', {
-            method: 'POST',
-            headers: {'Content-Type':'application/x-www-form-urlencoded'},
-            body: params
+        const params = new URLSearchParams({ tenantId: TENANT_ID, amountMinor, currency: 'EUR', description });
+        const res = await fetch('/api/payments/paypal/order', {
+            method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: params
         });
         if (!res.ok) { alert('Errore PayPal'); return; }
         const data = await res.json();
         window.location.href = data.approveUrl;
     }
-    window.buyWithPaypal = buyWithPaypal; // esponi al DOM
+    window.buyWithPaypal = buyWithPaypal;
 </script>
+
 </body>
 <div th:insert="footer :: footerFragment"></div>
 </html>

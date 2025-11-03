@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
+
 @Controller
 @RequestMapping("/paypal")
 public class PaypalPages {
@@ -34,9 +38,15 @@ public class PaypalPages {
     @GetMapping("success/{orderId}")
     public String success(@PathVariable String orderId,Model model) {
         Payment p = payRepo.findByProviderIntentId(orderId).get();
-        model.addAttribute("amount",p.getAmountMinor());
-        model.addAttribute("currency",p.getCurrency());
+        model.addAttribute("amount",formatCents(p.getAmountMinor()));
         return "paypal/success";
     }
+
+    public static String formatCents(long cents) {
+        BigDecimal eur = BigDecimal.valueOf(cents).movePointLeft(2); // divide per 100 senza perdita
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.ITALY);
+        return fmt.format(eur); // es. 2990 -> "€ 29,90"
+    }
+
 
 }

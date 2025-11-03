@@ -23,7 +23,7 @@ public class StripeCheckoutRedirectController {
 
     @PostMapping("/checkout-redirect")
     public ResponseEntity<Void> createAndRedirect(@RequestParam Long tenantId,
-                                                  @RequestParam long amountMinor,
+                                                  @RequestParam Long amountMinor,
                                                   @RequestParam(required=false) Long certificateId,
                                                   @RequestParam(defaultValue="EUR") String currency,
                                                   @RequestParam(defaultValue="Certificato VeriCert") String description
@@ -47,7 +47,7 @@ public class StripeCheckoutRedirectController {
         params.put("cancel_url",  props.getCancelUrl());
         params.put("metadata", metadata);
         params.put("payment_intent_data", java.util.Map.of("metadata", metadata));
-        // params.put("automatic_tax", java.util.Map.of("enabled", true)); // opzionale
+        params.put("automatic_tax", java.util.Map.of("enabled", true)); // opzionale
 
         // (opzionale) idempotenza
         var idem = java.util.UUID.randomUUID().toString();

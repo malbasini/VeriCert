@@ -35,7 +35,7 @@ public class Payment {
 
 
     @Column(name = "amount_minor", nullable = false)
-    private long amountMinor; // centesimi
+    private Long amountMinor; // centesimi
 
 
     @Column(nullable = false, length = 8)
@@ -91,9 +91,9 @@ public class Payment {
 
     public void setStatus(String status) { this.status = status; }
 
-    public long getAmountMinor() { return amountMinor; }
+    public Long getAmountMinor() { return amountMinor; }
 
-    public void setAmountMinor(long amountMinor) { this.amountMinor = amountMinor; }
+    public void setAmountMinor(Long amountMinor) { this.amountMinor = amountMinor; }
 
     public String getCurrency() { return currency; }
 

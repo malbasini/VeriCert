@@ -1,0 +1,19 @@
+vericert:
+  signing:
+    alg: EdDSA
+    kid: key-2025-10-30
+    private-key-pem-path: keys/ed25519-private.pem
+    public-key-pem-path: keys/ed25519-public.pem
+  payments:
+      currency: EUR
+      success-url: http://localhost:8080/checkout/success?session_id={CHECKOUT_SESSION_ID}
+      cancel-url: http://localhost:8080/checkout/cancel
+      stripe:
+          secret-key: sk_test_51QpNkvIX50JfMIoYVkJTzSvG9D5A7UjAqNkvAJ4teqNjBdvT4AkfzosuTAGyl3oP0MGHTRb1puok6wTBIbnn7Af000XyMmsrlE
+          webhook-secret: whsec_de37d2d784b11334ed9231b3e8cdca510c1cabe0e3037e641a7eee8343a6b831
+      paypal:
+          client-id: AWYwAy0kAKIjymmTlSANHlNrV-zgQ1aBM5sZrBlgziFOTIWzdem95TlKE8HsEL-0Tm_12vN0ofEF5m9W
+          client-secret: ELUiP4zI6Vo9fNDwFM9UXHYvEyImjF-PKPDJSAY9oY0CrdRp25vDTNhGhrOgRK2mN1U_9qtI2lYjeMMO
+          mode: sandbox
+          success-url: http://localhost:8080/paypal/success
+          cancel-url: http://localhost:8080/paypal/cancel

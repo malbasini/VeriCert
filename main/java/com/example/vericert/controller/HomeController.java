@@ -13,7 +13,7 @@ public class HomeController {
     public HomeController(){
     }
 
-    @GetMapping("/index")
+    @GetMapping()
     public String showHomePage(Model model) {
         Long tenantId = currentTenantId();
         model.addAttribute("tenantId", tenantId);
