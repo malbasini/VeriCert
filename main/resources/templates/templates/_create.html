@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <div th:fragment="content(pageTitle, active)">
-<head>
-    <title>New Template</title>
-    <!--SUMMERNOTE -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
-</head>
 <body>
 <div class="container mt-5">
     <hr>
@@ -18,15 +12,19 @@
         <input type="text" id="version" class="form-control" placeholder="Versione" name="version" aria-label="Small" aria-describedby="inputGroup-sizing-sm1">
     </div>
     <div class="input-group mb-3">
-        <span class="input-group-text" id="inputGroup-sizing-sm4">Template Html</span>
-        <textarea id="html" class="form-control"  name="html" aria-label="Small" aria-describedby="inputGroup-sizing-sm4"></textarea>
+        <span class="input-group-text">Template Html</span>
+        <div class="form-control p-0">
+            <textarea id="html"></textarea> <!-- CKEditor host -->
+        </div>
     </div>
     <div class="input-group mb-3">
-        <span class="input-group-text" id="inputGroup-sizing-sm5">Variabili JSON</span>
-        <div id="jsonEditor" style="height:320px;width:1200px;border:1px solid #dee2e6;border-radius:.375rem;"></div>
-        <!-- textarea nascosta che verrà inviata al server -->
+        <span class="input-group-text">Variabili JSON</span>
+        <div class="form-control p-0">
+            <div id="jsonEditor" class="w-100" style="height:320px;border:1px solid #dee2e6;border-radius:.375rem;"></div>
+        </div>
         <textarea id="variablesUserJson" name="user_vars_schema" hidden></textarea>
     </div>
+
     <div class="input-group mb-3">
         <div class="form-check">
             <label class="form-check-label" for="active">
@@ -39,25 +37,64 @@
         <button id="btn1" class="btn btn-outline-primary" onclick="createTemplate()">Salva</button>
     </div>
 </div>
+<!-- Host dell'editor + hidden per il submit -->
+<input type="hidden" id="htmlField" name="html" />
+<script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script>
-    $('#html').summernote({
-        height: 500,
-        width: 1200,
-        toolbar: [
-            ['style', ['style']],
-            ['font', ['bold','italic','underline','clear']],
-            ['para', ['ul','ol','paragraph']],
-            ['insert', ['link','picture','table','hr']],
-            ['view', ['codeview','fullscreen']]
-        ],
-        callbacks: {
-            // facoltativo: impedisci che Summernote "sporchi" i tuoi placeholder
-            onPaste: function(e) {
-                // esempio: incolla solo testo semplice
-                // e.preventDefault();
-                // const text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                // document.execCommand('insertText', false, text);
-            }
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const editor = await CKEDITOR.ClassicEditor.create(document.querySelector('#html'), {
+                language: 'it',
+                toolbar: {
+                    items: [
+                        'heading','|','bold','italic','underline','link',
+                        'bulletedList','numberedList','|',
+                        'blockQuote','codeBlock','|',
+                        'undo','redo','|',
+                        'sourceEditing'
+                    ]
+                },
+                htmlSupport: { allow: [ { name: /.*/, attributes: true, classes: true, styles: true } ] },
+
+                /* RIMUOVI TUTTO ciò che è cloud/commerciale/AI */
+                removePlugins: [
+                    // Cloud & file managers
+                    'CloudServices','CKBox','CKBoxUtils','CKFinder','CKFinderUploadAdapter','EasyImage',
+                    // CKBox image editing
+                    'CKBoxImageEdit','CKBoxImageEditEditing','CKBoxImageEditUI',
+
+                    // Collaborazione / revisioni / commenti
+                    'RealTimeCollaborativeComments','RealTimeCollaborativeTrackChanges',
+                    'RealTimeCollaborativeRevisionHistory','PresenceList','Comments',
+                    'TrackChanges','TrackChangesData','RevisionHistory',
+
+                    // Commerciali / licenza
+                    'WProofreader','MathType','CaseChange','FormatPainter','TableOfContents',
+                    'SlashCommand','Template','DocumentOutline','Pagination',
+                    'ExportPdf','ExportWord','PasteFromOfficeEnhanced',
+
+                    // 👇 Famiglia AI completa (togli TUTTI gli adapter)
+                    'AIAssistant','AIAssistantUI','AIAssistantEditing','AIAdapter',
+                    'OpenAIAdapter','OpenAITextAdapter','OpenAIImageAdapter',
+                    'AzureOpenAIAdapter','AzureOpenAITextAdapter','AzureOpenAIImageAdapter',
+                    'AnthropicAIAdapter','AnthropicAITextAdapter','AnthropicAIImageAdapter',
+                    'GoogleAIAdapter','GoogleAITextAdapter','GoogleAIImageAdapter',
+                    'BedrockAIAdapter','BedrockAITextAdapter','BedrockAIImageAdapter',
+                    'MultiLevelList','MultiLevelListEditing','MultiLevelListUI'
+                ]
+            });
+
+            // (Se vuoi pre-caricare HTML dal backend) editor.setData(/*[[${template?.html}]]*/ '');
+
+            document.addEventListener('submit', ev => {
+                const form = ev.target.closest('form');
+                if (form) document.getElementById('htmlField').value = editor.getData();
+            });
+
+            window.editor = editor;
+
+        } catch (e) {
+            console.error('CKEditor init error', e);
         }
     });
 </script>
