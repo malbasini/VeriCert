@@ -11,7 +11,8 @@ body>.container {
 body>footer {
     background-color: white;
 }
-
+.ck-host .ck-editor { max-width: 900px; width: 100%; margin: 0 auto; }
+.ck-editor__editable_inline { min-height: 360px; }
 h1 {
     margin-top: 0.7em;
     margin-bottom: 0.7em;

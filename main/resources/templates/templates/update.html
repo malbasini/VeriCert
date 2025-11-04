@@ -1,10 +1,19 @@
 <div th:fragment="emptyActions"></div>
-<th:block
-        th:with="pageTitle='Template', active='templates'"
-        th:replace="~{admin :: layout(
-        ${pageTitle},
-        ${active},
-        ~{templates/update :: emptyActions},
-        ~{/templates/_update ::  content(template=${template}, pageTitle=${pageTitle},active=${active})}
-        )}">
-</th:block>
+   <th:block                                                                                                      
+           th:with="pageTitle='Template', active='templates'"                                                     
+           th:replace="~{admin :: layout(                                                                         
+           ${pageTitle},                                                                                          
+           ${active},                                                                                             
+           ~{templates/update :: emptyActions},                                                                   
+           ~{/templates/_update ::  content(template=${template}, pageTitle=${pageTitle},active=${active})}       
+           )}">                                                                                                   
+   </th:block>
+
+
+
+
+
+
+
+
+

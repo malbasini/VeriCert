@@ -48,12 +48,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/payments/stripe/**", "/webhooks/stripe", "/checkout/**").permitAll()
                         .requestMatchers("/api/payments/paypal/**", "/paypal/**").permitAll()
                         .anyRequest().authenticated()
-
-
                 )
                 .formLogin(formLogin -> formLogin
                         .loginPage("/login")
-                        .defaultSuccessUrl("/home",true)
+                        .defaultSuccessUrl("/index",true)
                         .permitAll()
                 )
                 .logout(logout -> logout
