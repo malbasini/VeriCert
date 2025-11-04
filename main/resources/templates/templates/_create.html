@@ -3,6 +3,9 @@
 <div th:fragment="content(pageTitle, active)">
 <head>
     <title>New Template</title>
+    <!--SUMMERNOTE -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
 </head>
 <body>
 <div class="container mt-5">
@@ -36,6 +39,28 @@
         <button id="btn1" class="btn btn-outline-primary" onclick="createTemplate()">Salva</button>
     </div>
 </div>
+<script>
+    $('#html').summernote({
+        height: 500,
+        width: 1200,
+        toolbar: [
+            ['style', ['style']],
+            ['font', ['bold','italic','underline','clear']],
+            ['para', ['ul','ol','paragraph']],
+            ['insert', ['link','picture','table','hr']],
+            ['view', ['codeview','fullscreen']]
+        ],
+        callbacks: {
+            // facoltativo: impedisci che Summernote "sporchi" i tuoi placeholder
+            onPaste: function(e) {
+                // esempio: incolla solo testo semplice
+                // e.preventDefault();
+                // const text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                // document.execCommand('insertText', false, text);
+            }
+        }
+    });
+</script>
 <script>
         // 1) Crea l'editor
         const container = document.getElementById('jsonEditor');
