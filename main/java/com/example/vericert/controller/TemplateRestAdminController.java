@@ -16,12 +16,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,9 +41,9 @@ public class TemplateRestAdminController {
     private final CaptchaValidator captchaValidator;
 
     public TemplateRestAdminController(TemplateRepository repo,
-                                   TemplateAdminService service,
-                                   TemplateService renderService,
-                                   CaptchaValidator captchaValidator) {
+                                       TemplateAdminService service,
+                                       TemplateService renderService,
+                                       CaptchaValidator captchaValidator) {
         this.repo = repo;
         this.service = service;
         this.renderService = renderService;
@@ -51,7 +53,7 @@ public class TemplateRestAdminController {
     @GetMapping("/admin/templates")
     public String list(@AuthenticationPrincipal CustomUserDetails user,
                        @RequestParam(required = false) String q,
-                       @PageableDefault(size=10, sort="updatedAt", direction=Sort.Direction.DESC) Pageable pageable,
+                       @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
                        Model model) {
 
         Long tenantId = user.getTenantId(); // oppure risolto da TenantResolver
@@ -73,9 +75,15 @@ public class TemplateRestAdminController {
         return TemplateMapper.toDto(t);
     }
 
-    @PostMapping("/new")
+    @PutMapping(value = "/new", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> create(@Valid @RequestBody TemplateUpsert req,
                                     BindingResult br) {
+        // 1) CAPTCHA
+        if (!captchaValidator.verifyCaptcha(req.captchaToken())) {
+            return ResponseEntity.unprocessableEntity()
+                    .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
+        }
+
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(
@@ -83,15 +91,33 @@ public class TemplateRestAdminController {
                             Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
+
         }
-        boolean ok = captchaValidator.verifyCaptcha(req.captchaToken());
-        if (!ok) {
-            return ResponseEntity.unprocessableEntity()
-                    .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
+        Template t = null;
+        try {
+            t  = service.create(req);
         }
-        var t = service.create(req);
-        return ResponseEntity.ok("success");
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+        return ResponseEntity.ok(new TemplateRestAdminController.VerificationInsertResponse(
+                t.getId().toString(),
+                t.getName(),
+                t.getVersion(),
+                t.isActive(),
+                t.getTenant().getName()
+        ));
     }
+    // DTO interno alla risposta
+    record VerificationInsertResponse(
+            String id,
+            String name,
+            String version,
+            boolean active,
+            String tenant
+    ) {}
+
     @PutMapping("/{id}/edit")
     public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
                               @Valid @RequestBody TemplateUpsert req,

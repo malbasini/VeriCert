@@ -11,5 +11,5 @@ public record TemplateUpsert(
         String variablesUserJson,
         String systemsVariables,
         boolean active,
-        @NotBlank String captchaToken
+        String captchaToken
 ) {}

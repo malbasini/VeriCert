@@ -15,7 +15,7 @@
     <div class="input-group mb-3">
         <span class="input-group-text">Template Html</span>
         <div class="form-control p-0">
-            <div id="editor"></div> <!-- CKEditor host -->
+            <div id="html"></div> <!-- CKEditor host -->
         </div>
     </div>
     <div class="input-group mb-3">
@@ -43,66 +43,54 @@
             <div class="col-md-4"></div>
         </div>
     </div>
-    <form id="form1" method="post" action="#">
-        <input type="hidden" id="htmlField" name="html">
         <div class="input-group mb-3">
-            <button id="btn1" type="submit" class="btn btn-outline-primary">Salva</button>
+            <button id="btn1"  onclick="createTemplate()" class="btn btn-outline-primary">Salva</button>
         </div>
-    </form>
 </div>
-<!-- Host dell'editor + hidden per il submit -->
+<input type="hidden" id="htmlField" name="html" />
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         try {
-            const editor = await CKEDITOR.ClassicEditor.create(document.querySelector('#editor'), {
+            const editor = await CKEDITOR.ClassicEditor.create(document.querySelector('#html'), {
                 language: 'it',
                 toolbar: {
                     items: [
-                        'heading', '|', 'bold', 'italic', 'underline', 'link',
-                        'bulletedList', 'numberedList', '|',
-                        'blockQuote', 'codeBlock', '|',
-                        'undo', 'redo', '|',
+                        'heading','|','bold','italic','underline','link',
+                        'bulletedList','numberedList','|',
+                        'blockQuote','codeBlock','|',
+                        'undo','redo','|',
                         'sourceEditing'
                     ]
                 },
-                htmlSupport: {allow: [{name: /.*/, attributes: true, classes: true, styles: true}]},
+                htmlSupport: { allow: [ { name: /.*/, attributes: true, classes: true, styles: true } ] },
 
                 /* RIMUOVI TUTTO ciò che è cloud/commerciale/AI */
                 removePlugins: [
                     // Cloud & file managers
-                    'CloudServices', 'CKBox', 'CKBoxUtils', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage',
+                    'CloudServices','CKBox','CKBoxUtils','CKFinder','CKFinderUploadAdapter','EasyImage',
                     // CKBox image editing
-                    'CKBoxImageEdit', 'CKBoxImageEditEditing', 'CKBoxImageEditUI',
+                    'CKBoxImageEdit','CKBoxImageEditEditing','CKBoxImageEditUI',
 
                     // Collaborazione / revisioni / commenti
-                    'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
-                    'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
-                    'TrackChanges', 'TrackChangesData', 'RevisionHistory',
+                    'RealTimeCollaborativeComments','RealTimeCollaborativeTrackChanges',
+                    'RealTimeCollaborativeRevisionHistory','PresenceList','Comments',
+                    'TrackChanges','TrackChangesData','RevisionHistory',
 
                     // Commerciali / licenza
-                    'WProofreader', 'MathType', 'CaseChange', 'FormatPainter', 'TableOfContents',
-                    'SlashCommand', 'Template', 'DocumentOutline', 'Pagination',
-                    'ExportPdf', 'ExportWord', 'PasteFromOfficeEnhanced',
+                    'WProofreader','MathType','CaseChange','FormatPainter','TableOfContents',
+                    'SlashCommand','Template','DocumentOutline','Pagination',
+                    'ExportPdf','ExportWord','PasteFromOfficeEnhanced',
 
                     // 👇 Famiglia AI completa (togli TUTTI gli adapter)
-                    'AIAssistant', 'AIAssistantUI', 'AIAssistantEditing', 'AIAdapter',
-                    'OpenAIAdapter', 'OpenAITextAdapter', 'OpenAIImageAdapter',
-                    'AzureOpenAIAdapter', 'AzureOpenAITextAdapter', 'AzureOpenAIImageAdapter',
-                    'AnthropicAIAdapter', 'AnthropicAITextAdapter', 'AnthropicAIImageAdapter',
-                    'GoogleAIAdapter', 'GoogleAITextAdapter', 'GoogleAIImageAdapter',
-                    'BedrockAIAdapter', 'BedrockAITextAdapter', 'BedrockAIImageAdapter',
-                    'MultiLevelList', 'MultiLevelListEditing', 'MultiLevelListUI'
+                    'AIAssistant','AIAssistantUI','AIAssistantEditing','AIAdapter',
+                    'OpenAIAdapter','OpenAITextAdapter','OpenAIImageAdapter',
+                    'AzureOpenAIAdapter','AzureOpenAITextAdapter','AzureOpenAIImageAdapter',
+                    'AnthropicAIAdapter','AnthropicAITextAdapter','AnthropicAIImageAdapter',
+                    'GoogleAIAdapter','GoogleAITextAdapter','GoogleAIImageAdapter',
+                    'BedrockAIAdapter','BedrockAITextAdapter','BedrockAIImageAdapter',
+                    'MultiLevelList','MultiLevelListEditing','MultiLevelListUI'
                 ]
-            });
-            // (Se vuoi pre-caricare HTML dal backend) editor.setData(/*[[${template?.html}]]*/ '');
-            editor.setData
-            document.addEventListener('submit', ev => {
-                const form = ev.target.closest('form');
-                if (form) document.getElementById('htmlField').value = editor.getData();
-                const json = editorJson.get();                  // ottieni l’oggetto
-                document.getElementById('variablesUserJson').value = JSON.stringify(json);
-                createTemplate();
             });
 
             window.editor = editor;
@@ -111,88 +99,101 @@
             console.error('CKEditor init error', e);
         }
     });
-    </script>
-    <script>
-        // 1) Crea l'editor
-        const container = document.getElementById('jsonEditor');
-        const editorJson = new JSONEditor(container, {
-            mode: 'code',      // 'code' (testo), 'tree' (ad albero) o 'form'
-            mainMenuBar: false // opzionale, interfaccia più pulita
-        });
+</script>
+<script>
+    // 1) Crea l'editor
+    const container = document.getElementById('jsonEditor');
+    const jsonEditor = new JSONEditor(container, {
+        mode: 'code',      // 'code' (testo), 'tree' (ad albero) o 'form'
+        mainMenuBar: false // opzionale, interfaccia più pulita
+    });
 
-        // 2) Carica un valore iniziale dalla textarea (se presente)
-        (function preloadFromTextarea() {
-            const ta = document.getElementById('variablesUserJson');
-            if (!ta.value || ta.value.trim() === '') {
-                // default iniziale sensato
-                editorJson.set({
-                    ownerName: {type: 'string', label: 'Intestatario', required: true},
-                    courseName: {type: 'string', label: 'Nome corso', required: true},
-                    hours: {type: 'number', label: 'Ore', default: 12},
-                    grade: {type: 'string', enum: ['A', 'B', 'C']}
-                });
-            } else {
-                try {
-                    editorJson.set(JSON.parse(ta.value));
-                } catch (e) {
-                    // Se il JSON salvato era corrotto, mostra comunque il raw
-                    editorJson.updateText(ta.value);
-                }
-            }
-        })();
-        let t;
-        editor.on('change', () => {
-            clearTimeout(t);
-            t = setTimeout(() => {
-                try {
-                    const json = editor.get();
-                    document.getElementById('variablesUserJson').value = JSON.stringify(json);
-                } catch (_) {
-                    // in modalità "code" può essere temporaneamente invalido: ignora
-                }
-            }, 300);
-        });
-     </script>
-     <script>
-        async function createTemplate() {
+    // 2) Carica un valore iniziale dalla textarea (se presente)
+    (function preloadFromTextarea() {
+        const ta = document.getElementById('variablesUserJson');
+        if (!ta.value || ta.value.trim() === '') {
+            // default iniziale sensato
+            jsonEditor.set({
+                ownerName: { type: 'string', label: 'Intestatario', required: true },
+                courseName: { type: 'string', label: 'Nome corso', required: true },
+                hours: { type: 'number', label: 'Ore', default: 12 },
+                grade: { type: 'string', enum: ['A','B','C'] }
+            });
+        } else {
             try {
-                const API_BASE = "/api/admin/templates";
-                const name = document.getElementById("name").value;
-                const version = document.getElementById("version").value;
-                const htmlField = document.getElementById("htmlField").value;
-                const active = document.getElementById("active").checked;
-                const variablesUserJson = document.getElementById("variablesUserJson").value;
-                alert(variablesUserJson)
-                const token = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || '';
-                const response = await fetch(`${API_BASE}/new`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        name: name,
-                        version: version,
-                        html: htmlField,
-                        variablesUserJson: variablesUserJson,
-                        active: active,
-                        captchaToken: token
-                    })
-                });
-                alert(response.ok);
-                const data = await response.json();
-                if (!response.ok) {
-                    // Esempio: mostra il primo errore per campo
-                    const errors = data.errors || {};
-                    alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
-                } else {
-                    showToast("Template creato con successo", {colorClass: 'bg-success'});
-                }
-            }catch (error) {
-                console.error("Errore durante la creazione del template:", error);
-                showToast(error.message, {colorClass: 'bg-danger'});
+                jsonEditor.set(JSON.parse(ta.value));
+            } catch (e) {
+                // Se il JSON salvato era corrotto, mostra comunque il raw
+                jsonEditor.updateText(ta.value);
             }
         }
-    </script>
+    })();
+    // 3) (Opzionale) Sync live mentre l’utente digita, utile se hai anteprima
+    //    Attenzione: fai debounce per non stressare la pagina
+    let t;
+    jsonEditor.on('change', () => {
+        clearTimeout(t);
+        t = setTimeout(() => {
+            try {
+                const json = jsonEditor.get();
+                document.getElementById('variablesUserJson').value = JSON.stringify(json);
+            } catch (_) {
+                // in modalità "code" può essere temporaneamente invalido: ignora
+            }
+        }, 300);
+    });
+</script>
+<script>
+    async function createTemplate() {
+        try {
+            const API_BASE = "/api/admin/templates";
+            const json = jsonEditor.get();
+            document.getElementById('variablesUserJson').value = JSON.stringify(json);
+            const name = document.getElementById("name").value.trim();
+            const version = document.getElementById("version").value.trim();
+            const variablesUserJson = document.getElementById("variablesUserJson").value.trim();
+            const active = document.getElementById("active").checked;
+            const captchaToken = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
+            const response = await fetch(`${API_BASE}/new`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: name,
+                    version: version,
+                    html: window.editor.getData(),
+                    variablesUserJson: variablesUserJson,
+                    active: active,
+                    captchaToken: captchaToken,
+                })
+            });
+            const resultDiv = document.getElementById("result");
+            const data = await response.json();
+            if (!response.ok) {
+                // Esempio: mostra il primo errore per campo
+                const errors = data.errors || {};
+                alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
+            } else {
+                resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    ✅ <b>Template inserito con successo</b><br>
+                    <b>ID:</b> ${data.id}<br>
+                    <b>Nome:</b> ${data.name}<br>
+                    <b>Versione:</b> ${data.version}<br>
+                    <b>Attivo:</b> ${data.active}<br>
+                    <b>Nome tenant:</b> ${data.tenant}<br>
+                </div>
+            `;
+                showToast("Template inserito con successo",{ colorClass: 'bg-success' });
+            }
+        }
+        catch (error) {
+            console.error("Errore durante l'inserimento del template:", error);
+            showToast(error.message,{ colorClass: 'bg-danger' });
+        }
+    }
+</script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
 </body>

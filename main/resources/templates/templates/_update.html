@@ -187,7 +187,6 @@
                     // Esempio: mostra il primo errore per campo
                     const errors = data.errors || {};
                     alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
-                    return;
                 } else {
                     resultDiv.innerHTML = `
                 <div class="alert alert-success">
