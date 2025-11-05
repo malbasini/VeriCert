@@ -29,7 +29,8 @@ public class TemplateAdminService {
         t.setVersion(req.version());
         t.setHtml(req.html());
         t.setUserVarSchema(req.variablesUserJson());
-        t.setSysVarsScahema(req.systemsVariables());
+        t.setSysVarsSchema(req.systemsVariables());
+        t.setUserVarJson(null);
         t.setActive(req.active());
         t = repo.save(t);
         return t;
@@ -43,7 +44,7 @@ public class TemplateAdminService {
         t.setVersion(req.version());
         t.setHtml(req.html());
         t.setUserVarSchema(req.variablesUserJson());
-        t.setSysVarsScahema(req.systemsVariables());
+        t.setSysVarsSchema(req.systemsVariables());
         t.setActive(req.active());
         repo.save(t);
         return t;

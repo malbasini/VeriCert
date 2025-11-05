@@ -7,6 +7,7 @@ import com.example.vericert.domain.User;
 import com.example.vericert.dto.SignupRequest;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TenantRepository;
+import com.example.vericert.service.CaptchaValidator;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.SignupService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -28,19 +30,23 @@ public class TenantAuthController {
     private final SignupService signup;
     private final TenantRepository tenantRepo;
     private final MembershipRepository membershipRepo;
+    private final CaptchaValidator captchaValidator;
 
     public TenantAuthController(SignupService signup,
                                 TenantRepository tenantRepo,
-                                MembershipRepository membershipRepo
+                                MembershipRepository membershipRepo,
+                                CaptchaValidator captchaValidator
     ) {
         this.signup = signup;
         this.tenantRepo = tenantRepo;
         this.membershipRepo = membershipRepo;
+        this.captchaValidator = captchaValidator;
     }
 
     //Insert Tenant, User, Membership
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request,
+                                    @RequestParam("g-recaptcha-response") String captchaResponse,
                                     BindingResult br) {
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
@@ -49,6 +55,10 @@ public class TenantAuthController {
                             Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
+        }
+        boolean isCaptchaValid = captchaValidator.verifyCaptcha(captchaResponse);
+        if (!isCaptchaValid) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Captcha failed", "errors", "Invalid Captcha"));
         }
         String tenantName = request.tenantName();
         Long tenantId = 0L;

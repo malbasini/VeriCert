@@ -27,7 +27,7 @@ public class HomeController {
     public String showStripeForm(Model model) {
         Long tenantId = currentTenantId();
         model.addAttribute("tenantId", tenantId);
-        return "payments/checkout/redirect";
+        return "stripe/redirect";
     }
 
     @GetMapping("/paypal")
@@ -36,8 +36,6 @@ public class HomeController {
         model.addAttribute("tenantId", tenantId);
         return "paypal/form";
     }
-
-
 
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();

@@ -4,9 +4,11 @@ import com.example.vericert.domain.Template;
 import com.example.vericert.dto.TemplateDto;
 import com.example.vericert.dto.TemplateUpsert;
 import com.example.vericert.repo.TemplateRepository;
+import com.example.vericert.service.CaptchaValidator;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.TemplateAdminService;
 import com.example.vericert.service.TemplateService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
@@ -22,6 +24,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -33,13 +36,16 @@ public class TemplateRestAdminController {
     private final TemplateRepository repo;
     private final TemplateAdminService service;
     private final TemplateService renderService;
+    private final CaptchaValidator captchaValidator;
 
     public TemplateRestAdminController(TemplateRepository repo,
                                    TemplateAdminService service,
-                                   TemplateService renderService) {
+                                   TemplateService renderService,
+                                   CaptchaValidator captchaValidator) {
         this.repo = repo;
         this.service = service;
         this.renderService = renderService;
+        this.captchaValidator = captchaValidator;
     }
 
     @GetMapping("/admin/templates")
@@ -68,34 +74,24 @@ public class TemplateRestAdminController {
     }
 
     @PostMapping("/new")
-    public ResponseEntity<?> create(@Valid @RequestBody TemplateUpsert req, BindingResult br) {
+    public ResponseEntity<?> create(@Valid @RequestBody TemplateUpsert req,
+                                    BindingResult br) {
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(
-                            fe -> fe.getField(),
-                            Collectors.mapping(fe -> fe.getDefaultMessage(), Collectors.toList())
+                            FieldError::getField,
+                            Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
         }
+        boolean ok = captchaValidator.verifyCaptcha(req.captchaToken());
+        if (!ok) {
+            return ResponseEntity.unprocessableEntity()
+                    .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
+        }
         var t = service.create(req);
-
-        return ResponseEntity.ok(new TemplateRestAdminController.VerificationResponse(
-                t.getId().toString(),
-                t.getName(),
-                t.getVersion(),
-                t.isActive(),
-                t.getTenant().getName()
-        ));
+        return ResponseEntity.ok("success");
     }
-    // DTO interno alla risposta
-    record VerificationResponse(
-            String id,
-            String name,
-            String version,
-            boolean active,
-            String tenant
-    ) {}
-
     @PutMapping("/{id}/edit")
     public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
                               @Valid @RequestBody TemplateUpsert req,

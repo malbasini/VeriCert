@@ -1,6 +1,7 @@
 package com.example.vericert.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record TemplateUpsert(
         Long id,
@@ -9,5 +10,6 @@ public record TemplateUpsert(
         @NotBlank(message = "Il campo html è obbligatorio") String html,
         String variablesUserJson,
         String systemsVariables,
-        boolean active
+        boolean active,
+        @NotBlank String captchaToken
 ) {}

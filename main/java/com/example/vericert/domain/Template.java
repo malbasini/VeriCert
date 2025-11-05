@@ -120,7 +120,7 @@ public class Template extends BaseTenantEntity {
         return sysVarsScahema;
     }
 
-    public void setSysVarsScahema(String sysVarsScahema) {
+    public void setSysVarsSchema(String sysVarsScahema) {
         this.sysVarsScahema = sysVarsScahema;
     }
 

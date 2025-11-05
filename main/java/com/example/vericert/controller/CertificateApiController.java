@@ -7,10 +7,7 @@ import com.example.vericert.domain.Tenant;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
-import com.example.vericert.service.CertificateService;
-import com.example.vericert.service.CustomUserDetails;
-import com.example.vericert.service.TemplatePicker;
-import com.example.vericert.service.UsageService;
+import com.example.vericert.service.*;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Page;
@@ -43,13 +40,15 @@ public class CertificateApiController {
     private final CertificateRepository certRepo;
     private final TemplateRepository tempRepo;
     private final TemplatePicker templatePicker;
+    private final CaptchaValidator captchaValidator;
 
     public CertificateApiController(CertificateService service,
                                     UsageService usageService,
                                     TenantRepository tenantRepo,
                                     CertificateRepository certRepo,
                                     TemplateRepository tempRepo,
-                                    TemplatePicker templatePicker) {
+                                    TemplatePicker templatePicker,
+                                    CaptchaValidator captchaValidator) {
 
         this.service = service;
         this.usageService = usageService;
@@ -57,6 +56,7 @@ public class CertificateApiController {
         this.certRepo = certRepo;
         this.tempRepo = tempRepo;
         this.templatePicker = templatePicker;
+        this.captchaValidator = captchaValidator;
     }
     @GetMapping("/list")
     public Page<Certificate> list(@RequestParam(defaultValue = "0") int page,
@@ -77,6 +77,7 @@ public class CertificateApiController {
     public ResponseEntity<?> create(
             @PathVariable(name="ownerName") String ownerName,
             @PathVariable(name="ownerEmail") String ownerEmail,
+            @RequestParam("g-recaptcha-response") String captchaResponse,
             @Valid @RequestBody Map<String,Object> map,
             BindingResult br) throws IOException {
         if (br.hasErrors()) {
@@ -86,6 +87,10 @@ public class CertificateApiController {
                             Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
+        }
+        boolean isCaptchaValid = captchaValidator.verifyCaptcha(captchaResponse);
+        if (!isCaptchaValid) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Captcha failed", "errors", "Invalid Captcha"));
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();

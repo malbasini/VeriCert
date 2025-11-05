@@ -19,6 +19,16 @@
     <div id="varsForm"></div>
     <br>
     <div class="input-group mb-3">
+         <div class="row">
+                <div class="col-md-4"></div>
+                <div class="col-md4">
+                    <div class="g-recaptcha" th:attr="data-sitekey=${@captchaSettings.getSite()}"></div>
+                </div>
+                <div class="col-md-4"></div>
+        </div>
+    </div>
+    <br>
+    <div class="input-group mb-3">
         <button id="btn1" class="btn btn-outline-primary" onclick="createCertificate()">Crea certificato</button>
     </div>
 </div>
