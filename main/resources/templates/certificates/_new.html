@@ -193,7 +193,8 @@
                     alert('Inserisci nome e email');
                     return;
                 }
-                const resp = await fetch(`/api/certificates/new/${name}/${email}`, {
+                const captchaToken = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
+                const resp = await fetch(`/api/certificates/new/${name}/${email}/${captchaToken}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(vars),

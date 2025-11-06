@@ -2,13 +2,11 @@ package com.example.vericert.controller;
 
 import com.example.vericert.domain.Membership;
 import com.example.vericert.domain.MembershipId;
-import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.User;
 import com.example.vericert.dto.SignupRequest;
 import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CaptchaValidator;
-import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.SignupService;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;

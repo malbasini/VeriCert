@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,10 +34,10 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/certificates")
 //Emissione di un certificato
+@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
 public class CertificateApiController {
 
     private final CertificateService service;
-    private final UsageService usageService;
     private final TenantRepository tenantRepo;
     private final CertificateRepository certRepo;
     private final TemplateRepository tempRepo;
@@ -43,7 +45,6 @@ public class CertificateApiController {
     private final CaptchaValidator captchaValidator;
 
     public CertificateApiController(CertificateService service,
-                                    UsageService usageService,
                                     TenantRepository tenantRepo,
                                     CertificateRepository certRepo,
                                     TemplateRepository tempRepo,
@@ -51,7 +52,6 @@ public class CertificateApiController {
                                     CaptchaValidator captchaValidator) {
 
         this.service = service;
-        this.usageService = usageService;
         this.tenantRepo = tenantRepo;
         this.certRepo = certRepo;
         this.tempRepo = tempRepo;
@@ -73,11 +73,11 @@ public class CertificateApiController {
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
-    @PostMapping("/new/{ownerName}/{ownerEmail}")
+    @PostMapping("/new/{ownerName}/{ownerEmail}/{captchaToken}")
     public ResponseEntity<?> create(
             @PathVariable(name="ownerName") String ownerName,
             @PathVariable(name="ownerEmail") String ownerEmail,
-            @RequestParam("g-recaptcha-response") String captchaResponse,
+            @PathVariable(name="captchaToken") String captchaResponse,
             @Valid @RequestBody Map<String,Object> map,
             BindingResult br) throws IOException {
         if (br.hasErrors()) {
@@ -88,9 +88,10 @@ public class CertificateApiController {
                     ));
             return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
         }
-        boolean isCaptchaValid = captchaValidator.verifyCaptcha(captchaResponse);
-        if (!isCaptchaValid) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Captcha failed", "errors", "Invalid Captcha"));
+        // 1) CAPTCHA
+        if (!captchaValidator.verifyCaptcha(captchaResponse)) {
+            return ResponseEntity.unprocessableEntity()
+                    .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
         }
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();

@@ -155,19 +155,19 @@
             const active = document.getElementById("active").checked;
             const captchaToken = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
             const response = await fetch(`${API_BASE}/new`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    name: name,
-                    version: version,
-                    html: window.editor.getData(),
-                    variablesUserJson: variablesUserJson,
-                    active: active,
-                    captchaToken: captchaToken,
-                })
-            });
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        version: version,
+                        html: window.editor.getData(),
+                        variablesUserJson: variablesUserJson,
+                        active: active,
+                        captchaToken: captchaToken,
+                    })
+                });
             const resultDiv = document.getElementById("result");
             const data = await response.json();
             if (!response.ok) {

@@ -18,7 +18,7 @@ public class TemplateAdminService {
     }
 
     @Transactional
-    public Template create(TemplateUpsert req) {
+    public Template create(TemplateUpsert req) throws Exception {
         Long tenantId = tenantService.currentTenantId();
         if (repo.existsByTenantIdAndNameAndVersion(tenantId, req.name(), req.version()))
             throw new IllegalArgumentException("Template con stessa name+version già esiste");

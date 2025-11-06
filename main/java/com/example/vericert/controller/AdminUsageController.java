@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/usage")
+@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
 public class AdminUsageController {
 
     private final UsageMeterService usageMeterService;

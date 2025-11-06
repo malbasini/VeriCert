@@ -122,7 +122,7 @@ public class TemplateRestAdminController {
     public ResponseEntity<?>  update(@PathVariable(name = "id") Long id,
                               @Valid @RequestBody TemplateUpsert req,
                              BindingResult br) {
-        com.example.vericert.domain.Template t = null;
+        Template t = null;
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
                     .collect(Collectors.groupingBy(

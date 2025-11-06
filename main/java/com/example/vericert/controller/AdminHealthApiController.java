@@ -20,6 +20,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/api")
+@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
 public class AdminHealthApiController {
 
     private final AppInfoService appInfoService;

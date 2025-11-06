@@ -12,6 +12,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
@@ -28,6 +29,7 @@ import static com.example.vericert.util.MapUtils.toMap;
 
 @RestController
 @RequestMapping()
+@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
 public class TemplatePreviewController {
     private final TemplateService templateService;
     private final SystemVarsBuilder sysVars; // tua classe che calcola serial, verifyUrl, qrBase64, ecc.

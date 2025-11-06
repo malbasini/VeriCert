@@ -11,6 +11,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/admin/usage")
+@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
 public class AdminUsagePageController {
 
     private final UsageMeterService usageMeterService;
