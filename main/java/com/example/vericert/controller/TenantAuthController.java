@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,9 +55,10 @@ public class TenantAuthController {
                     ));
             return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
         }
-        boolean isCaptchaValid = captchaValidator.verifyCaptcha(captchaResponse);
-        if (!isCaptchaValid) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Captcha failed", "errors", "Invalid Captcha"));
+        // 1) CAPTCHA
+        if (!captchaValidator.verifyCaptcha(request.captchaToken())) {
+            return ResponseEntity.unprocessableEntity()
+                    .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
         }
         String tenantName = request.tenantName();
         Long tenantId = 0L;

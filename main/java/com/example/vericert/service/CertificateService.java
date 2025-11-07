@@ -157,19 +157,14 @@ public class CertificateService {
         t.setSha256Cached(sha);             // utile per verifiche veloci
         tokRepo.save(t);
         usageMeterService.incrementCertsGenerated(tenantId); // aggiorna anche storage Mb se abbiamo messo il refresh dentro
-
         return c;
     }
-
     private String extractJti(String compactJws) {
         try {
             var j = JWSObject.parse(compactJws);
             return (String) j.getPayload().toJSONObject().get("jti");
         } catch (Exception e) { return null; }
     }
-
-
-
     private String savePdf(String serial, byte[] pdf, Tenant tenant) {
         try {
             Path baseDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());
