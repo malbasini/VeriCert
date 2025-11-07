@@ -37,4 +37,6 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
       WHERE t.code = :code
     """)
     Optional<VerificationView> findViewByCode(@Param("code") String code);
+
+    void deleteByCertificateId(Long id);
 }

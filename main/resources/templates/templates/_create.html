@@ -183,7 +183,11 @@
             const resultDiv = document.getElementById("result");
             if (!response.ok) {
                 showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
-                //alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
+                const errors = data.errors || {};
+                if(errors != null){
+                    showToast(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"), {colorClass: 'bg-info'});
+                }
+
             } else {
                 resultDiv.innerHTML = `
                     <div class="alert alert-success">

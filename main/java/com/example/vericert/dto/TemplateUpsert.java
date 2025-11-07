@@ -2,6 +2,7 @@ package com.example.vericert.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import net.minidev.json.annotate.JsonIgnore;
 
 public record TemplateUpsert(
         Long id,

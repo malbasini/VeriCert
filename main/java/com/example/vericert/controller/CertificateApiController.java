@@ -189,6 +189,19 @@ public class CertificateApiController {
                 .toList();
         return ResponseEntity.ok(codes);
     }
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try
+        {
+            service.deleteCertificate(id);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+        return ResponseEntity.ok(Map.of("message","success"));
+    }
 }
 
 

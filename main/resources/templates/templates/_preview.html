@@ -230,7 +230,6 @@
                 }
                 if (!resp.ok) {
                     setIframeHtml(iframe, `<pre style="color:#b91c1c">Errore ${resp.status}\n${html}</pre>`);
-                    return;
                 }
             }
             catch (e) {

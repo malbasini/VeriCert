@@ -37,7 +37,7 @@ public class TemplateAdminService {
     }
 
     @Transactional
-    public Template update(Long id, TemplateUpsert req) {
+    public Template update(Long id, TemplateUpsert req) throws Exception {
         Long tenantId = tenantService.currentTenantId();
         Template t = repo.findByTenantIdAndId(tenantId, id).orElseThrow();
         t.setName(req.name());

@@ -214,4 +214,16 @@ public class CertificateService {
     public void unlockOrIssue() {
 
     }
+    @Transactional
+    public void deleteCertificate(Long id) throws IOException{
+        try
+        {
+            tokRepo.deleteByCertificateId(id);
+            certRepo.deleteById(id);
+        }
+        catch(Exception e)
+        {
+            throw e;
+        }
+    }
 }

@@ -47,55 +47,46 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const editor = await CKEDITOR.ClassicEditor.create(document.querySelector('#html'), {
+                window.editor = await CKEDITOR.ClassicEditor.create(document.querySelector('#html'), {
                     language: 'it',
                     toolbar: {
                         items: [
-                            'heading','|','bold','italic','underline','link',
-                            'bulletedList','numberedList','|',
-                            'blockQuote','codeBlock','|',
-                            'undo','redo','|',
+                            'heading', '|', 'bold', 'italic', 'underline', 'link',
+                            'bulletedList', 'numberedList', '|',
+                            'blockQuote', 'codeBlock', '|',
+                            'undo', 'redo', '|',
                             'sourceEditing'
                         ]
                     },
-                    htmlSupport: { allow: [ { name: /.*/, attributes: true, classes: true, styles: true } ] },
+                    htmlSupport: {allow: [{name: /.*/, attributes: true, classes: true, styles: true}]},
 
                     /* RIMUOVI TUTTO ciò che è cloud/commerciale/AI */
                     removePlugins: [
                         // Cloud & file managers
-                        'CloudServices','CKBox','CKBoxUtils','CKFinder','CKFinderUploadAdapter','EasyImage',
+                        'CloudServices', 'CKBox', 'CKBoxUtils', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage',
                         // CKBox image editing
-                        'CKBoxImageEdit','CKBoxImageEditEditing','CKBoxImageEditUI',
+                        'CKBoxImageEdit', 'CKBoxImageEditEditing', 'CKBoxImageEditUI',
 
                         // Collaborazione / revisioni / commenti
-                        'RealTimeCollaborativeComments','RealTimeCollaborativeTrackChanges',
-                        'RealTimeCollaborativeRevisionHistory','PresenceList','Comments',
-                        'TrackChanges','TrackChangesData','RevisionHistory',
+                        'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
+                        'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
+                        'TrackChanges', 'TrackChangesData', 'RevisionHistory',
 
                         // Commerciali / licenza
-                        'WProofreader','MathType','CaseChange','FormatPainter','TableOfContents',
-                        'SlashCommand','Template','DocumentOutline','Pagination',
-                        'ExportPdf','ExportWord','PasteFromOfficeEnhanced',
+                        'WProofreader', 'MathType', 'CaseChange', 'FormatPainter', 'TableOfContents',
+                        'SlashCommand', 'Template', 'DocumentOutline', 'Pagination',
+                        'ExportPdf', 'ExportWord', 'PasteFromOfficeEnhanced',
 
                         // 👇 Famiglia AI completa (togli TUTTI gli adapter)
-                        'AIAssistant','AIAssistantUI','AIAssistantEditing','AIAdapter',
-                        'OpenAIAdapter','OpenAITextAdapter','OpenAIImageAdapter',
-                        'AzureOpenAIAdapter','AzureOpenAITextAdapter','AzureOpenAIImageAdapter',
-                        'AnthropicAIAdapter','AnthropicAITextAdapter','AnthropicAIImageAdapter',
-                        'GoogleAIAdapter','GoogleAITextAdapter','GoogleAIImageAdapter',
-                        'BedrockAIAdapter','BedrockAITextAdapter','BedrockAIImageAdapter',
-                        'MultiLevelList','MultiLevelListEditing','MultiLevelListUI'
+                        'AIAssistant', 'AIAssistantUI', 'AIAssistantEditing', 'AIAdapter',
+                        'OpenAIAdapter', 'OpenAITextAdapter', 'OpenAIImageAdapter',
+                        'AzureOpenAIAdapter', 'AzureOpenAITextAdapter', 'AzureOpenAIImageAdapter',
+                        'AnthropicAIAdapter', 'AnthropicAITextAdapter', 'AnthropicAIImageAdapter',
+                        'GoogleAIAdapter', 'GoogleAITextAdapter', 'GoogleAIImageAdapter',
+                        'BedrockAIAdapter', 'BedrockAITextAdapter', 'BedrockAIImageAdapter',
+                        'MultiLevelList', 'MultiLevelListEditing', 'MultiLevelListUI'
                     ]
                 });
-
-                // (Se vuoi pre-caricare HTML dal backend) editor.setData(/*[[${template?.html}]]*/ '');
-
-                document.addEventListener('submit', ev => {
-                    const form = ev.target.closest('form');
-                    if (form) document.getElementById('htmlField').value = editor.getData();
-                });
-
-                window.editor = editor;
 
             } catch (e) {
                 console.error('CKEditor init error', e);
@@ -105,7 +96,7 @@
     <script>
         // 1) Crea l'editor
         const container = document.getElementById('jsonEditor');
-        const editor = new JSONEditor(container, {
+        const editorJson = new JSONEditor(container, {
             mode: 'code',      // 'code' (testo), 'tree' (ad albero) o 'form'
             mainMenuBar: false // opzionale, interfaccia più pulita
         });
@@ -115,7 +106,7 @@
             const ta = document.getElementById('variablesUserJson');
             if (!ta.value || ta.value.trim() === '') {
                 // default iniziale sensato
-                editor.set({
+                editorJson.set({
                     ownerName: { type: 'string', label: 'Intestatario', required: true },
                     courseName: { type: 'string', label: 'Nome corso', required: true },
                     hours: { type: 'number', label: 'Ore', default: 12 },
@@ -123,33 +114,22 @@
                 });
             } else {
                 try {
-                    editor.set(JSON.parse(ta.value));
+                    editorJson.set(JSON.parse(ta.value));
                 } catch (e) {
                     // Se il JSON salvato era corrotto, mostra comunque il raw
-                    editor.updateText(ta.value);
+                    editorJson.updateText(ta.value);
                 }
             }
         })();
 
-        // 3) Sync su submit del form → scrivi JSON “pulito” nella textarea
-        document.getElementById('btn1').addEventListener('submit', (ev) => {
-            try {
-                const json = editor.get();                  // ottieni l’oggetto
-                document.getElementById('variablesUserJson').value = JSON.stringify(json);
-            } catch (err) {
-                ev.preventDefault(); // blocca il submit se JSON non valido
-                alert('JSON non valido: ' + err.message);
-            }
-        });
-
-        // 4) (Opzionale) Sync live mentre l’utente digita, utile se hai anteprima
+        // 3) (Opzionale) Sync live mentre l’utente digita, utile se hai anteprima
         //    Attenzione: fai debounce per non stressare la pagina
         let t;
-        editor.on('change', () => {
+        editorJson.on('change', () => {
             clearTimeout(t);
             t = setTimeout(() => {
                 try {
-                    const json = editor.get();
+                    const json = editorJson.get();
                     document.getElementById('variablesUserJson').value = JSON.stringify(json);
                 } catch (_) {
                     // in modalità "code" può essere temporaneamente invalido: ignora
@@ -159,48 +139,48 @@
     </script>
     <script>
         async function updateTemplate() {
-            try {
                 const API_BASE = "/api/admin/templates";
                 const name = document.getElementById("name").value.trim();
                 const id = document.getElementById("id").value.trim();
                 const version = document.getElementById("version").value.trim();
-                const html = document.getElementById("html").value.trim();
                 const variablesUserJson = document.getElementById("variablesUserJson").value.trim();
                 const active = document.getElementById("active").checked;
-                const response = await fetch(`${API_BASE}/${id}/edit`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        id: id,
-                        name: name,
-                        version: version,
-                        html: html,
-                        variablesUserJson: variablesUserJson,
-                        active: active
-                    })
-                });
-                const resultDiv = document.getElementById("result");
-                const data = await response.json();
-                if (!response.ok) {
-                    // Esempio: mostra il primo errore per campo
-                    const errors = data.errors || {};
-                    alert(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"));
-                } else {
-                    resultDiv.innerHTML = `
-                <div class="alert alert-success">
-                    ✅ <b>Template aggiornato con successo</b><br>
-                    <b>ID:</b> ${data.id}<br>
-                    <b>Nome:</b> ${data.name}<br>
-                    <b>Versione:</b> ${data.version}<br>
-                    <b>Attivo:</b> ${data.active}<br>
-                    <b>Nome tenant:</b> ${data.tenant}<br>
-                </div>
-            `;
-                    showToast("Template aggiornato con successo",{ colorClass: 'bg-success' });
+                try {
+                    const response = await fetch(`${API_BASE}/${id}/edit`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            id: id,
+                            name: name,
+                            version: version,
+                            html: window.editor.getData(),
+                            variablesUserJson: variablesUserJson,
+                            active: active
+                        })
+                    });
+
+                    const resultDiv = document.getElementById("result");
+                    const data = await response.json();
+                    if (!response.ok) {
+                        showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
+                        const errors = data.errors || {};
+                        showToast(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"), {colorClass: 'bg-info'});
+                    } else {
+                        resultDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        ✅ <b>Template aggiornato con successo</b><br>
+                        <b>ID:</b> ${data.id}<br>
+                        <b>Nome:</b> ${data.name}<br>
+                        <b>Versione:</b> ${data.version}<br>
+                        <b>Attivo:</b> ${data.active}<br>
+                        <b>Nome tenant:</b> ${data.tenant}<br>
+                    </div>
+                `;
+                            showToast("Template aggiornato con successo", {colorClass: 'bg-success'});
+                        }
                 }
-            }
             catch (error) {
                 console.error("Errore durante l'aggiornamento del template:", error);
                 showToast(error.message,{ colorClass: 'bg-danger' });

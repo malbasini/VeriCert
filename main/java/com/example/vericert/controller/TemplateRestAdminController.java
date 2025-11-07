@@ -50,7 +50,7 @@ public class TemplateRestAdminController {
         this.captchaValidator = captchaValidator;
     }
 
-    @GetMapping("/admin/templates")
+    @GetMapping()
     public String list(@AuthenticationPrincipal CustomUserDetails user,
                        @RequestParam(required = false) String q,
                        @PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable,
@@ -162,10 +162,16 @@ public class TemplateRestAdminController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        service.delete(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try {
+            service.delete(id);
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+        return ResponseEntity.ok(Map.of("message","success"));
     }
 
     @PostMapping("/{id}/preview")
