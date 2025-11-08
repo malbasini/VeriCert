@@ -17,7 +17,7 @@
         <div class="input-group mb-3">
             <span class="input-group-text">Template Html</span>
             <div class="form-control p-0">
-                <textarea id="html" th:utext="${template.getHtml()}"></textarea> <!-- CKEditor host -->
+                <textarea id="editor" th:utext="${template.getHtml()}"></textarea> <!-- CKEditor host -->
             </div>
         </div>
         <div class="input-group mb-3">
@@ -42,57 +42,93 @@
         <br>
     </div>
     <!-- Host dell'editor + hidden per il submit -->
-    <input type="hidden" id="htmlField" name="html" />
     <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                window.editor = await CKEDITOR.ClassicEditor.create(document.querySelector('#html'), {
-                    language: 'it',
-                    toolbar: {
-                        items: [
-                            'heading', '|', 'bold', 'italic', 'underline', 'link',
-                            'bulletedList', 'numberedList', '|',
-                            'blockQuote', 'codeBlock', '|',
-                            'undo', 'redo', '|',
-                            'sourceEditing'
-                        ]
-                    },
-                    htmlSupport: {allow: [{name: /.*/, attributes: true, classes: true, styles: true}]},
+            const el = document.querySelector('#editor');
+            if (!el) return;
 
-                    /* RIMUOVI TUTTO ciò che è cloud/commerciale/AI */
-                    removePlugins: [
-                        // Cloud & file managers
-                        'CloudServices', 'CKBox', 'CKBoxUtils', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage',
-                        // CKBox image editing
-                        'CKBoxImageEdit', 'CKBoxImageEditEditing', 'CKBoxImageEditUI',
+            window.editor = await CKEDITOR.ClassicEditor.create(el, {
+                language: 'it',
 
-                        // Collaborazione / revisioni / commenti
-                        'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
-                        'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
-                        'TrackChanges', 'TrackChangesData', 'RevisionHistory',
+                toolbar: {
+                    items: [
+                        // titoli & paragrafi
+                        'heading', '|', 'alignment', 'outdent', 'indent', '|',
 
-                        // Commerciali / licenza
-                        'WProofreader', 'MathType', 'CaseChange', 'FormatPainter', 'TableOfContents',
-                        'SlashCommand', 'Template', 'DocumentOutline', 'Pagination',
-                        'ExportPdf', 'ExportWord', 'PasteFromOfficeEnhanced',
+                        // testo
+                        'bold', 'italic', 'underline', 'strikethrough', 'highlight', 'removeFormat', '|',
 
-                        // 👇 Famiglia AI completa (togli TUTTI gli adapter)
-                        'AIAssistant', 'AIAssistantUI', 'AIAssistantEditing', 'AIAdapter',
-                        'OpenAIAdapter', 'OpenAITextAdapter', 'OpenAIImageAdapter',
-                        'AzureOpenAIAdapter', 'AzureOpenAITextAdapter', 'AzureOpenAIImageAdapter',
-                        'AnthropicAIAdapter', 'AnthropicAITextAdapter', 'AnthropicAIImageAdapter',
-                        'GoogleAIAdapter', 'GoogleAITextAdapter', 'GoogleAIImageAdapter',
-                        'BedrockAIAdapter', 'BedrockAITextAdapter', 'BedrockAIImageAdapter',
-                        'MultiLevelList', 'MultiLevelListEditing', 'MultiLevelListUI'
+                        // font & colori
+                        'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+
+                        // liste
+                        'bulletedList', 'numberedList', 'todoList', '|',
+
+                        // inserimenti
+                        'link', 'blockQuote', 'insertTable', 'horizontalLine', 'mediaEmbed', 'insertImage', '|',
+
+                        // utility
+                        'findAndReplace', 'selectAll', 'undo', 'redo'
                     ]
-                });
+                },
 
-            } catch (e) {
-                console.error('CKEditor init error', e);
-            }
+                // Link esterni → apri in nuova scheda con rel sicuri
+                link: {
+                    decorators: {
+                        addTargetToExternalLinks: true,
+                        defaultProtocol: 'https://',
+                        toggleDownloadable: {
+                            mode: 'manual',
+                            label: 'Scaricabile',
+                            attributes: {download: 'file'}
+                        }
+                    }
+                },
+
+                // Tabelle gradevoli
+                table: {
+                    contentToolbar: [
+                        'tableColumn', 'tableRow', 'mergeTableCells',
+                        'tableProperties', 'tableCellProperties'
+                    ]
+                },
+
+                // Permetti classi/stili/attributi (utile con Bootstrap/utility CSS)
+                htmlSupport: {
+                    allow: [
+                        {name: /.*/, attributes: true, classes: true, styles: true}
+                    ]
+                },
+
+                // Se usi HtmlEmbed, lascialo **senza** code/source. (Puoi aggiungere un sanitize custom in seguito)
+                htmlEmbed: {showPreviews: true},
+
+                // 🔒 RIMUOVI plugin a pagamento / pericolosi per il PDF
+                removePlugins: [
+                    // cloud & a pagamento
+                    'CloudServices', 'CKBox', 'CKBoxUtils', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage',
+                    'CKBoxImageEdit', 'CKBoxImageEditEditing', 'CKBoxImageEditUI',
+                    'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
+                    'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
+                    'TrackChanges', 'TrackChangesData', 'RevisionHistory',
+                    'WProofreader', 'MathType', 'CaseChange', 'FormatPainter', 'TableOfContents',
+                    'SlashCommand', 'Template', 'DocumentOutline', 'Pagination',
+                    'ExportPdf', 'ExportWord', 'PasteFromOfficeEnhanced',
+                    'AIAssistant', 'AIAssistantUI', 'AIAssistantEditing', 'AIAdapter',
+                    'OpenAIAdapter', 'OpenAITextAdapter', 'OpenAIImageAdapter',
+                    'AzureOpenAIAdapter', 'AzureOpenAITextAdapter', 'AzureOpenAIImageAdapter',
+                    'AnthropicAIAdapter', 'AnthropicAITextAdapter', 'AnthropicAIImageAdapter',
+                    'GoogleAIAdapter', 'GoogleAITextAdapter', 'GoogleAIImageAdapter',
+                    'BedrockAIAdapter', 'BedrockAITextAdapter', 'BedrockAIImageAdapter',
+
+                    // ❗️niente “code” per evitare HTML escapato nei PDF
+                    'Code', 'CodeBlock', 'SourceEditing', 'MultiLevelList', 'MultiLevelListEditing', 'MultiLevelListUI'
+                ]
+            });
         });
     </script>
+
     <script>
         // 1) Crea l'editor
         const container = document.getElementById('jsonEditor');
@@ -143,6 +179,7 @@
                 const name = document.getElementById("name").value.trim();
                 const id = document.getElementById("id").value.trim();
                 const version = document.getElementById("version").value.trim();
+                const html = document.getElementById("editor").value.trim();
                 const variablesUserJson = document.getElementById("variablesUserJson").value.trim();
                 const active = document.getElementById("active").checked;
                 try {
@@ -155,7 +192,7 @@
                             id: id,
                             name: name,
                             version: version,
-                            html: window.editor.getData(),
+                            html:html,
                             variablesUserJson: variablesUserJson,
                             active: active
                         })

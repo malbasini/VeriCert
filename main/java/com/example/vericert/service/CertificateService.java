@@ -35,6 +35,8 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
 
+import static com.example.vericert.util.PdfUtil.*;
+
 @Service
 public class CertificateService {
     @Value("${vericert.base-url}") String baseUrl;
@@ -105,8 +107,8 @@ public class CertificateService {
         // 1) Render HTML e genera PDF
         //    (se vuoi storicizzare le vars usate, salvale in Template o meglio in una tabella "certificate_data")
         String html = templateService.renderHtml(templateId, vars, sysVars);
-        byte[] pdf  = PdfUtil.htmlToPdf(html); // tua util
-
+        TemplateHtmlSanitizer.POLICY.sanitize(html);
+        byte[] pdf  = htmlToPdf(html); // tua util
         // Costruisci URL pubblico coerente
         String Url = savePdf(serial, pdf,tenant);
         String pdfUrl = "/files/" + tenant.getId().toString() + "/" + serial + ".pdf";

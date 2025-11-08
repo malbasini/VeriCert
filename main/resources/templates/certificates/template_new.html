@@ -228,10 +228,10 @@
         <div class="brand">
             <div class="logo"></div>
             <div class="brand-left">
-                <h1>[[${tenantName}]]</h1>
+                <h1><span th:text="${tenantName}"></span></h1>
                 <small>
-                    [[${issuerName}]]<br>
-                    [[${issuerTitle}]]
+                    <span th:text="${issuerName}"></span><br></br>
+                    <span th:text="${issuerTitle}"></span>
                 </small>
             </div>
         </div>
@@ -239,7 +239,7 @@
         <div class="meta">
             <div class="meta-row">
                 <span class="meta-label">Seriale:</span>
-                <span class="serial-box">[[${serial}]]</span>
+                <span class="serial-box"><span th:text="${serial}"></span></span>
             </div>
             <div class="meta-row">
                 <span class="meta-label">Emesso il:</span>
@@ -262,18 +262,18 @@
             <div class="col">
                 <div class="kv">
                     <label>Intestatario</label>
-                    <div class="v">[[${ownerName}]]</div>
+                    <div class="v"><span th:text="${ownerName}"></span></div>
                 </div>
 
                 <div class="kv" th:if="${ownerEmail}">
                     <label>Email</label>
-                    <div class="v">[[${ownerEmail}]]</div>
+                    <div class="v"><span th:text="${ownerEmail}"></span></div>
                 </div>
 
                 <div class="kv">
                     <label>Corso / Oggetto</label>
                     <div class="v">
-                        [[${courseName}]]
+                        <span th:text="${courseName}"></span>
                     </div>
                 </div>
             </div>
@@ -283,7 +283,7 @@
                 <div class="kv">
                     <label>Codice interno</label>
                     <div class="v">
-                        <span class="pill">[[${courseCode}]]</span>
+                        <span class="pill"><span th:text="${corseCode}"></span></span>
                     </div>
                 </div>
 
@@ -309,14 +309,14 @@
         <div class="desc">
             <div style="font-weight:600; margin-bottom:2mm;">Verifica pubblica</div>
 
-            <small>Inquadra il QR oppure visita:</small><br>
+            <small>Inquadra il QR oppure visita:</small><br></br>
             <div class="strong" style="margin:2mm 0 4mm;">
-                [[${verifyUrl}]]
+                <span th:text="${verifyUrl}"></span>
             </div>
 
             <small>
                 Seriale:
-                <span class="serial-box">[[${serial}]]</span>
+                <span class="serial-box"><span th:text="${serial}">Serial</span></span>
             </small>
         </div>
     </section>
@@ -325,16 +325,16 @@
     <section class="signatures">
         <div class="sigblock">
             <div class="sigline">
-                [[${issuerName}]]
+                <span th:text="${issuerName}">Issuer</span>
             </div>
             <div class="siglabel">
-                [[${issuerTitle}]]
+                <span th:text="${issuerTitle}">Issuer Title</span>
             </div>
         </div>
 
         <div class="sigblock">
             <div class="sigline">
-                [[${tenantName}]]
+                <span th:text="${tenantName}">Tenant</span>
             </div>
             <div class="siglabel">
                 Autorità Emettente
@@ -345,12 +345,12 @@
     <!-- FOOTER -->
     <footer>
         <div class="foot-left">
-            © [[${#temporals.format(issuedAt, 'yyyy')}]] · [[${tenantName}]]
+            © [[${#temporals.format(issuedAt, 'yyyy')}]] · <span th:text="${tenantName}"></span>
         </div>
 
         <div class="foot-right">
-            Questo attestato è verificabile online.<br>
-            [[${verifyUrl}]]
+            Questo attestato è verificabile online.<br></br>
+            <span th:text="${verifyUrl}">Verify Url</span>
         </div>
     </footer>
 </div>
