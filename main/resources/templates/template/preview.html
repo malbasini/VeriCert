@@ -4,7 +4,7 @@
         th:replace="~{admin :: layout(
         ${pageTitle},
         ${active},
-        ~{templates/create :: emptyActions},
-        ~{/templates/_create :: content(pageTitle=${pageTitle}, active=${active})}
-    )}">
+        ~{template/preview :: emptyActions},
+        ~{/template/_preview :: content(tenant=${tenant}, template=${template}, pageTitle=${pageTitle},active=${active})}
+        )}">
 </th:block>

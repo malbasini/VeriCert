@@ -7,8 +7,8 @@
             th:replace="~{admin :: layout(
         ${pageTitle},
         ${active},
-        ~{templates/list :: emptyActions},
-        ~{/templates/_list :: content(page=${page}, q=${q})}
+        ~{template/list :: emptyActions},
+        ~{/template/_list :: content(page=${page}, q=${q})}
     )}">
 </th:block>
 

@@ -45,24 +45,24 @@ public class AdminTemplateController {
                 : repo.searchByName(tenantId, q, pageable);
         model.addAttribute("page", pageTemplate);
         model.addAttribute("q", q);
-        return "templates/list";
+        return "template/list";
     }
 
     @GetMapping("/new")
     public String createForm(Model model) {
-        model.addAttribute("pageTitle", "Nuovo templates");
+        model.addAttribute("pageTitle", "Nuovo template");
         model.addAttribute("active", "templates");
         // … aggiungi oggetto vuoto
-        return "templates/create";
+        return "template/create";
     }
 
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
         Template t = repo.findById(id).orElseThrow();
         model.addAttribute("template", t);
-        model.addAttribute("pageTitle", "Modifica templates");
+        model.addAttribute("pageTitle", "Modifica template");
         model.addAttribute("active", "templates");
-        return "templates/update";
+        return "template/update";
     }
     @GetMapping("/{id}/preview")
     public String preview(@AuthenticationPrincipal CustomUserDetails user,
@@ -72,8 +72,8 @@ public class AdminTemplateController {
         String tenantName = user.getTenantName();
         model.addAttribute("template", t);
         model.addAttribute("tenant", tenantName);
-        model.addAttribute("pageTitle", "Preview templates");
+        model.addAttribute("pageTitle", "Preview template");
         model.addAttribute("active", "templates");
-        return "templates/preview";
+        return "template/preview";
     }
 }

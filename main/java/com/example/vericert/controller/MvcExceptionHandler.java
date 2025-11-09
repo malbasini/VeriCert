@@ -17,7 +17,7 @@ public class MvcExceptionHandler {
         model.addAttribute("status", 404);
         model.addAttribute("title", "Risorsa non trovata");
         model.addAttribute("message", ex.getMessage());
-        return "error"; // templates/error.html
+        return "error"; // template/error.html
     }
 
     @ExceptionHandler(Exception.class)

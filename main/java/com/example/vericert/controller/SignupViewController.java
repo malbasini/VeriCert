@@ -8,6 +8,6 @@ public class SignupViewController {
 
     @GetMapping("/signup")
     public String signupForm() {
-        return "security/signup"; // cerca signup.html in src/main/resources/templates
+        return "security/signup"; // cerca signup.html in src/main/resources/template
     }
 }

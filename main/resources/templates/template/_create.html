@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns="http://www.w3.org/1999/html">
 <div th:fragment="content(pageTitle, active)">
 <body>
 <div class="container mt-5">
@@ -15,7 +16,7 @@
     <div class="input-group mb-3">
         <span class="input-group-text">Template Html</span>
         <div class="form-control p-0">
-            <textarea id="editor"></textarea> <!-- CKEditor host -->
+            <div id="editor"></div> <!-- CKEditor host -->
         </div>
     </div>
     <div class="input-group mb-3">
@@ -44,140 +45,71 @@
         </div>
     </div>
         <div class="input-group mb-3">
-            <button id="btn1"  onclick="createTemplate()" class="btn btn-outline-primary">Salva</button>
+            <button id="btn1" class="btn btn-outline-primary">Salva</button>
         </div>
 </div>
-<!-- Host dell'editor + hidden per il submit -->
 <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const el = document.querySelector('#editor');
         if (!el) return;
 
-        window.editor = await CKEDITOR.ClassicEditor.create(el, {
+        // 1) crea l'editor e tieni l'istanza in una variabile locale + window
+        let editor = await CKEDITOR.ClassicEditor.create(el, {
             language: 'it',
-
             toolbar: {
                 items: [
-                    // titoli & paragrafi
-                    'heading', '|', 'alignment', 'outdent', 'indent', '|',
-
-                    // testo
-                    'bold', 'italic', 'underline', 'strikethrough', 'highlight', 'removeFormat', '|',
-
-                    // font & colori
-                    'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
-
-                    // liste
-                    'bulletedList', 'numberedList', 'todoList', '|',
-
-                    // inserimenti
-                    'link', 'blockQuote', 'insertTable', 'horizontalLine', 'mediaEmbed', 'insertImage', '|',
-
-                    // utility
-                    'findAndReplace', 'selectAll', 'undo', 'redo'
+                    'heading','|','alignment','outdent','indent','|',
+                    'bold','italic','underline','strikethrough','highlight','removeFormat','|',
+                    'fontFamily','fontSize','fontColor','fontBackgroundColor','|',
+                    'bulletedList','numberedList','todoList','|',
+                    'link','blockQuote','insertTable','horizontalLine','mediaEmbed','insertImage','|',
+                    'findAndReplace','selectAll','undo','redo'
                 ]
             },
-
-            // Link esterni → apri in nuova scheda con rel sicuri
             link: {
                 decorators: {
                     addTargetToExternalLinks: true,
                     defaultProtocol: 'https://',
-                    toggleDownloadable: {
-                        mode: 'manual',
-                        label: 'Scaricabile',
-                        attributes: {download: 'file'}
-                    }
+                    toggleDownloadable: { mode: 'manual', label: 'Scaricabile', attributes: { download: 'file' } }
                 }
             },
-
-            // Tabelle gradevoli
             table: {
-                contentToolbar: [
-                    'tableColumn', 'tableRow', 'mergeTableCells',
-                    'tableProperties', 'tableCellProperties'
-                ]
+                contentToolbar: [ 'tableColumn','tableRow','mergeTableCells','tableProperties','tableCellProperties' ]
             },
-
-            // Permetti classi/stili/attributi (utile con Bootstrap/utility CSS)
-            htmlSupport: {
-                allow: [
-                    {name: /.*/, attributes: true, classes: true, styles: true}
-                ]
-            },
-
-            // Se usi HtmlEmbed, lascialo **senza** code/source. (Puoi aggiungere un sanitize custom in seguito)
-            htmlEmbed: {showPreviews: true},
-
-            // 🔒 RIMUOVI plugin a pagamento / pericolosi per il PDF
+            htmlSupport: { allow: [ { name: /.*/, attributes: true, classes: true, styles: true } ] },
+            htmlEmbed: { showPreviews: true },
             removePlugins: [
-                // cloud & a pagamento
-                'CloudServices', 'CKBox', 'CKBoxUtils', 'CKFinder', 'CKFinderUploadAdapter', 'EasyImage',
-                'CKBoxImageEdit', 'CKBoxImageEditEditing', 'CKBoxImageEditUI',
-                'RealTimeCollaborativeComments', 'RealTimeCollaborativeTrackChanges',
-                'RealTimeCollaborativeRevisionHistory', 'PresenceList', 'Comments',
-                'TrackChanges', 'TrackChangesData', 'RevisionHistory',
-                'WProofreader', 'MathType', 'CaseChange', 'FormatPainter', 'TableOfContents',
-                'SlashCommand', 'Template', 'DocumentOutline', 'Pagination',
-                'ExportPdf', 'ExportWord', 'PasteFromOfficeEnhanced',
-                'AIAssistant', 'AIAssistantUI', 'AIAssistantEditing', 'AIAdapter',
-                'OpenAIAdapter', 'OpenAITextAdapter', 'OpenAIImageAdapter',
-                'AzureOpenAIAdapter', 'AzureOpenAITextAdapter', 'AzureOpenAIImageAdapter',
-                'AnthropicAIAdapter', 'AnthropicAITextAdapter', 'AnthropicAIImageAdapter',
-                'GoogleAIAdapter', 'GoogleAITextAdapter', 'GoogleAIImageAdapter',
-                'BedrockAIAdapter', 'BedrockAITextAdapter', 'BedrockAIImageAdapter',
-
-                // ❗️niente “code” per evitare HTML escapato nei PDF
-                'Code', 'CodeBlock', 'SourceEditing', 'MultiLevelList', 'MultiLevelListEditing', 'MultiLevelListUI'
+                'CloudServices','CKBox','CKBoxUtils','CKFinder','CKFinderUploadAdapter','EasyImage',
+                'CKBoxImageEdit','CKBoxImageEditEditing','CKBoxImageEditUI',
+                'RealTimeCollaborativeComments','RealTimeCollaborativeTrackChanges',
+                'RealTimeCollaborativeRevisionHistory','PresenceList','Comments',
+                'TrackChanges','TrackChangesData','RevisionHistory',
+                'WProofreader','MathType','CaseChange','FormatPainter','TableOfContents',
+                'SlashCommand','Template','DocumentOutline','Pagination',
+                'ExportPdf','ExportWord','PasteFromOfficeEnhanced',
+                'AIAssistant','AIAssistantUI','AIAssistantEditing','AIAdapter',
+                'OpenAIAdapter','OpenAITextAdapter','OpenAIImageAdapter',
+                'AzureOpenAIAdapter','AzureOpenAITextAdapter','AzureOpenAIImageAdapter',
+                'AnthropicAIAdapter','AnthropicAITextAdapter','AnthropicAIImageAdapter',
+                'GoogleAIAdapter','GoogleAITextAdapter','GoogleAIImageAdapter',
+                'BedrockAIAdapter','BedrockAITextAdapter','BedrockAIImageAdapter',
+                // niente “code/source” per evitare HTML escapato nei PDF
+                'Code','CodeBlock','SourceEditing','MultiLevelList','MultiLevelListEditing','MultiLevelListUI'
             ]
         });
-    });
-</script>
-<script>
-    // 1) Crea l'editor
-    const container = document.getElementById('jsonEditor');
-    const jsonEditor = new JSONEditor(container, {
-        mode: 'code',      // 'code' (testo), 'tree' (ad albero) o 'form'
-        mainMenuBar: false // opzionale, interfaccia più pulita
-    });
+        window.editor = editor; // opzionale, utile in console
 
-    // 2) Carica un valore iniziale dalla textarea (se presente)
-    (function preloadFromTextarea() {
-        const ta = document.getElementById('variablesUserJson');
-        if (!ta.value || ta.value.trim() === '') {
-            // default iniziale sensato
-            jsonEditor.set({
-                ownerName: { type: 'string', label: 'Intestatario', required: true },
-                courseName: { type: 'string', label: 'Nome corso', required: true },
-                hours: { type: 'number', label: 'Ore', default: 12 },
-                grade: { type: 'string', enum: ['A','B','C'] }
-            });
-        } else {
-            try {
-                jsonEditor.set(JSON.parse(ta.value));
-            } catch (e) {
-                // Se il JSON salvato era corrotto, mostra comunque il raw
-                jsonEditor.updateText(ta.value);
-            }
-        }
-    })();
-    // 3) (Opzionale) Sync live mentre l’utente digita, utile se hai anteprima
-    //    Attenzione: fai debounce per non stressare la pagina
-    let t;
-    jsonEditor.on('change', () => {
-        clearTimeout(t);
-        t = setTimeout(() => {
-            try {
-                const json = jsonEditor.get();
-                document.getElementById('variablesUserJson').value = JSON.stringify(json);
-            } catch (_) {
-                // in modalità "code" può essere temporaneamente invalido: ignora
-            }
-        }, 300);
+        // 2) click handler: usa l'istanza editor IN SCOPE
+        const btn1 = document.getElementById('btn1');
+        btn1?.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            const data = editor.getData() || '';  // ← qui ora NON è undefined
+            document.getElementById("editor").value = data;
+            // ...qui fai fetch/submit ecc.
+            createTemplate();
+        });
     });
-</script>
-<script>
     async function createTemplate() {
         const API_BASE = "/api/admin/templates";
         const json = jsonEditor.get();
@@ -219,7 +151,7 @@
             if (!response.ok) {
                 showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
                 const errors = data.errors || {};
-                if(errors != null){
+                if (errors != null) {
                     showToast(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"), {colorClass: 'bg-info'});
                 }
 
@@ -240,9 +172,52 @@
             showToast(e.message, {colorClass: 'bg-danger'});
         }
     }
-
 </script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+
+<script>
+    // 1) Crea l'editor
+    const container = document.getElementById('jsonEditor');
+    const jsonEditor = new JSONEditor(container, {
+        mode: 'code',      // 'code' (testo), 'tree' (ad albero) o 'form'
+        mainMenuBar: false // opzionale, interfaccia più pulita
+    });
+
+    // 2) Carica un valore iniziale dalla textarea (se presente)
+    (function preloadFromTextarea() {
+        const ta = document.getElementById('variablesUserJson');
+        if (!ta.value || ta.value.trim() === '') {
+            // default iniziale sensato
+            jsonEditor.set({
+                ownerName: {type: 'string', label: 'Intestatario', required: true},
+                courseName: {type: 'string', label: 'Nome corso', required: true},
+                hours: {type: 'number', label: 'Ore', default: 12},
+                grade: {type: 'string', enum: ['A', 'B', 'C']}
+            });
+        } else {
+            try {
+                jsonEditor.set(JSON.parse(ta.value));
+            } catch (e) {
+                // Se il JSON salvato era corrotto, mostra comunque il raw
+                jsonEditor.updateText(ta.value);
+            }
+        }
+    })();
+    // 3) (Opzionale) Sync live mentre l’utente digita, utile se hai anteprima
+    //    Attenzione: fai debounce per non stressare la pagina
+    let t;
+    jsonEditor.on('change', () => {
+        clearTimeout(t);
+        t = setTimeout(() => {
+            try {
+                const json = jsonEditor.get();
+                document.getElementById('variablesUserJson').value = JSON.stringify(json);
+            } catch (_) {
+                // in modalità "code" può essere temporaneamente invalido: ignora
+            }
+        }, 300);
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
 </body>
 </div>

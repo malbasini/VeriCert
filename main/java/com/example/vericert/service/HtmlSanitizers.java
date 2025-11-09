@@ -8,7 +8,7 @@ public class HtmlSanitizers {
     // CONSENTE data: per il QR base64
     private static final String[] URL_PROTO = {"http", "https", "data"};
 
-    // Se i templates contengono ancora attributi Thymeleaf (th:*),
+    // Se i template contengono ancora attributi Thymeleaf (th:*),
     // devi consentirli, altrimenti vengono rimossi.
     private static final String[] TH_ATTRS = {
             "th:text","th:utext","th:if","th:each","th:classappend",
