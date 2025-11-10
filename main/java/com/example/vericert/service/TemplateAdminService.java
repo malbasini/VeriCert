@@ -6,6 +6,8 @@ import com.example.vericert.repo.TemplateRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 // com.example.vericert.service.TemplateAdminService
 @Service
 public class TemplateAdminService {
@@ -68,5 +70,14 @@ public class TemplateAdminService {
     private String normalizeVars(String vjson) {
         if (vjson == null || vjson.isBlank()) return "[]";
         return vjson;
+    }
+    public void deactivateAll(Long tenantId,Template template) {
+        List<Template> list = repo.findAll();
+        for (Template t : list) {
+            if (t.getTenant().getId().equals(tenantId)) t.setActive(false);
+        }
+        repo.saveAll(list);
+        template.setActive(true);
+        repo.save(template);
     }
 }

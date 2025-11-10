@@ -1,7 +1,4 @@
 <div th:fragment="content(template,pageTitle, active)">
-    <!--SUMMERNOTE -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
     <div class="container mt-5">
         <hr>
         <div id="result" class="mt-3"></div>
@@ -17,7 +14,8 @@
         <div class="input-group mb-3">
             <span class="input-group-text">Template Html</span>
             <div class="form-control p-0">
-                <div id="editor" th:utext="${template.getHtml()}"></div> <!-- CKEditor host -->
+                <label for="html"></label><textarea id="html" th:utext="${template.getHtml()}" style="height:520px;"></textarea><!--Editor host -->
+                <input type="hidden" id="htmlHidden"  name="html">
             </div>
         </div>
         <div class="input-group mb-3">
@@ -26,7 +24,7 @@
                 <div id="jsonEditor" class="w-100" style="height:320px;border:1px solid #dee2e6;border-radius:.375rem;"></div>
             </div>
             <!-- textarea nascosta che verrà inviata al server -->
-            <textarea id="variablesUserJson" th:text="${template.getUserVarSchema()}" name="user_vars_schema" hidden></textarea>
+            <label for="variablesUserJson"></label><textarea id="variablesUserJson" th:text="${template.getUserVarSchema()}" name="user_vars_schema" hidden></textarea>
         </div>
         <div class="input-group mb-3">
             <div class="form-check">
@@ -41,118 +39,79 @@
         </div>
         <br>
     </div>
-    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/super-build/ckeditor.js"></script>
+    <!-- Monaco loader -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const el = document.querySelector('#editor');
-            if (!el) return;
+        // Config base
+        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
+        window.MonacoEnvironment = {
+            getWorkerUrl: () => 'data:text/javascript;charset=utf-8,' + encodeURIComponent(`
+      self.MonacoEnvironment = { baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/' };
+      importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/base/worker/workerMain.js');
+    `)
+        };
 
-            // 1) crea l'editor e tieni l'istanza in una variabile locale + window
-            let editor = await CKEDITOR.ClassicEditor.create(el, {
-                language: 'it',
-                toolbar: {
-                    items: [
-                        'heading','|','alignment','outdent','indent','|',
-                        'bold','italic','underline','strikethrough','highlight','removeFormat','|',
-                        'fontFamily','fontSize','fontColor','fontBackgroundColor','|',
-                        'bulletedList','numberedList','todoList','|',
-                        'link','blockQuote','insertTable','horizontalLine','mediaEmbed','insertImage','|',
-                        'findAndReplace','selectAll','undo','redo'
-                    ]
-                },
-                link: {
-                    decorators: {
-                        addTargetToExternalLinks: true,
-                        defaultProtocol: 'https://',
-                        toggleDownloadable: { mode: 'manual', label: 'Scaricabile', attributes: { download: 'file' } }
-                    }
-                },
-                table: {
-                    contentToolbar: [ 'tableColumn','tableRow','mergeTableCells','tableProperties','tableCellProperties' ]
-                },
-                htmlSupport: { allow: [ { name: /.*/, attributes: true, classes: true, styles: true } ] },
-                htmlEmbed: { showPreviews: true },
-                removePlugins: [
-                    'CloudServices','CKBox','CKBoxUtils','CKFinder','CKFinderUploadAdapter','EasyImage',
-                    'CKBoxImageEdit','CKBoxImageEditEditing','CKBoxImageEditUI',
-                    'RealTimeCollaborativeComments','RealTimeCollaborativeTrackChanges',
-                    'RealTimeCollaborativeRevisionHistory','PresenceList','Comments',
-                    'TrackChanges','TrackChangesData','RevisionHistory',
-                    'WProofreader','MathType','CaseChange','FormatPainter','TableOfContents',
-                    'SlashCommand','Template','DocumentOutline','Pagination',
-                    'ExportPdf','ExportWord','PasteFromOfficeEnhanced',
-                    'AIAssistant','AIAssistantUI','AIAssistantEditing','AIAdapter',
-                    'OpenAIAdapter','OpenAITextAdapter','OpenAIImageAdapter',
-                    'AzureOpenAIAdapter','AzureOpenAITextAdapter','AzureOpenAIImageAdapter',
-                    'AnthropicAIAdapter','AnthropicAITextAdapter','AnthropicAIImageAdapter',
-                    'GoogleAIAdapter','GoogleAITextAdapter','GoogleAIImageAdapter',
-                    'BedrockAIAdapter','BedrockAITextAdapter','BedrockAIImageAdapter',
-                    // niente “code/source” per evitare HTML escapato nei PDF
-                    'Code','CodeBlock','SourceEditing','MultiLevelList','MultiLevelListEditing','MultiLevelListUI'
-                ]
-            });
-            window.editor = editor; // opzionale, utile in console
+        document.addEventListener('DOMContentLoaded', function(){
+            const ta = document.getElementById('html');
 
-            // 2) click handler: usa l'istanza editor IN SCOPE
-            const btn1 = document.getElementById('btn1');
-            btn1?.addEventListener('click', (evt) => {
-                evt.preventDefault();
-                const data = editor.getData() || '';  // ← qui ora NON è undefined
-                document.getElementById("editor").value = data;
-                // ...qui fai fetch/submit ecc.
-                updateTemplate();
+            // 1) crea un contenitore per Monaco subito dopo la textarea e nascondi la textarea
+            const host = document.createElement('div');
+            host.id = 'monacoHost';
+            host.style.cssText = 'border:1px solid #dee2e6;border-radius:.375rem;height:520px;width:100%;';
+            ta.style.display = 'none';
+            ta.insertAdjacentElement('afterend', host);
+
+            // 2) inizializza Monaco leggendo il valore ATTUALE della textarea (già popolata lato server)
+            require(['vs/editor/editor.main'], function () {
+                const initial = ta.value ?? '';
+                const editor = monaco.editor.create(host, {
+                    value: initial,
+                    language: 'html',
+                    theme: 'vs',
+                    automaticLayout: true,
+                    minimap: { enabled: false },
+                    wordWrap: 'on',
+                    fontSize: 14,
+                    tabSize: 2,
+                    insertSpaces: true
+                });
+                window.monacoEditor = editor;
+
+                // 3) al click “Salva”, copia il contenuto di Monaco DENTRO la textarea e fai submit/fetch
+                document.getElementById('btn1')?.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    ta.value = editor.getValue();// 👈 la textarea rimane la “fonte della verità” per il backend
+                    // se usi fetch:
+                        const json = editorJson.get();
+                        document.getElementById('variablesUserJson').value = JSON.stringify(json);
+                        const id = document.getElementById('id')?.value?.trim();
+                        const name= document.getElementById('name')?.value?.trim();
+                        const version = document.getElementById('version')?.value?.trim();
+                        const html = ta.value;  // 👈 invariato per il controller
+                        const variablesUserJson= document.getElementById('variablesUserJson')?.value?.trim();
+                        const active = document.getElementById('active')?.checked;
+
+
+                    const res = await fetch(`/api/admin/templates/${id}/edit`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(
+                            {
+                                id,
+                                name,
+                                version,
+                                html,
+                                variablesUserJson,
+                                active
+                            }
+                        )
+                    });
+                    const raw = await res.text(); let data=null; try{data=raw?JSON.parse(raw):null;}catch{}
+                    if (!res.ok) { showToast(data?.message || raw || `HTTP ${res.status}`); return; }
+                    showToast?.('Template aggiornato', { colorClass: 'bg-success' });
+                });
             });
         });
-        async function updateTemplate() {
-            const API_BASE = "/api/admin/templates";
-            const name = document.getElementById("name").value.trim();
-            const id = document.getElementById("id").value.trim();
-            const version = document.getElementById("version").value.trim();
-            const html = document.getElementById("editor").value.trim();
-            alert(html);
-            const variablesUserJson = document.getElementById("variablesUserJson").value.trim();
-            const active = document.getElementById("active").checked;
-            try {
-                const response = await fetch(`${API_BASE}/${id}/edit`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        id: id,
-                        name: name,
-                        version: version,
-                        html:html,
-                        variablesUserJson: variablesUserJson,
-                        active: active
-                    })
-                });
-
-                const resultDiv = document.getElementById("result");
-                const data = await response.json();
-                if (!response.ok) {
-                    showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
-                    const errors = data.errors || {};
-                    showToast(Object.entries(errors).map(([field, msgs]) => `${field}: ${msgs[0]}`).join("\n"), {colorClass: 'bg-info'});
-                } else {
-                    resultDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        ✅ <b>Template aggiornato con successo</b><br>
-                        <b>ID:</b> ${data.id}<br>
-                        <b>Nome:</b> ${data.name}<br>
-                        <b>Versione:</b> ${data.version}<br>
-                        <b>Attivo:</b> ${data.active}<br>
-                        <b>Nome tenant:</b> ${data.tenant}<br>
-                    </div>
-                `;
-                    showToast("Template aggiornato con successo", {colorClass: 'bg-success'});
-                }
-            }
-            catch (error) {
-                console.error("Errore durante l'aggiornamento del template:", error);
-                showToast(error.message,{ colorClass: 'bg-danger' });
-            }
-        }
     </script>
     <script>
         // 1) Crea l'editor

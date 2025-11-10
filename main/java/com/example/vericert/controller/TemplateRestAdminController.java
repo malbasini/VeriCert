@@ -96,6 +96,9 @@ public class TemplateRestAdminController {
         Template t = null;
         try {
             t  = service.create(req);
+            if(t.isActive())
+                service.deactivateAll(currentTenantId(),t);
+
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -134,6 +137,8 @@ public class TemplateRestAdminController {
         }
         try {
            t  = service.update(id, req);
+           if(t.isActive())
+                service.deactivateAll(currentTenantId(),t);
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

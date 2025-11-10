@@ -107,7 +107,7 @@ public class CertificateService {
         // 1) Render HTML e genera PDF
         //    (se vuoi storicizzare le vars usate, salvale in Template o meglio in una tabella "certificate_data")
         String html = templateService.renderHtml(templateId, vars, sysVars);
-        TemplateHtmlSanitizer.POLICY.sanitize(html);
+        //TemplateHtmlSanitizer.POLICY.sanitize(html);
         byte[] pdf  = htmlToPdf(html); // tua util
         // Costruisci URL pubblico coerente
         String Url = savePdf(serial, pdf,tenant);
