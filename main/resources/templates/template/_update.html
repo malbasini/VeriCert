@@ -39,18 +39,19 @@
         </div>
         <br>
     </div>
-    <!-- Monaco loader -->
-    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+    <!-- Monaco loader (LOCALE) -->
+    <script src="/vendor/monaco-editor/min/vs/loader.js"></script>
     <script>
-        // Config base
-        require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs' } });
+        // Base locale
+        require.config({ paths: { 'vs': '/vendor/monaco-editor/min/vs' } });
+
+        // Worker locale (data: URL che punta al workerMain.js locale)
         window.MonacoEnvironment = {
             getWorkerUrl: () => 'data:text/javascript;charset=utf-8,' + encodeURIComponent(`
-      self.MonacoEnvironment = { baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/' };
-      importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/base/worker/workerMain.js');
+      self.MonacoEnvironment = { baseUrl: '/vendor/monaco-editor/min/' };
+      importScripts('/vendor/monaco-editor/min/vs/base/worker/workerMain.js');
     `)
         };
-
         document.addEventListener('DOMContentLoaded', function(){
             const ta = document.getElementById('html');
 
