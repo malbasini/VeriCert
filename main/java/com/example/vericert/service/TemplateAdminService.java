@@ -93,6 +93,8 @@ public class TemplateAdminService {
             }
         }
         if (!valid) {
+            t.setActive(true);
+            repo.save(t);
             throw new IllegalStateException("Almeno un template deve essere attivo");
         }
 
