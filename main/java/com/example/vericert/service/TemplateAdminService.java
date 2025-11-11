@@ -80,4 +80,21 @@ public class TemplateAdminService {
         template.setActive(true);
         repo.save(template);
     }
+
+    public void controlsValidity(Long tenantId, Template t) {
+        List<Template> list = repo.findAll();
+        boolean valid = false;
+        for (Template v : list) {
+            if (v.getTenant().getId().equals(tenantId)){
+                if(v.isActive()) {
+                    valid = true;
+                    break;
+                }
+            }
+        }
+        if (!valid) {
+            throw new IllegalStateException("Almeno un template deve essere attivo");
+        }
+
+    }
 }

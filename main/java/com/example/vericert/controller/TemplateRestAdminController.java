@@ -139,6 +139,9 @@ public class TemplateRestAdminController {
            t  = service.update(id, req);
            if(t.isActive())
                 service.deactivateAll(currentTenantId(),t);
+           if(!t.isActive()){
+               service.controlsValidity(currentTenantId(),t);
+           }
         }
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
