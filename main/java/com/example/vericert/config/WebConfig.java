@@ -28,7 +28,16 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResolver(new PathResourceResolver());
         registry.addResourceHandler("/files/**")
                 .addResourceLocations("file:storage/"); // -> /files/... serve storage/...
-
+        registry.addResourceHandler("/files/storage/**")
+                .addResourceLocations("file:storage/14/logo.png")
+                .setCachePeriod(3600)
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver());
+        registry.addResourceHandler("/files/storage/**")
+                .addResourceLocations("file:storage/14/signature.png")
+                .setCachePeriod(3600)
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver());
     }
 
     // Opzionale: Configura la mappatura della home senza controller

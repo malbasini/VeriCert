@@ -4,10 +4,13 @@
 <div th:fragment="content">
 <body>
                 <div class="d-flex gap-2 align-items-center mb-3 only-list">
-                    <input id="q" class="form-control" placeholder="Cerca utente o email…" style="max-width:380px">
+                    <div class="input-group w-auto">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <label for="q"></label><input id="q" class="form-control" placeholder="Cerca utente o email…" style="max-width:380px">
+                    </div>
                     <button class="btn btn-outline-secondary" onclick="reload()">Cerca</button>
                     <div id= "div1" class="ms-auto d-flex gap-2">
-                        <select id="bulkValue" class="form-select form-select-sm w-auto">
+                        <label for="bulkValue"></label><select id="bulkValue" class="form-select form-select-sm w-auto">
                             <option disabled selected>Bulk…</option>
                             <optgroup label="Ruolo">
                                 <option value="ROLE:ADMIN">ADMIN</option>
@@ -20,8 +23,8 @@
                                 <option value="STATUS:SUSPENDED">Sospendi</option>
                             </optgroup>
                         </select>
-                        <button class="btn btn-sm btn-outline-primary" onclick="applyBulk()">Applica</button>
-                        <a class="btn btn-sm btn-outline-success" href="/api/admin/memberships/export.csv">Export CSV</a>
+                        <button class="btn btn-sm btn-dark" onclick="applyBulk()"><i class="fa-regular fa-circle-up"></i>Applica</button>
+                        <a class="btn btn-sm btn-warning" href="/api/admin/memberships/export.csv"><i class="bi bi-filetype-csv"></i>Export CSV</a>
                     </div>
                 </div>
 
@@ -30,7 +33,7 @@
                         <thead>
                         <tr>
                             <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
-                            <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th>
+                            <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th><th></th>
                         </tr>
                         </thead>
                         <tbody id="rows"></tbody>
@@ -57,14 +60,38 @@
             return sel;
         }
 
-        function creaDetail(id)
-        {
-            const nuovoLink = document.createElement('a');
-            nuovoLink.setAttribute('href', `/admin/users/${id}/detail`);
-            nuovoLink.textContent = 'Dettaglio';
-            nuovoLink.className = 'btn btn-sm btn-outline-secondary';
-
-            return nuovoLink;
+        function creaAzioni(id,role){
+            // wrapper input-group
+            const group = document.createElement('div');
+            group.className = 'input-group input-group-sm w-auto';
+            // bottone dettaglio
+            const aDett = document.createElement('a');
+            aDett.href = `/admin/users/${id}/detail`;
+            aDett.className = 'btn btn-outline-secondary me-2 rounded';
+            aDett.innerHTML = '<i class="bi bi-info-circle me-1"></i>Dettaglio';
+            // bottone elimina
+            if(role==='VIEWER') {
+                const btnDel = document.createElement('button');
+                btnDel.className = 'btn btn-sm btn-outline-danger rounded';
+                btnDel.innerHTML = `<i class="bi bi-trash"></i> Elimina`;
+                btnDel.onclick = async ()  => {
+                    try {
+                        const confirmed = confirm('Sei sicuro di voler eliminare questo utente?');
+                        if (!confirmed) return;
+                        await api(`${API}/${id}/delete`, { method: 'DELETE' });
+                        showToast('Utente eliminato', { colorClass: 'bg-success' });
+                        reload();
+                    } catch (e) {
+                        showToast(e.message, { colorClass: 'bg-danger' });
+                    }
+                }
+                group.appendChild(aDett);
+                group.appendChild(btnDel);
+            }
+            else {
+                group.appendChild(aDett);
+            }
+            return group;
         }
         function statusSwitch(status, id){
             const wrap = document.createElement('div'); wrap.className='form-check form-switch';
@@ -93,12 +120,14 @@
           <td>${m.email??''}</td>
           <td></td>
           <td></td>
-          <td></td>`;
+          <td></td>
+          ${m.role==='VIEWER'?'':`<td></td>`}
+          `;
                 rows.appendChild(tr);
                 tr.children[0].appendChild(checkbox(m.id));
                 tr.children[4].appendChild(roleSelect(m.role, m.id));
                 tr.children[5].appendChild(statusSwitch(m.status, m.id));
-                tr.children[6].appendChild(creaDetail(m.id));
+                tr.children[6].appendChild(creaAzioni(m.id,m.role));
             });
 
             const pager = document.getElementById('pager'); pager.innerHTML='';

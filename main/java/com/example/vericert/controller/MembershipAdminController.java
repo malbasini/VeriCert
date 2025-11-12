@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/memberships")
@@ -116,4 +118,17 @@ public class MembershipAdminController {
                 .body(sb.toString());
     }
     private static String escape(String s){ return s==null? "": s.replace("\"","\"\""); }
+
+    @DeleteMapping(value="/{id}/delete")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try
+        {
+            service.deleteUser(id);
+            return ResponseEntity.ok(Map.of("message","Utente eliminato correttamente"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
 }

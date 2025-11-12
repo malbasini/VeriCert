@@ -2,11 +2,11 @@
 <div th:fragment="content(certificate,variablesUserJson,variablesDataJson, pageTitle, active,currentTenant,templateName)">
 <div class="container py-3">
     <div class="btn-group" role="group" aria-label="Azioni">
-        <a class="btn btn-outline-secondary me-3"
+        <a class="btn btn-outline-secondary me-3 rounded"
            th:href="@{/admin/certificates}">
             <i class="bi bi-arrow-left me-1"></i> Torna alla lista
         </a>
-        <a class="btn btn-outline-secondary"
+        <a class="btn btn-outline-secondary rounded"
            th:href="@{'/admin/certificates/' + ${certificate.id} + '/revoke'}">
             <i class="bi bi-x-octagon me-1"></i> Revoca certificato
         </a>

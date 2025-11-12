@@ -103,8 +103,7 @@
                         <!-- mini anteprima -->
                         <div class="border rounded p-3 bg-light">
                             <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <img th:src="*{logoUrl}" alt="logo preview" style="max-height:60px;">
+                                   <img th:src="|@{/files/storage/{t}/(t='logo.png')}|" alt="logo preview" style="max-height:60px;">
                                 </div>
                                 <div>
                                     <div class="fw-semibold" th:text="*{issuerName}">Mario Rossi</div>
@@ -112,7 +111,7 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <img th:src="*{signatureImageUrl}" alt="signature preview" style="max-height:60px;">
+                                <img th:src="|@{/files/storage/{s}/(s='signature.png')}|" alt="signature preview" style="max-height:60px;">
                             </div>
                         </div>
 

@@ -2,8 +2,8 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="input-group w-auto">
             <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input id="q" type="search" class="form-control" placeholder="Cerca per nome…" th:value="${q}">
-            <button class="btn btn-outline-secondary" onclick="location.href='?q='+encodeURIComponent(document.getElementById('q').value)">Cerca</button>
+            <input id="q" type="search" class="form-control me-2 rounded-end-4" placeholder="Cerca per nome…" th:value="${q}">
+            <button class="btn btn-outline-secondary rounded" onclick="location.href='?q='+encodeURIComponent(document.getElementById('q').value)">Cerca</button>
         </div>
         <a class="btn btn-primary" th:href="@{/admin/templates/new}">
             <i class="bi bi-plus-lg"></i> Nuovo template
@@ -35,14 +35,14 @@
                 </td>
                 <td class="text-end">
                     <div class="btn-group">
-                        <a class="btn btn-outline-secondary btn-sm me-2" th:href="@{|/admin/templates/${t.id}/edit|}">
+                        <a class="btn btn-outline-secondary btn-sm me-2 rounded" th:href="@{|/admin/templates/${t.id}/edit|}">
                             <i class="bi bi-pencil"></i> Modifica
                         </a>
-                        <a class="btn btn-outline-primary btn-sm me-2" th:href="@{|/admin/templates/${t.id}/preview|}">
+                        <a class="btn btn-outline-primary btn-sm me-2 rounded" th:href="@{|/admin/templates/${t.id}/preview|}">
                             <i class="bi bi-eye"></i> Preview
                         </a>
                         <th:block th:if="${!t.active}">
-                        <a class="js-del btn btn-outline-danger btn-sm" href="#" th:onclick="|openItem(event, ${t.id})|">
+                        <a class="js-del btn btn-outline-danger btn-sm rounded" href="#" th:onclick="|openItem(event, ${t.id})|">
                             <i class="bi bi-trash"></i> Elimina
                         </a>
                         </th:block>

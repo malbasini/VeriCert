@@ -7,6 +7,7 @@ import com.example.vericert.dto.PageResp;
 import com.example.vericert.enumerazioni.Role;
 import com.example.vericert.enumerazioni.Status;
 import com.example.vericert.repo.MembershipRepository;
+import com.example.vericert.repo.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,11 +20,12 @@ import java.util.List;
 @Service
 public class MembershipAdminService {
     private final MembershipRepository repo;
+    private final UserRepository userRepo;
 
-    public MembershipAdminService(MembershipRepository repo) {
+    public MembershipAdminService(MembershipRepository repo,UserRepository userRepo) {
         this.repo = repo;
+        this.userRepo = userRepo;
     }
-
     @Transactional
     public void changeRole(MembershipId membershipId, Role newRole, String actor) {
         var m = repo.findById(membershipId)
@@ -81,5 +83,19 @@ public class MembershipAdminService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
+    }
+
+    @Transactional
+    public void deleteUser(Long id) throws Exception {
+        MembershipId id2 = new MembershipId(currentTenantId(), id);
+        try
+        {
+        repo.deleteById(id2);
+        userRepo.deleteById(id);
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Errore durante la cancellazione dell'utente");
+        }
     }
 }
