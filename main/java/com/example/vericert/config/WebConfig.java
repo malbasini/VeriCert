@@ -2,11 +2,16 @@ package com.example.vericert.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.resource.PathResourceResolver;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${app.storage-root}")   // es: /vericert/storage/  (con / finale!)
+    private String storageRoot;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/static/**") // Consente solo le risorse statiche
@@ -26,18 +31,16 @@ public class WebConfig implements WebMvcConfigurer {
                 .setCachePeriod(3600)
                 .resourceChain(true)
                 .addResolver(new PathResourceResolver());
+        String location = (storageRoot.startsWith("/") || storageRoot.startsWith("file:"))
+                ? (storageRoot.startsWith("file:") ? storageRoot : "file:" + storageRoot)
+                : "file:" + storageRoot;
+
+        if (!location.endsWith("/")) location += "/";
+
         registry.addResourceHandler("/files/**")
-                .addResourceLocations("file:storage/"); // -> /files/... serve storage/...
-        registry.addResourceHandler("/files/storage/**")
-                .addResourceLocations("file:storage/14/logo.png")
-                .setCachePeriod(3600)
-                .resourceChain(true)
-                .addResolver(new PathResourceResolver());
-        registry.addResourceHandler("/files/storage/**")
-                .addResourceLocations("file:storage/14/signature.png")
-                .setCachePeriod(3600)
-                .resourceChain(true)
-                .addResolver(new PathResourceResolver());
+                .addResourceLocations(location)
+                .setCacheControl(CacheControl.noCache())   // o maxAge(...) se vuoi caching
+                .resourceChain(true);
     }
 
     // Opzionale: Configura la mappatura della home senza controller

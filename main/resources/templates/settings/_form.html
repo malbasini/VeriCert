@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="it" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<div th:fragment="content(form,usage,pageTitle, active)">
+<div th:fragment="content(form,usage,pageTitle, active,tenantId)">
 <body class="bg-light">
 
 <div class="container my-4">
@@ -103,7 +103,7 @@
                         <!-- mini anteprima -->
                         <div class="border rounded p-3 bg-light">
                             <div class="d-flex align-items-center">
-                                   <img th:src="|@{/files/storage/{t}/(t='logo.png')}|" alt="logo preview" style="max-height:60px;">
+                                   <img id="image" th:src="*{logoUrl}"  th:alt="@{/files/{tenantId}/logo.png(tenantId=${tenantId})}" style="max-height:60px;">
                                 </div>
                                 <div>
                                     <div class="fw-semibold" th:text="*{issuerName}">Mario Rossi</div>
@@ -111,7 +111,7 @@
                                 </div>
                             </div>
                             <div class="mt-3">
-                                <img th:src="|@{/files/storage/{s}/(s='signature.png')}|" alt="signature preview" style="max-height:60px;">
+                                <img th:src="*{signatureImageUrl}" alt="signature preview" style="max-height:60px;">
                             </div>
                         </div>
 

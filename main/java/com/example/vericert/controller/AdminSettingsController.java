@@ -33,7 +33,7 @@ public class AdminSettingsController {
         TenantSettingsDto dto = service.loadForTenant(tenantId);
 
         model.addAttribute("form", dto);
-
+        model.addAttribute("tenantId", tenantId);
         // TODO: puoi anche caricare "usage" dal tuo UsageMeterService e metterlo nel model:
         // model.addAttribute("usage", usageMeterService.getMonthlyUsage(tenantId));
         // Per ora fingi:

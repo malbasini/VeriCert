@@ -165,6 +165,8 @@ public class TenantSettingsService {
         map.put("issuerTitle", dto.issuerRole());
         map.put("themeColor", dto.primaryColor());
         map.put("publicBaseUrl", dto.website());
+        map.put("logoUrl", dto.logoUrl());
+        map.put("signatureImageUrl", dto.signatureImageUrl());
         // puoi aggiungere anche logoUrl, footerText ecc. in futuro
         return map;
     }
