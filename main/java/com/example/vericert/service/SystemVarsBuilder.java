@@ -27,7 +27,7 @@ public class SystemVarsBuilder {
     public Map<String, Object> buildPreviewVars() {
         String serial = UUID.randomUUID().toString().replace("-","").substring(0,20).toUpperCase();
         String code = CertificateService.randomCode(24);
-        String verifyUrl = props.getPublicBaseUrl() + "/v/" + code;
+        String verifyUrl = props.getBaseUrlVerify() + "/v/" + code;
         byte[] qr = QrUtil.png(verifyUrl, 300);
         String qrBase64 = Base64.getEncoder().encodeToString(qr);
         Map<String, Object> vars = tenantSettingsService.buildBaseSysVarsForTenant(currentTenantId());
