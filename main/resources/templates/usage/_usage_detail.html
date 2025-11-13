@@ -3,10 +3,14 @@
 <div th:fragment="content(pageTitle, active, tenantId,history7days)">
 <body class="container py-4">
 
-<div class="mb-3">
-    <a class="btn btn-link" th:href="@{/admin}">&larr; Torna alla dashboard</a>
+<div class="btn-group" role="group" aria-label="Azioni">
+    <a class="btn btn-outline-secondary me-3 rounded"
+       th:href="@{/admin/settings}">
+        <i class="bi bi-arrow-left me-1"></i> Torna alle impostazioni
+    </a>
 </div>
-
+<br>
+<br>
 <div class="card shadow-sm">
     <div class="card-header">
         <h5 class="mb-0">
