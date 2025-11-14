@@ -31,7 +31,8 @@ public Map<String,Object> createCheckout(@RequestParam Long tenantId,
                                          @RequestParam long amountMinor,
                                          @RequestParam(required=false) Long certificateId,
                                          @RequestParam(defaultValue="EUR") String currency,
-                                         @RequestParam(defaultValue="Certificato VeriCert") String description
+                                         @RequestParam(defaultValue="Certificato VeriCert") String description,
+                                         @RequestParam String plan
 ) throws Exception {
     var lineItem = new HashMap<String,Object>();
     lineItem.put("price_data", Map.of(
