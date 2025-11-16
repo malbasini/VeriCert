@@ -1,15 +1,12 @@
 package com.example.vericert.domain;
-
 import jakarta.persistence.*;
-
 import java.time.Instant;
 
 // Piano “master” da cui generi sia l’HTML sia i limiti scritti in tenant_settings
 @Entity
 @Table(name = "plan_definitions")
-public class PlanDefinition {
+public class PlanDefinitions {
     @Id
-    @GeneratedValue
     private Long id;
     @Column(unique = true, nullable = false) // es. "FREE", "PRO"...
     private String code;
@@ -21,7 +18,7 @@ public class PlanDefinition {
     @Column(name = "storage_per_month")
     private long storageMb;            // 100, 10_000...
     @Column(name = "support_priority")
-    private boolean supportPriority;   // true/false
+    private String supportPriority;
     // prezzi in centesimi (IVA esclusa o inclusa: decidi una convenzione)
     @Column(name = "price_monthly_cents")
     private long priceMonthlyCents;
@@ -92,11 +89,11 @@ public class PlanDefinition {
         this.storageMb = storageMb;
     }
 
-    public boolean isSupportPriority() {
+    public String isSupportPriority() {
         return supportPriority;
     }
 
-    public void setSupportPriority(boolean supportPriority) {
+    public void setSupportPriority(String supportPriority) {
         this.supportPriority = supportPriority;
     }
 

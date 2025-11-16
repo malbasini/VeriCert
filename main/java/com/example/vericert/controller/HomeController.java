@@ -13,13 +13,6 @@ public class HomeController {
     public HomeController(){
     }
 
-    @GetMapping()
-    public String showHomePage(Model model) {
-        Long tenantId = currentTenantId();
-        model.addAttribute("tenantId", tenantId);
-        return "index";
-    }
-
     @GetMapping("/login")
     public String showLoginForm() {return "security/login";}
 

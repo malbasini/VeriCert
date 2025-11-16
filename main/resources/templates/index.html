@@ -34,24 +34,17 @@
                 </div>
                 <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
             </div>
-
-            <!-- NUOVO: Toggle IVA -->
-            <div class="d-inline-flex align-items-center gap-2 ms-4">
-                <span>IVA</span>
-                <div class="form-check form-switch m-0" title="Solo visuale: non influisce sul pagamento">
-                    <input class="form-check-input" type="checkbox" id="vatToggle" checked>
-                </div>
-                <span>inclusa</span>
-            </div>
         </div>
         <div id="annualBadge" class="small" style="color:#a6b3ff; display:none;">
             Prezzo mostrato al mese, <strong>fatturato annualmente (-20%)</strong>.
         </div>
         <div id="vatBadge" class="small" style="color:#a6b3ff;">
-            Prezzi mostrati <strong>IVA inclusa (22%)</strong>. Il toggle è solo visivo.
+            Prezzi mostrati <strong>IVA inclusa (22%)</strong>
         </div>
         </div>
         <div class="row g-4">
+        <th:block th:each="plan : ${items}">
+        <th:block th:if="|${plan.getCode() == 'FREE'}|">
         <!-- FREE -->
         <div class="col-12 col-md-6 col-xl-3 d-flex">
             <div class="pricing-card p-4 d-flex flex-column w-100">
@@ -61,10 +54,10 @@
                 <div class="price" data-price-id="FREE">€0<span class="fs-6 fw-normal price-period">/mese</span></div>
                 <p class="subtitle mt-2">Per test e uso personale</p>
                 <ul class="list-unstyled mt-3 mb-4">
-                    <li class="feature">✔ 5 certificati/mese</li>
-                    <li class="feature">✔ 100 chiamate API/mese</li>
-                    <li class="feature">✔ 100 MB storage</li>
-                    <li class="feature">— Supporto community</li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getCertsPerMonth() + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getApiCallsPerMonth() + ' API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getStorageMb() + ' MB storage'}|"></th:block></li>
+                    <li class="feature">— <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
                 </ul>
                 <div class="mt-auto d-grid gap-2">
                     <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
@@ -77,8 +70,9 @@
                 </div>
             </div>
         </div>
-
+        </th:block>
         <!-- PRO -->
+        <th:block th:if="|${plan.getCode() == 'PRO'}|">
         <div class="col-12 col-md-6 col-xl-3 d-flex">
             <div class="pricing-card p-4 d-flex flex-column w-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -87,15 +81,15 @@
                 <div class="price" data-price-id="PRO">€9,90<span class="fs-6 fw-normal price-period">/mese</span></div>
                 <p class="subtitle mt-2">Per professionisti e freelance</p>
                 <ul class="list-unstyled mt-3 mb-4">
-                    <li class="feature">✔ 100 certificati/mese</li>
-                    <li class="feature">✔ 50.000 chiamate API/mese</li>
-                    <li class="feature">✔ 5 GB storage</li>
-                    <li class="feature">✔ Supporto email</li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getCertsPerMonth() + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getApiCallsPerMonth(),0,'POINT') + ' API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${(plan.getStorageMb()/1000) + ' GB storage'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
                 </ul>
                 <div class="mt-auto d-grid gap-2">
                     <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
-                        <input type="hidden" name="amountMinor" value="990" data-amount-id="PRO"/>
+                        <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="PRO"/>
                         <input type="hidden" name="currency" value="EUR"/>
                         <input type="hidden" name="description" value="Piano PRO (Mensile)" data-desc-id="PRO"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
@@ -106,8 +100,9 @@
                 </div>
             </div>
         </div>
-
+        </th:block>
         <!-- BUSINESS -->
+        <th:block th:if="|${plan.getCode() == 'BUSINESS'}|">
         <div class="col-12 col-md-6 col-xl-3 d-flex">
             <div class="pricing-card p-4 d-flex flex-column w-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -116,15 +111,15 @@
                 <div class="price" data-price-id="BUSINESS">€29,90<span class="fs-6 fw-normal price-period">/mese</span></div>
                 <p class="subtitle mt-2">Per piccoli team e aziende</p>
                 <ul class="list-unstyled mt-3 mb-4">
-                    <li class="feature">✔ 500 certificati/mese</li>
-                    <li class="feature">✔ 200.000 chiamate API/mese</li>
-                    <li class="feature">✔ 25 GB storage</li>
-                    <li class="feature">✔ Supporto prioritario</li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getCertsPerMonth() + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getApiCallsPerMonth(),0,'POINT') + ' API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${(plan.getStorageMb()/1000) + ' GB storage'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
                 </ul>
                 <div class="mt-auto d-grid gap-2">
                     <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
-                        <input type="hidden" name="amountMinor" value="2990" data-amount-id="BUSINESS"/>
+                        <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="BUSINESS"/>
                         <input type="hidden" name="currency" value="EUR"/>
                         <input type="hidden" name="description" value="Piano BUSINESS (Mensile)" data-desc-id="BUSINESS"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
@@ -135,8 +130,9 @@
                 </div>
             </div>
         </div>
-
+        </th:block>
         <!-- ENTERPRISE -->
+        <th:block th:if="|${plan.getCode() == 'ENTERPRISE'}|">
         <div class="col-12 col-md-6 col-xl-3 d-flex">
             <div class="pricing-card p-4 d-flex flex-column w-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -145,15 +141,15 @@
                 <div class="price" data-price-id="ENTERPRISE">€99,90<span class="fs-6 fw-normal price-period">/mese</span></div>
                 <p class="subtitle mt-2">Per grandi volumi e SLA</p>
                 <ul class="list-unstyled mt-3 mb-4">
-                    <li class="feature">✔ 5.000 certificati/mese</li>
-                    <li class="feature">✔ 1M chiamate API/mese</li>
-                    <li class="feature">✔ 200 GB storage</li>
-                    <li class="feature">✔ Supporto Enterprise & SLA</li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getCertsPerMonth(),0,'POINT') + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getApiCallsPerMonth(),0,'POINT') + ' chiamate API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${(plan.getStorageMb()/1000) + ' GB storage'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
                 </ul>
                 <div class="mt-auto d-grid gap-2">
                     <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
-                        <input type="hidden" name="amountMinor" value="9990" data-amount-id="ENTERPRISE"/>
+                        <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="ENTERPRISE"/>
                         <input type="hidden" name="currency" value="EUR"/>
                         <input type="hidden" name="description" value="Piano ENTERPRISE (Mensile)" data-desc-id="ENTERPRISE"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
@@ -164,8 +160,9 @@
                 </div>
             </div>
         </div>
+        </th:block>
+      </th:block>
     </div>
-
     <p class="text-center mt-4" style="color:#a6b3ff">
         * Sconto annuale applicato al totale (12 mesi) — modificabile in seguito.
     </p>
@@ -194,9 +191,6 @@
     function refreshPrices() {
         // badge
         document.getElementById('annualBadge').style.display = annualMode ? 'block' : 'none';
-        document.getElementById('vatBadge').innerHTML =
-            `Prezzi mostrati <strong>IVA ${vatIncluded ? 'inclusa' : 'esclusa' } (${Math.round(VAT_RATE*100)}%)</strong>. Il toggle è solo visivo.`;
-
         // la label vicino al numero resta “/mese” (anche in annuale mostriamo la media mensile)
         document.querySelectorAll('.price-period').forEach(el => el.textContent = '/mese');
 
@@ -238,9 +232,6 @@
     // Toggle handlers
     const billingToggle = document.getElementById('billingToggle');
     billingToggle.addEventListener('change', e => { annualMode = e.target.checked; refreshPrices(); });
-
-    const vatToggle = document.getElementById('vatToggle');
-    vatToggle.addEventListener('change', e => { vatIncluded = e.target.checked; refreshPrices(); });
 
     // Stato iniziale
     annualMode = false; vatIncluded = true; refreshPrices();
