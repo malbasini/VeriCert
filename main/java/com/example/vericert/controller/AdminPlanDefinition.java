@@ -5,6 +5,7 @@ import com.example.vericert.service.AdminPlanDefinitionsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -17,10 +18,12 @@ public class AdminPlanDefinition {
         this.service = service;
     }
     @GetMapping("/")
-    public String home(Model model)
+    public String home(@RequestParam(required = false,defaultValue = "false") boolean annual,
+                       Model model)
     {
         Long tenantId = currentTenantId();
         model.addAttribute("tenantId", tenantId);
+        model.addAttribute("billingAnnual", annual);
         PlanDefinitions p = service.getPlan("FREE".toUpperCase());
         if(p != null)
         {

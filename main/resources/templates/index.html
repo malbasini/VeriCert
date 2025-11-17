@@ -30,7 +30,7 @@
             <div class="d-inline-flex align-items-center gap-2">
                 <span>Mensile</span>
                 <div class="form-check form-switch m-0">
-                    <input class="form-check-input" type="checkbox" id="billingToggle">
+                    <input class="form-check-input" type="checkbox" id="billingToggle" th:checked="${billingAnnual}">
                 </div>
                 <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
             </div>
@@ -45,7 +45,7 @@
         <div class="row g-4">
         <th:block th:each="plan : ${items}">
         <th:block th:if="|${plan.getCode() == 'FREE'}|">
-        <!-- FREE -->
+            <!-- FREE -->
         <div class="col-12 col-md-6 col-xl-3 d-flex">
             <div class="pricing-card p-4 d-flex flex-column w-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -91,6 +91,13 @@
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
                         <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="PRO"/>
                         <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="planCode" value="PRO"/>
+                        <th:block th:if="${billingAnnual}">
+                            <input type="hidden" name="billingCycle" value="ANNUAL"/>
+                        </th:block>
+                        <th:block th:if="${!billingAnnual}">
+                            <input type="hidden" name="billingCycle" value="MONTHLY"/>
+                        </th:block>
                         <input type="hidden" name="description" value="Piano PRO (Mensile)" data-desc-id="PRO"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
@@ -121,6 +128,13 @@
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
                         <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="BUSINESS"/>
                         <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="planCode" value="BUSINESS"/>
+                        <th:block th:if="${billingAnnual}">
+                            <input type="hidden" name="billingCycle" value="ANNUAL"/>
+                        </th:block>
+                        <th:block th:if="${!billingAnnual}">
+                            <input type="hidden" name="billingCycle" value="MONTHLY"/>
+                        </th:block>
                         <input type="hidden" name="description" value="Piano BUSINESS (Mensile)" data-desc-id="BUSINESS"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
@@ -151,6 +165,13 @@
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
                         <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="ENTERPRISE"/>
                         <input type="hidden" name="currency" value="EUR"/>
+                        <th:block th:if="${billingAnnual}">
+                            <input type="hidden" name="billingCycle" value="ANNUAL"/>
+                        </th:block>
+                        <th:block th:if="${!billingAnnual}">
+                            <input type="hidden" name="billingCycle" value="MONTHLY"/>
+                        </th:block>
+                        <input type="hidden" name="planCode" value="ENTERPRISE"/>
                         <input type="hidden" name="description" value="Piano ENTERPRISE (Mensile)" data-desc-id="ENTERPRISE"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
@@ -167,10 +188,21 @@
         * Sconto annuale applicato al totale (12 mesi) — modificabile in seguito.
     </p>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cb = document.getElementById('billingToggle');
 
-
+        cb.addEventListener('change', () => {
+            alert('onchange: ' + cb.checked);
+            // Ricostruisce l'URL corrente e aggiorna/aggiunge ?billing=annual|monthly
+            const url = new URL(window.location.href);
+            url.searchParams.set('annual', cb.checked ? true : false);
+            // Se la route è /pricing, resta su /pricing mantenendo altri parametri
+            window.location.href = url.toString();
+        });
+    });
+</script>
 <script th:inline="javascript">
     const TENANT_ID = document.getElementById('tenantId').value;
     // Prezzi mensili listino (centesimi, NETTI). I pagamenti usano questi importi (o il totale annuale scontato).
