@@ -7,7 +7,6 @@ import com.example.vericert.repo.UsageMeterRepository;
 import com.example.vericert.dto.DailyUsageDTO;
 import com.example.vericert.dto.TenantUsageStatusDTO;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -49,7 +48,7 @@ public class TenantUsageStatusService {
                     ? usage.getPdfStorageMb()
                     : BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
-            BigDecimal maxStorage = settings.getMaxStorageMb();
+            BigDecimal maxStorage = BigDecimal.valueOf(settings.getStorageMb());
 
             String status = computeStorageStatus(used, maxStorage);
 
@@ -59,8 +58,8 @@ public class TenantUsageStatusService {
                     usage.getCertsGenerated(),
                     usage.getApiCalls(),
                     maxStorage,
-                    settings.getMaxCertsPerMonth(),
-                    settings.getMaxApiCallsPerDay(),
+                    Math.toIntExact(settings.getCertsPerMonth()),
+                    Math.toIntExact(settings.getApiCallPerMonth()),
                     status
             );
 

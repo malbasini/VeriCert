@@ -1,8 +1,6 @@
 package com.example.vericert.domain;
 
 import jakarta.persistence.*;
-
-import java.math.BigDecimal;
 import java.time.Instant;
 
 @Entity
@@ -11,6 +9,32 @@ public class TenantSettings {
     @Id
     @Column(name = "tenant_id")
     private Long tenantId;
+    @Column(name = "plan_code",nullable = false)
+    private String planCode;
+    @Column(name = "billing_cycle",nullable = false)
+    private String billingCycle;
+    @Column(name = "current_period_start",nullable = false)
+    private Instant currentPeriodStart;
+    @Column(name = "current_period_end",nullable = false)
+    private Instant currentPeriodEnd;
+    @Column(name = "certs_per_month")
+    private int certsPerMonth;
+    @Column(name = "api_call_per_month")
+    private int apiCallPerMonth;
+    @Column(name = "storage_mb")
+    private long storageMb;
+    @Column(name = "support")
+    private String support;
+    @Column(name = "provider")
+    private String provider;
+    @Column(name = "checkout_session_id")
+    private String checkoutSessionId;
+    @Column(name = "subscription_id")
+    private String subscriptionId;
+    @Column(name = "last_invoice_id")
+    private String lastInvoiceId;
+    @Column(name = "status",nullable = false)
+    private String status;
     // JSON salvato come testo normale -> NIENTE @Lob
     @Column(
             name = "json_settings",
@@ -18,12 +42,6 @@ public class TenantSettings {
             columnDefinition = "JSON"
     )
     private String jsonSettings;
-    @Column(name = "max_storage_mb", precision = 10, scale = 2)
-    private BigDecimal maxStorageMb; // es 500.00
-    @Column(name = "max_certs_per_month")
-    private Integer maxCertsPerMonth; // es 1000
-    @Column(name = "max_api_calls_per_day")
-    private Integer maxApiCallsPerDay; // es 2000
     // Lasciamo che MySQL lo mantenga con DEFAULT ... ON UPDATE ...
     @Column(
             name = "updated_at",
@@ -32,79 +50,139 @@ public class TenantSettings {
             updatable = false
     )
     private Instant updatedAt;
-    private boolean active = false;
-    @Column(name = "monthly_cost")
-    private double monthlyCost = 0.0;
-    @Column(name = "annual_cost")
-    private double annualCost = 0.0;
-    @Column(name = "vat_code")
-    private double vatCode = 0.22;
-    @Column(name = "discount")
-    private double annualDiscount = 0.20;
-    private String plan = "FREE";
+
     public TenantSettings() {}
+
     public TenantSettings(Long tenantId, String jsonSettings) {
+        this.setTenantId(tenantId);
+        this.setJsonSettings(jsonSettings);
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
         this.tenantId = tenantId;
+    }
+
+    public String getPalnCode() {
+        return planCode;
+    }
+
+    public void setPlanCode(String planCode) {
+        this.planCode = planCode;
+    }
+
+    public String getBillingCycle() {
+        return billingCycle;
+    }
+
+    public void setBillingCycle(String billingCycle) {
+        this.billingCycle = billingCycle;
+    }
+
+    public Instant getCurrentPeriodStart() {
+        return currentPeriodStart;
+    }
+
+    public void setCurrentPeriodStart(Instant currentPeriodStart) {
+        this.currentPeriodStart = currentPeriodStart;
+    }
+
+    public Instant getCurrentPeriodEnd() {
+        return currentPeriodEnd;
+    }
+
+    public void setCurrentPeriodEnd(Instant currentPeriodEnd) {
+        this.currentPeriodEnd = currentPeriodEnd;
+    }
+
+    public int getCertsPerMonth() {
+        return certsPerMonth;
+    }
+
+    public void setCertsPerMonth(int certsPerMonth) {
+        this.certsPerMonth = certsPerMonth;
+    }
+
+    public int getApiCallPerMonth() {
+        return apiCallPerMonth;
+    }
+
+    public void setApiCallPerMonth(int apiCallPerMonth) {
+        this.apiCallPerMonth = apiCallPerMonth;
+    }
+
+    public long getStorageMb() {
+        return storageMb;
+    }
+
+    public void setStorageMb(long storageMb) {
+        this.storageMb = storageMb;
+    }
+
+    public String getSupport() {
+        return support;
+    }
+
+    public void setSupport(String support) {
+        this.support = support;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getCheckoutSessionId() {
+        return checkoutSessionId;
+    }
+
+    public void setCheckoutSessionId(String checkoutSessionId) {
+        this.checkoutSessionId = checkoutSessionId;
+    }
+
+    public String getSubscriptionId() {
+        return subscriptionId;
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public String getLastInvoiceId() {
+        return lastInvoiceId;
+    }
+
+    public void setLastInvoiceId(String lastInvoiceId) {
+        this.lastInvoiceId = lastInvoiceId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getJsonSettings() {
+        return jsonSettings;
+    }
+
+    public void setJsonSettings(String jsonSettings) {
         this.jsonSettings = jsonSettings;
     }
-    public Long getTenantId() { return tenantId; }
-    public void setTenantId(Long tenantId) { this.tenantId = tenantId; }
-    public String getJsonSettings() { return jsonSettings; }
-    public void setJsonSettings(String jsonSettings) { this.jsonSettings = jsonSettings; }
-    public Instant getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; } // opzionale, ma la puoi lasciare
-    public BigDecimal getMaxStorageMb() {
-        return maxStorageMb;
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
-    public void setMaxStorageMb(BigDecimal maxStorageMb) {
-        this.maxStorageMb = maxStorageMb;
-    }
-    public Integer getMaxCertsPerMonth() {
-        return maxCertsPerMonth;
-    }
-    public void setMaxCertsPerMonth(Integer maxCertsPerMonth) {
-        this.maxCertsPerMonth = maxCertsPerMonth;
-    }
-    public Integer getMaxApiCallsPerDay() {
-        return maxApiCallsPerDay;
-    }
-    public void setMaxApiCallsPerDay(Integer maxApiCallsPerDay) {
-        this.maxApiCallsPerDay = maxApiCallsPerDay;
-    }
-    public boolean isActive() {
-        return active;
-    }
-    public void setActive(boolean active) {
-        this.active = active;
-    }
-    public double getMonthlyCost() {
-        return monthlyCost;
-    }
-    public void setMonthlyCost(double monthlyCost) {
-        this.monthlyCost = monthlyCost;
-    }
-    public double getAnnualCost() {
-        return annualCost;
-    }
-    public void setAnnualCost(double annualCost) {
-        this.annualCost = annualCost;
-    }
-    public double getVatCode() {
-        return vatCode;
-    }
-    public void setVatCode(double vatCode) {
-        this.vatCode = vatCode;
-    }
-    public double getAnnualDiscount() {
-        return annualDiscount;
-    }
-    public void setAnnualDiscount(double annualDiscount) {
-        this.annualDiscount = annualDiscount;
-    }
-    public String getPlan() {
-        return plan;
-    }
-    public void setPlan(String plan) {
-        this.plan = plan;
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

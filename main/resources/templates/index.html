@@ -103,6 +103,7 @@
                     </form>
                     <button class="btn btn-paypal w-100"
                             data-plan="PRO" data-amount="990" data-desc="Piano PRO (Mensile)"
+                            data-cycle="${billingAnnual}"
                             onclick="buyWithPaypal(this)">Acquista con PayPal</button>
                 </div>
             </div>
@@ -140,6 +141,7 @@
                     </form>
                     <button class="btn btn-paypal w-100"
                             data-plan="BUSINESS" data-amount="2990" data-desc="Piano BUSINESS (Mensile)"
+                            data-cycle="${billingAnnual}"
                             onclick="buyWithPaypal(this)">Acquista con PayPal</button>
                 </div>
             </div>
@@ -176,7 +178,7 @@
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
                     <button class="btn btn-paypal w-100"
-                            data-plan="ENTERPRISE" data-amount="9990" data-desc="Piano ENTERPRISE (Mensile)"
+                            data-plan="ENTERPRISE" data-amount="9990" data-desc="Piano ENTERPRISE (Mensile)" data-cycle="${billingAnnual}"
                             onclick="buyWithPaypal(this)">Acquista con PayPal</button>
                 </div>
             </div>

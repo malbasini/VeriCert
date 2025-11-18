@@ -2,6 +2,7 @@ package com.example.vericert.controller;
 
 import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.repo.PaymentRepository;
+import com.example.vericert.service.AdminPlanDefinitionsService;
 import com.example.vericert.service.CertificateService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +17,18 @@ public class StripeWebhookController {
     private final PaymentsProps props;
     private final PaymentRepository payRepo;
     private final CertificateService certificateService; // se vuoi emettere/sbloccare qui
+    private final AdminPlanDefinitionsService service;
 
 
-    public StripeWebhookController(PaymentsProps props, PaymentRepository payRepo , CertificateService certificateService ) {
+    public StripeWebhookController(PaymentsProps props,
+                                   PaymentRepository payRepo ,
+                                   CertificateService certificateService,
+                                   AdminPlanDefinitionsService service) {
         this.props = props;
         this.payRepo = payRepo;
         this.certificateService = certificateService;
         com.stripe.Stripe.apiKey = props.getStripe().getSecretKey();
+        this.service = service;
     }
 
     @PostMapping
@@ -34,6 +40,12 @@ public class StripeWebhookController {
                 case "checkout.session.completed" -> {
                     var session = (com.stripe.model.checkout.Session) event.getDataObjectDeserializer()
                             .getObject().orElseThrow();
+                    String tenantId = session.getMetadata().get("tenantId");
+                    String planCode = session.getMetadata().get("planCode");
+                    String cycle = session.getMetadata().get("billingCycle");
+                    String planDefId= session.getMetadata().get("planDefId");
+                    // Persisti attivazione
+                    service.activatePlan(Long.valueOf(tenantId), planCode, cycle, session.getId(), "STRIPE");
                     payRepo.findByCheckoutSessionId(session.getId()).ifPresent(p -> {
                         if (!"SUCCEEDED".equals(p.getStatus())) {
                             p.setStatus("SUCCEEDED");

@@ -2,9 +2,12 @@ package com.example.vericert.controller;
 
 import com.example.vericert.component.PaypalClientFactory;
 import com.example.vericert.domain.Payment;
+import com.example.vericert.domain.PlanDefinitions;
 import com.example.vericert.repo.PaymentRepository;
 import com.example.vericert.component.PaymentsProps;
+import com.example.vericert.service.AdminPlanDefinitionsService;
 import com.paypal.orders.*;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
@@ -23,11 +26,16 @@ public class PayPalController {
     private final PaypalClientFactory factory;
     private final PaymentsProps props;
     private final PaymentRepository payRepo;
+    private final AdminPlanDefinitionsService service;
 
-    public PayPalController(PaypalClientFactory factory, PaymentsProps props, PaymentRepository payRepo) {
+    public PayPalController(PaypalClientFactory factory,
+                            PaymentsProps props,
+                            PaymentRepository payRepo,
+                            AdminPlanDefinitionsService service) {
         this.factory = factory;
         this.props = props;
         this.payRepo = payRepo;
+        this.service = service;
     }
 
     @PostMapping("/order")
@@ -35,16 +43,25 @@ public class PayPalController {
                                            @RequestParam long amountMinor,      // centesimi
                                            @RequestParam(required = false) Long certificateId,
                                            @RequestParam(defaultValue = "EUR") String currency,
-                                           @RequestParam(defaultValue = "Certificato VeriCert") String description
+                                           @RequestParam(defaultValue = "Certificato VeriCert") String description,
+                                           @RequestParam String planCode,
+                                           @RequestParam String billingCycle
     ) throws Exception {
 
+        PlanDefinitions plan = service.getPlan(planCode);
+        boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
+        String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");
+        description = desc;
+        // Importo: se usi piani/abbonamenti PayPal, qui useresti i planId.
+        // In modalità 'one-shot' usa l'importo derivato dal tuo listino:
+        long amountm = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
+        amountMinor = amountm;
         String value = String.format(Locale.US, "%.2f", amountMinor / 100.0);
-
         AmountWithBreakdown amount = new AmountWithBreakdown().currencyCode(currency).value(value);
         PurchaseUnitRequest unit = new PurchaseUnitRequest()
                 .description(description)
                 .amountWithBreakdown(amount)
-                .customId(String.valueOf(tenantId)) // utile ritrovarlo in webhook/capture
+                .customId(tenantId + "|" + planCode + "|" + billingCycle + "|" + plan.getId())// utile ritrovarlo in webhook/capture
                 .invoiceId(UUID.randomUUID().toString()); // idempotenza “light”
 
         OrderRequest orderReq = new OrderRequest()
@@ -61,8 +78,8 @@ public class PayPalController {
                 .prefer("return=representation")
                 .requestBody(orderReq);
 
-        var resp = factory.client().execute(req);
-        var order = resp.result(); // id es: "5O190127TN364715T"
+        var response = factory.client().execute(req);
+        var order = response.result(); // id es: "5O190127TN364715T"
 
         // Salva pagamento PENDING
         Payment p = new Payment();
@@ -100,6 +117,13 @@ public class PayPalController {
 
         if ("COMPLETED".equalsIgnoreCase(order.status())) {
             payRepo.findByProviderIntentId(orderId).ifPresent(p -> {
+                String[] info = order.toString().split("|");
+                String tenantId = info[0];
+                String planCode = info[1];
+                String cycle = info[2];
+                String planDefId= info[3];
+                // Persisti attivazione
+                service.activatePlan(Long.valueOf(tenantId), planCode, cycle, planDefId, "PAYPAL");
                 p.setStatus("SUCCEEDED");
                 p.setUpdatedAt(Instant.now());
                 payRepo.save(p);
