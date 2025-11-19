@@ -35,10 +35,10 @@ public class StripeCheckoutRedirectController {
                                                   @RequestParam(defaultValue="EUR") String currency,
                                                   @RequestParam(defaultValue="Certificato VeriCert") String description,
                                                   @RequestParam String planCode,
-                                                  @RequestParam String billingCycle,
-                                                  HttpServletResponse resp
+                                                  @RequestParam String billingCycle
     ) throws Exception {
 
+        billingCycle = billingCycle.toUpperCase();
         PlanDefinitions plan = service.getPlan(planCode);
         var lineItem = new java.util.HashMap<String,Object>();
         lineItem.put("price_data", java.util.Map.of(

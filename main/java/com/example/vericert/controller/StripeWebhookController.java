@@ -40,12 +40,6 @@ public class StripeWebhookController {
                 case "checkout.session.completed" -> {
                     var session = (com.stripe.model.checkout.Session) event.getDataObjectDeserializer()
                             .getObject().orElseThrow();
-                    String tenantId = session.getMetadata().get("tenantId");
-                    String planCode = session.getMetadata().get("planCode");
-                    String cycle = session.getMetadata().get("billingCycle");
-                    String planDefId= session.getMetadata().get("planDefId");
-                    // Persisti attivazione
-                    service.activatePlan(Long.valueOf(tenantId), planCode, cycle, session.getId(), "STRIPE");
                     payRepo.findByCheckoutSessionId(session.getId()).ifPresent(p -> {
                         if (!"SUCCEEDED".equals(p.getStatus())) {
                             p.setStatus("SUCCEEDED");

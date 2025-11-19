@@ -1,8 +1,11 @@
 package com.example.vericert.service;
 
 import com.example.vericert.domain.PlanDefinitions;
+import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.TenantSettings;
+import com.example.vericert.enumerazioni.Plan;
 import com.example.vericert.repo.PlanDefinitionRepository;
+import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.TenantSettingsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -15,11 +18,14 @@ import java.util.List;
 public class AdminPlanDefinitionsService {
     private final PlanDefinitionRepository repo;
     private final TenantSettingsRepository tenantSettingsRepo;
+    private final TenantRepository tenantRepo;
     public AdminPlanDefinitionsService(PlanDefinitionRepository repo,
-                                       TenantSettingsRepository tenantSettingsRepo)
+                                       TenantSettingsRepository tenantSettingsRepo,
+                                       TenantRepository tenantRepo)
     {
         this.repo = repo;
         this.tenantSettingsRepo = tenantSettingsRepo;
+        this.tenantRepo = tenantRepo;
     }
 
     public PlanDefinitions getPlan(String code)
@@ -51,7 +57,9 @@ public class AdminPlanDefinitionsService {
         ts.setStatus("ACTIVE");
         ts.setUpdatedAt(Instant.now());
         tenantSettingsRepo.save(ts);
+        Tenant t = tenantRepo.findById(tenantId).orElseThrow();
+        t.setPlan(Plan.valueOf(planCode));
+        tenantRepo.save(t);
     }
-
 }
 

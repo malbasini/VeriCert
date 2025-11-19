@@ -2,12 +2,13 @@ package com.example.vericert.controller;
 
 import com.example.vericert.domain.PlanDefinitions;
 import com.example.vericert.service.AdminPlanDefinitionsService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class AdminPlanDefinition {
@@ -17,13 +18,19 @@ public class AdminPlanDefinition {
     public AdminPlanDefinition(AdminPlanDefinitionsService service) {
         this.service = service;
     }
+
     @GetMapping("/")
-    public String home(@RequestParam(required = false,defaultValue = "false") boolean annual,
+    public String home(@SessionAttribute(name = "billingAnnual", required = false) Boolean annual,
                        Model model)
     {
         Long tenantId = currentTenantId();
         model.addAttribute("tenantId", tenantId);
-        model.addAttribute("billingAnnual", annual);
+        boolean billingAnnual = Boolean.TRUE.equals(annual); // default false se null
+        model.addAttribute("billingAnnual", billingAnnual);
+        if(billingAnnual)
+            model.addAttribute("period", "ANNUAL");
+        else
+            model.addAttribute("period", "MONTHLY");
         PlanDefinitions p = service.getPlan("FREE".toUpperCase());
         if(p != null)
         {
@@ -38,4 +45,12 @@ public class AdminPlanDefinition {
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
+
+    @PostMapping("/pricing/billing")
+    @ResponseBody
+    public Map<String, Object> setBilling(@RequestParam boolean annual, HttpSession session) {
+        session.setAttribute("billingAnnual", annual);
+        return Map.of("ok", true, "annual", annual);
+    }
+
 }
