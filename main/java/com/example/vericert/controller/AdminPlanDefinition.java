@@ -27,17 +27,16 @@ public class AdminPlanDefinition {
         model.addAttribute("tenantId", tenantId);
         boolean billingAnnual = Boolean.TRUE.equals(annual); // default false se null
         model.addAttribute("billingAnnual", billingAnnual);
-        if(billingAnnual)
-            model.addAttribute("period", "ANNUAL");
-        else
-            model.addAttribute("period", "MONTHLY");
         PlanDefinitions p = service.getPlan("FREE".toUpperCase());
         if(p != null)
         {
             List<PlanDefinitions> items = service.getPlans();
             model.addAttribute("items", items);
         }
-
+        if(billingAnnual)
+            model.addAttribute("period", "ANNUAL");
+        else
+            model.addAttribute("period", "MONTHLY");
         return "index";
     }
     private Long currentTenantId() {

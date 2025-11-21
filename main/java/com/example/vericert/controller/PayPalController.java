@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import com.paypal.orders.OrdersGetRequest;
 import java.util.Map;
 import java.util.UUID;
 import com.paypal.orders.LinkDescription;
@@ -40,7 +41,7 @@ public class PayPalController {
 
     @PostMapping("/order")
     public Map<String, Object> createOrder(@RequestParam Long tenantId,
-                                           @RequestParam long amountMinor,      // centesimi
+                                           @RequestParam Long amountMinor,      // centesimi
                                            @RequestParam(required = false) Long certificateId,
                                            @RequestParam(defaultValue = "EUR") String currency,
                                            @RequestParam(defaultValue = "Certificato VeriCert") String description,
@@ -48,6 +49,7 @@ public class PayPalController {
                                            @RequestParam String billingCycle
     ) throws Exception {
 
+        billingCycle = billingCycle.toUpperCase();
         PlanDefinitions plan = service.getPlan(planCode);
         boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
         String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");
@@ -102,13 +104,27 @@ public class PayPalController {
                 .map(LinkDescription::href).orElseThrow();
 
         return Map.of(
-                "orderId", order.id(),
+                "orderId", order.id() + "|" + tenantId + "|" + planCode + "|" + billingCycle + "|" + plan.getId(),
                 "approveUrl", approveUrl
         );
     }
 
     @PostMapping("/capture/{orderId}")
     public ResponseEntity<?> capture(@PathVariable String orderId) throws Exception {
+
+        OrdersGetRequest getReq = new OrdersGetRequest(orderId);
+        var getRes = factory.client().execute(getReq);
+        var orderDetails = getRes.result();
+
+        // Estrai customId dal primo purchase unit
+        String customId = orderDetails.purchaseUnits().get(0).customId();
+        String[] info = customId.split("\\|"); // Escape della pipe!
+
+        String tenantId = info[0];
+        String planCode = info[1];
+        String cycle = info[2];
+        String planDefId = info[3];
+
         OrdersCaptureRequest req = new OrdersCaptureRequest(orderId);
         req.requestBody(new OrderRequest()); // body vuoto
 
@@ -117,11 +133,6 @@ public class PayPalController {
 
         if ("COMPLETED".equalsIgnoreCase(order.status())) {
             payRepo.findByProviderIntentId(orderId).ifPresent(p -> {
-                String[] info = order.toString().split("|");
-                String tenantId = info[0];
-                String planCode = info[1];
-                String cycle = info[2];
-                String planDefId= info[3];
                 // Persisti attivazione
                 service.activatePlan(Long.valueOf(tenantId), planCode, cycle, planDefId, "PAYPAL");
                 p.setStatus("SUCCEEDED");

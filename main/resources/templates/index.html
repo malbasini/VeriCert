@@ -30,7 +30,7 @@
             <div class="d-inline-flex align-items-center gap-2">
                 <span>Mensile</span>
                 <div class="form-check form-switch m-0">
-                    <input class="form-check-input" type="checkbox" id="billingToggle" th:checked="${billingAnnual}">
+                    <input class="form-check-input" type="checkbox" th:checked="${billingAnnual}" id="billingToggle">
                 </div>
                 <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
             </div>
@@ -101,18 +101,11 @@
                         <input type="hidden" name="currency" value="EUR"/>
                         <input type="hidden" name="planCode" value="PRO"/>
                         <input type="hidden" name="billingCycle" th:value="${period}">
-                        <script th:inline="javascript">
-                            /*<![CDATA[*/
-                            let periodValue = /*[[${period}]]*/ 'annual';
-                            alert("Il periodo attuale è: " + periodValue);
-                            /*]]>*/
-                        </script>
                         <input type="hidden" name="description" value="Piano PRO (Mensile)" data-desc-id="PRO"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
                     <button class="btn btn-paypal w-100"
-                            data-plan="PRO" data-amount="990" data-desc="Piano PRO (Mensile)"
-                            data-cycle="${billingAnnual}"
+                            data-plan="PRO" data-amount="990" data-desc="Piano PRO (Mensile)"  th:attr="data-period=${period}"
                             onclick="buyWithPaypal(this)">Acquista con PayPal</button>
                 </div>
             </div>
@@ -136,15 +129,16 @@
                 <div class="mt-auto d-grid gap-2">
                     <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
-                        <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="BUSINESS"/>
+                        <input type="hidden" name="amountMinor" th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}" data-amount-id="BUSINESS"/>
                         <input type="hidden" name="currency" value="EUR"/>
                         <input type="hidden" name="planCode" value="BUSINESS"/>
+                        <input type="hidden" name="billingCycle" th:value="${period}">
                         <input type="hidden" name="description" value="Piano BUSINESS (Mensile)" data-desc-id="BUSINESS"/>
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
                     <button class="btn btn-paypal w-100"
                             data-plan="BUSINESS" data-amount="2990" data-desc="Piano BUSINESS (Mensile)"
-                            data-cycle="${billingAnnual}"
+                            data-cycle th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}"
                             onclick="buyWithPaypal(this)">Acquista con PayPal</button>
                 </div>
             </div>
@@ -168,15 +162,20 @@
                 <div class="mt-auto d-grid gap-2">
                     <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
                         <input type="hidden" name="tenantId" th:value="${tenantId}"/>
-                        <input type="hidden" name="amountMinor" th:value="${plan.getPriceMonthlyCents()}" data-amount-id="ENTERPRISE"/>
+                        <input type="hidden" name="amountMinor"  th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}" data-amount-id="ENTERPRISE"/>
                         <input type="hidden" name="currency" value="EUR"/>
                         <input type="hidden" name="planCode" value="ENTERPRISE"/>
                         <input type="hidden" name="description" value="Piano ENTERPRISE (Mensile)" data-desc-id="ENTERPRISE"/>
+                        <input type="hidden" name="billingCycle" th:value="${period}">
                         <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
                     </form>
+
                     <button class="btn btn-paypal w-100"
-                            data-plan="ENTERPRISE" data-amount="9990" data-desc="Piano ENTERPRISE (Mensile)" data-cycle="${billingAnnual}"
+                            data-plan="ENTERPRISE" data-amount="9990" data-desc="Piano ENTERPRISE (Mensile)"
+                            data-cycle th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}"
                             onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+
+
                 </div>
             </div>
         </div>
@@ -194,7 +193,7 @@
     const DISCOUNT = 0.20;       // -20% annuale (totale)
     const VAT_RATE = 0.22;       // 22% IT
     let annualMode = false;      // false = mensile, true = annuale (fatturato annualmente)
-    let vatIncluded = true;      // solo display
+    let vatIncluded = true;// solo display
 
     const fmt = cents => (cents/100).toLocaleString('it-IT', { style:'currency', currency:'EUR' });
 
@@ -248,25 +247,46 @@
         });
     }
 
-    // Toggle handlers
-    const billingToggle = document.getElementById('billingToggle');
-    billingToggle.addEventListener('change', e => { annualMode = e.target.checked; refreshPrices(); });
-
     const vatToggle = document.getElementById('vatToggle');
     vatToggle.addEventListener('change', e => { vatIncluded = e.target.checked; refreshPrices(); });
 
     // Stato iniziale
-    annualMode = false; vatIncluded = true; refreshPrices();
+    const billingToggle = document.getElementById('billingToggle').checked;
+    if (billingToggle) { annualMode = true; vatToggle.checked = true; refreshPrices();}
+    if (!billingToggle) { annualMode = false; vatToggle.checked = true; refreshPrices();}
 
     // PayPal: crea ordine e redirigi all'approveUrl (IMPORTI NETTI inviati, IVA solo visuale)
     async function buyWithPaypal(btn) {
-        const amountMinor = btn.getAttribute('data-amount');    // importo NETTO
+        const tenantId = document.getElementById('tenantId').value;
+        alert('TenantId: ' + tenantId);
+        const amountMinor = btn.getAttribute('data-amount');
         const description = btn.getAttribute('data-desc');
-        const params = new URLSearchParams({ tenantId: TENANT_ID, amountMinor, currency: 'EUR', description });
-        const res = await fetch('/api/payments/paypal/order', {
-            method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'}, body: params
+        const billingCycle = btn.getAttribute('data-period');
+        const planCode = btn.getAttribute('data-plan');
+
+        // Crea URLSearchParams per inviare come form data
+        const params = new URLSearchParams({
+            tenantId: tenantId,
+            amountMinor: amountMinor,
+            currency: 'EUR',
+            description: description,
+            planCode: planCode,
+            billingCycle: billingCycle
         });
-        if (!res.ok) { alert('Errore PayPal'); return; }
+
+        const res = await fetch(`/api/payments/paypal/order`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        });
+
+        if (!res.ok) {
+            alert('Errore ' + res.status + ': ' + (await res.text()));
+            return;
+        }
+
         const data = await res.json();
         window.location.href = data.approveUrl;
     }
@@ -277,26 +297,9 @@
      const annual = e.target.checked;
      // salva preferenza
      await fetch('/pricing/billing?annual=' + annual, { method: 'POST' });
-       fetch('/', {
-           method: 'GET', // Il default è GET, ma è bene esplicitarlo
-           headers: {
-               'X-Requested-With': 'XMLHttpRequest' // Buona pratica per indicare che è una chiamata AJAX
-           }
-       })
-           .then(response => {
-               if (response.ok) {
-                   return response.text(); // Usa .text() perché il server restituisce HTML
-               }
-               throw new Error('Errore nella richiesta');
-           })
-           .then(html => {
-               console.log("HTML ricevuto");
-               // Qui puoi usare l'HTML ricevuto, ad esempio per sostituire parte della pagina
-               // document.querySelector('html').innerHTML = html;
-           })
-           .catch(error => console.error('Errore:', error));
-       annualMode = annual;
-       refreshPrices();
+     window.location.reload();
+     annualMode = annual;
+     refreshPrices();
    });
 </script>
 </body>
