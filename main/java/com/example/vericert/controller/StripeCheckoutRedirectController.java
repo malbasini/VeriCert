@@ -47,11 +47,13 @@ public class StripeCheckoutRedirectController {
         String duration = annual ? "ANNUAL" : "MONTHLY";
         String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");
         description = desc;
-        long amountm = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
-        amountMinor = amountm;
+        long amountdb = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
+        amountMinor = amountdb;
         //amountMinor è il prezzo in centesimi annuale o mensile.
         Long price = calculateAmount(amountMinor, duration);
         amountMinor = price;
+        if(!annual)
+            amountMinor +=1;
         var lineItem = new java.util.HashMap<String,Object>();
         lineItem.put("price_data", java.util.Map.of(
                 "currency", currency.toLowerCase(),

@@ -59,11 +59,13 @@ public class PayPalController {
         description = desc;
         // Importo: se usi piani/abbonamenti PayPal, qui useresti i planId.
         // In modalità 'one-shot' usa l'importo derivato dal tuo listino:
-        long amountm = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
-        amountMinor = amountm;
+        long amountdb = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
+        amountMinor = amountdb;
         //amountMinor è il prezzo in centesimi annuale o mensile.
         Long price = calculateAmount(amountMinor, duration);
         amountMinor = price;
+        if(!annual)
+            amountMinor +=1;
         String value = String.format(Locale.US, "%.2f", amountMinor / 100.0);
         AmountWithBreakdown amount = new AmountWithBreakdown().currencyCode(currency).value(value);
         PurchaseUnitRequest unit = new PurchaseUnitRequest()
