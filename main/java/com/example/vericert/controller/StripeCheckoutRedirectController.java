@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
+import java.util.Locale;
+
 @RestController
 @RequestMapping("/api/payments/stripe")
 public class StripeCheckoutRedirectController {
@@ -40,6 +43,15 @@ public class StripeCheckoutRedirectController {
 
         billingCycle = billingCycle.toUpperCase();
         PlanDefinitions plan = service.getPlan(planCode);
+        boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
+        String duration = annual ? "ANNUAL" : "MONTHLY";
+        String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");
+        description = desc;
+        long amountm = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
+        amountMinor = amountm;
+        //amountMinor è il prezzo in centesimi annuale o mensile.
+        Long price = calculateAmount(amountMinor, duration);
+        amountMinor = price;
         var lineItem = new java.util.HashMap<String,Object>();
         lineItem.put("price_data", java.util.Map.of(
                 "currency", currency.toLowerCase(),
@@ -88,5 +100,28 @@ public class StripeCheckoutRedirectController {
         return ResponseEntity.status(303)
                 .header("Location", session.getUrl())
                 .build();
+    }
+    // Calcola l'importo da pagare'
+    private Long calculateAmount(Long amountMinor, String plan) {
+        BigDecimal vat = BigDecimal.valueOf(0);
+        BigDecimal discount = BigDecimal.valueOf(0L);
+        switch (plan){
+            case "MONTHLY":
+                //Calcolo l'iva
+                vat = BigDecimal.valueOf((amountMinor * 22) / 100);
+                vat = BigDecimal.valueOf(Math.round(vat.doubleValue()));
+                amountMinor = Math.round(amountMinor.doubleValue() + vat.doubleValue());
+                break;
+            case "ANNUAL":
+                //Calcolo l'iva
+                vat = BigDecimal.valueOf((amountMinor * 22) / 100);
+                vat = BigDecimal.valueOf(Math.round(vat.doubleValue()));
+                amountMinor = (Math.round(amountMinor.doubleValue() + vat.doubleValue())) * 12;
+                break;
+            default:
+                throw new IllegalArgumentException("Plan non supportato");
+
+        }
+        return amountMinor;
     }
 }

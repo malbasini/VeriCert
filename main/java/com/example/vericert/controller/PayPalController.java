@@ -7,9 +7,10 @@ import com.example.vericert.repo.PaymentRepository;
 import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.service.AdminPlanDefinitionsService;
 import com.paypal.orders.*;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
@@ -46,18 +47,23 @@ public class PayPalController {
                                            @RequestParam(defaultValue = "EUR") String currency,
                                            @RequestParam(defaultValue = "Certificato VeriCert") String description,
                                            @RequestParam String planCode,
-                                           @RequestParam String billingCycle
+                                           @RequestParam String billingCycle,
+                                           @RequestParam boolean vat
     ) throws Exception {
 
         billingCycle = billingCycle.toUpperCase();
         PlanDefinitions plan = service.getPlan(planCode);
         boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
+        String duration = annual ? "ANNUAL" : "MONTHLY";
         String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");
         description = desc;
         // Importo: se usi piani/abbonamenti PayPal, qui useresti i planId.
         // In modalità 'one-shot' usa l'importo derivato dal tuo listino:
         long amountm = annual ? plan.getPriceAnnualCents() : plan.getPriceMonthlyCents();
         amountMinor = amountm;
+        //amountMinor è il prezzo in centesimi annuale o mensile.
+        Long price = calculateAmount(amountMinor, duration);
+        amountMinor = price;
         String value = String.format(Locale.US, "%.2f", amountMinor / 100.0);
         AmountWithBreakdown amount = new AmountWithBreakdown().currencyCode(currency).value(value);
         PurchaseUnitRequest unit = new PurchaseUnitRequest()
@@ -104,11 +110,36 @@ public class PayPalController {
                 .map(LinkDescription::href).orElseThrow();
 
         return Map.of(
-                "orderId", order.id() + "|" + tenantId + "|" + planCode + "|" + billingCycle + "|" + plan.getId(),
+                "orderId", order.id(),
                 "approveUrl", approveUrl
         );
     }
+    // Calcola l'importo da pagare'
+    private Long calculateAmount(Long amountMinor, String plan) {
+        BigDecimal vat = BigDecimal.valueOf(0);
+        BigDecimal discount = BigDecimal.valueOf(0L);
+        switch (plan){
+           case "MONTHLY":
+                   //Calcolo l'iva
+                   vat = BigDecimal.valueOf((amountMinor * 22) / 100);
+                   vat = BigDecimal.valueOf(Math.round(vat.doubleValue()));
+                   amountMinor = Math.round(amountMinor.doubleValue() + vat.doubleValue());
+                   break;
+            case "ANNUAL":
+                //Calcolo l'iva
+                vat = BigDecimal.valueOf((amountMinor * 22) / 100);
+                vat = BigDecimal.valueOf(Math.round(vat.doubleValue()));
+                amountMinor = (Math.round(amountMinor.doubleValue() + vat.doubleValue())) * 12;
+                break;
+               default:
+                   throw new IllegalArgumentException("Plan non supportato");
 
+       }
+        return amountMinor;
+    }
+    Long roundUpToNextInteger(long cents) { // se intendi al centesimo superiore di euro-cent come intero
+        return (long) (Math.round(cents/100) * 100);
+    }
     @PostMapping("/capture/{orderId}")
     public ResponseEntity<?> capture(@PathVariable String orderId) throws Exception {
 
