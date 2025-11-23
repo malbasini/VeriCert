@@ -60,5 +60,23 @@ public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMet
             @Param("day") LocalDate day
     );
 
+    @Query("""
+       SELECT COALESCE(SUM(u.certsGenerated), 0)
+       FROM UsageMeter u
+       WHERE u.id.tenantId = :tenantId
+         AND u.id.usageDay BETWEEN :from AND :to
+    """)
+    Integer sumCertsInPeriod(@Param("tenantId") Long tenantId,
+                             @Param("from") LocalDate from,
+                             @Param("to") LocalDate to);
 
+    @Query("""
+       SELECT COALESCE(SUM(u.apiCalls), 0)
+       FROM UsageMeter u
+       WHERE u.id.tenantId = :tenantId
+         AND u.id.usageDay BETWEEN :from AND :to
+    """)
+    Integer sumApiCallsInPeriod(@Param("tenantId") Long tenantId,
+                                @Param("from") LocalDate from,
+                                @Param("to") LocalDate to);
 }

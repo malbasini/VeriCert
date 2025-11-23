@@ -25,8 +25,9 @@
             <div class="col-md-4">
                 <br>
                 <hr>
-                <div class="alert alert-success" role="alert">
-                    Pagamento avvenuto con successo
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    Pagamento eseguito con successo.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
                 <h2>Pagamento riuscito ✅</h2>
                 <p th:text="'Totale: ' + ${amount}"></p>

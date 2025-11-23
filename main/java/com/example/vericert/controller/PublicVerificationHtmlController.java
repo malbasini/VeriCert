@@ -3,6 +3,7 @@ package com.example.vericert.controller;
 import com.example.vericert.dto.VerificationOutcome;
 import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.service.CertificateStorageService;
+import com.example.vericert.service.PlanEnforcementService;
 import com.example.vericert.service.QrVerificationService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
@@ -18,13 +19,16 @@ public class PublicVerificationHtmlController {
     private final VerificationTokenRepository tokenRepo;
     private final QrVerificationService service;
     private final CertificateStorageService storageService;
+    private final PlanEnforcementService planEnforcementService;
 
     public PublicVerificationHtmlController(VerificationTokenRepository tokenRepo,
                                             QrVerificationService service,
-                                            CertificateStorageService storageService) {
+                                            CertificateStorageService storageService,
+                                            PlanEnforcementService planEnforcementService) {
         this.tokenRepo = tokenRepo;
         this.service = service;
         this.storageService = storageService;
+        this.planEnforcementService = planEnforcementService;
 
     }
 
@@ -38,6 +42,9 @@ public class PublicVerificationHtmlController {
             return "verification/result";
         }
         var view = viewOpt.get();
+
+        // blocco se piano scaduto / oltre soglia API
+        planEnforcementService.checkCanCallApi(view.getTenantId());
 
         // 1) Usa il token EMESSO (immutabile)
         String compactJws = view.getCompactJws();   // <-- recuperato da DB; NON rigenerare

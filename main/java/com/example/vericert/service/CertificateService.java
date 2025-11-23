@@ -5,6 +5,7 @@ import com.example.vericert.domain.*;
 import com.example.vericert.dto.StoredFile;
 import com.example.vericert.dto.VerificationPayload;
 import com.example.vericert.enumerazioni.Stato;
+import com.example.vericert.exception.ForbiddenOperationException;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
@@ -55,6 +56,7 @@ public class CertificateService {
     private final QrSignerOkp qrSigner;
     private final StorageUsageService storage;
     private final CertificateStorageService certificateStorageService;
+    private final PlanEnforcementService planEnforcementService;
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
@@ -65,7 +67,8 @@ public class CertificateService {
                               UsageMeterService usageMeterService,
                               QrSignerOkp qrSigner,
                               StorageUsageService storage,
-                              CertificateStorageService certificateStorageService) {
+                              CertificateStorageService certificateStorageService,
+                              PlanEnforcementService planEnforcementService) {
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
@@ -77,6 +80,7 @@ public class CertificateService {
         this.qrSigner = qrSigner;
         this.storage = storage;
         this.certificateStorageService = certificateStorageService;
+        this.planEnforcementService = planEnforcementService;
     }
 
     @Transactional
@@ -86,7 +90,10 @@ public class CertificateService {
                              String ownerEmail,
                              Tenant tenant) throws Exception {
 
-        // 0) Precondizioni/base
+
+        // 1) controllo piano
+        planEnforcementService.checkCanIssueCertificate(tenant.getId());
+        // 1) Precondizioni/base
         Template template = tempRepo.findById(templateId).orElseThrow();
         String serial = UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
         String code   = randomCode(24);

@@ -2,10 +2,9 @@ package com.example.vericert.controller;
 
 import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.domain.Payment;
-import com.example.vericert.domain.PlanDefinitions;
+import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.repo.PaymentRepository;
 import com.example.vericert.service.AdminPlanDefinitionsService;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/payments/stripe")
@@ -42,7 +40,7 @@ public class StripeCheckoutRedirectController {
     ) throws Exception {
 
         billingCycle = billingCycle.toUpperCase();
-        PlanDefinitions plan = service.getPlan(planCode);
+        PlanDefinition plan = service.getPlan(planCode);
         boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
         String duration = annual ? "ANNUAL" : "MONTHLY";
         String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");

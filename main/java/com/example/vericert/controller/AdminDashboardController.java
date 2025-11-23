@@ -1,5 +1,6 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.dto.CurrentPlanView;
 import com.example.vericert.dto.DailyUsageDTO;
 import com.example.vericert.dto.TenantUsageStatusDTO;
 import com.example.vericert.enumerazioni.Status;
@@ -8,6 +9,7 @@ import com.example.vericert.repo.MembershipRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.CustomUserDetails;
+import com.example.vericert.service.PlanEnforcementService;
 import com.example.vericert.service.TenantUsageStatusService;
 import com.example.vericert.service.UsageMeterService;
 import org.springframework.security.core.Authentication;
@@ -28,6 +30,7 @@ public class AdminDashboardController {
     private final MembershipRepository membershipRepo;
     private final TenantRepository tenantRepo;
     private final TenantUsageStatusService tenantUsageStatusService;
+    private final PlanEnforcementService planEnforcementService;
 
     public AdminDashboardController(
             TemplateRepository templateRepo,
@@ -35,13 +38,15 @@ public class AdminDashboardController {
             MembershipRepository membershipRepo,
             TenantRepository tenantRepo,
             UsageMeterService usageMeterService,
-            TenantUsageStatusService tenantUsageStatusService
+            TenantUsageStatusService tenantUsageStatusService,
+            PlanEnforcementService planEnforcementService
     ) {
         this.templateRepo = templateRepo;
         this.certRepo = certRepo;
         this.membershipRepo = membershipRepo;
         this.tenantRepo = tenantRepo;
         this.tenantUsageStatusService = tenantUsageStatusService;
+        this.planEnforcementService = planEnforcementService;
     }
 
     @GetMapping
@@ -56,6 +61,10 @@ public class AdminDashboardController {
             tenantName = cud.getTenantName();
             tenantId = tenantRepo.findByName(tenantName).get().getId();
         }
+
+
+        CurrentPlanView planView = planEnforcementService.buildCurrentPlanView(tenantId);
+        model.addAttribute("currentPlan", planView);
 
         long totalTemplates = (tenantId != null)
                 ? templateRepo.countByTenantId(tenantId)

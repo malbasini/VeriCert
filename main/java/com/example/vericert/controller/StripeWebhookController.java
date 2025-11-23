@@ -1,8 +1,10 @@
 package com.example.vericert.controller;
 
 import com.example.vericert.component.PaymentsProps;
+import com.example.vericert.enumerazioni.BillingProvider;
 import com.example.vericert.repo.PaymentRepository;
 import com.example.vericert.service.AdminPlanDefinitionsService;
+import com.example.vericert.service.BillingService;
 import com.example.vericert.service.CertificateService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,17 +20,19 @@ public class StripeWebhookController {
     private final PaymentRepository payRepo;
     private final CertificateService certificateService; // se vuoi emettere/sbloccare qui
     private final AdminPlanDefinitionsService service;
-
+    private final BillingService billingService;
 
     public StripeWebhookController(PaymentsProps props,
                                    PaymentRepository payRepo ,
                                    CertificateService certificateService,
-                                   AdminPlanDefinitionsService service) {
+                                   AdminPlanDefinitionsService service,
+                                   BillingService billingService) {
         this.props = props;
         this.payRepo = payRepo;
         this.certificateService = certificateService;
         com.stripe.Stripe.apiKey = props.getStripe().getSecretKey();
         this.service = service;
+        this.billingService = billingService;
     }
 
     @PostMapping
@@ -51,6 +55,25 @@ public class StripeWebhookController {
                             if (p.getCertificateId()!=null) certificateService.unlockOrIssue();
                         }
                     });
+                    if (session != null) {
+                        String tenantIdStr = session.getMetadata().get("tenant_id");
+                        String planCode = session.getMetadata().get("plan_code");
+                        String billingCycle = session.getMetadata().get("billing_cycle");
+
+                        Long tenantId = Long.valueOf(tenantIdStr);
+                        String subscriptionId = session.getSubscription();
+                        String invoiceId = session.getInvoice();
+
+                        // Qui attivi davvero il piano nel tuo DB
+                        billingService.activateSubscription(
+                                tenantId,
+                                planCode,
+                                billingCycle,
+                                BillingProvider.STRIPE,
+                                subscriptionId,
+                                invoiceId
+                        );
+                    }
                 }
                 case "payment_intent.payment_failed" -> {
                     var pi = (com.stripe.model.PaymentIntent) event.getDataObjectDeserializer()

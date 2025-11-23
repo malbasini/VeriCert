@@ -1,6 +1,6 @@
 package com.example.vericert.service;
 
-import com.example.vericert.domain.PlanDefinitions;
+import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.TenantSettings;
 import com.example.vericert.enumerazioni.Plan;
@@ -28,17 +28,17 @@ public class AdminPlanDefinitionsService {
         this.tenantRepo = tenantRepo;
     }
 
-    public PlanDefinitions getPlan(String code)
+    public PlanDefinition getPlan(String code)
     {
         return repo.findByCode(code).orElseThrow();
     }
-    public List<PlanDefinitions> getPlans(){
+    public List<PlanDefinition> getPlans(){
         return repo.findAllPlains();
     }
 
     @Transactional
     public void activatePlan(Long tenantId, String planCode, String cycle, String checkoutSessionId, String pspRef) {
-        PlanDefinitions plan = repo.findByCode(planCode).orElseThrow();
+        PlanDefinition plan = repo.findByCode(planCode).orElseThrow();
         Instant start = Instant.now();
         Instant end = "ANNUAL".equalsIgnoreCase(cycle) ? start.plus(365, ChronoUnit.DAYS) : start.plus(30, ChronoUnit.DAYS);
         TenantSettings ts = tenantSettingsRepo.findById(tenantId).orElseGet(() -> {TenantSettings

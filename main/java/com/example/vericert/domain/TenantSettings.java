@@ -1,5 +1,6 @@
 package com.example.vericert.domain;
 
+import com.example.vericert.enumerazioni.PlanStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -35,6 +36,8 @@ public class TenantSettings {
     private String lastInvoiceId;
     @Column(name = "status",nullable = false)
     private String status;
+    @Column(name = "notify_expiring",nullable = true)
+    private boolean notifyExpiring = false;
     // JSON salvato come testo normale -> NIENTE @Lob
     @Column(
             name = "json_settings",
@@ -58,6 +61,14 @@ public class TenantSettings {
         this.setJsonSettings(jsonSettings);
     }
 
+    public PlanStatus getStatusEnum() {
+        return status == null ? null : PlanStatus.valueOf(status);
+    }
+
+    public void setStatusEnum(PlanStatus s) {
+        this.status = s == null ? null : s.name();
+    }
+
     public Long getTenantId() {
         return tenantId;
     }
@@ -66,7 +77,7 @@ public class TenantSettings {
         this.tenantId = tenantId;
     }
 
-    public String getPalnCode() {
+    public String getPlanCode() {
         return planCode;
     }
 
@@ -185,4 +196,13 @@ public class TenantSettings {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    public boolean isNotifyExpiring() {
+        return notifyExpiring;
+    }
+
+    public void setNotifyExpiring(boolean notifyExpriring) {
+        this.notifyExpiring = notifyExpriring;
+    }
+
 }

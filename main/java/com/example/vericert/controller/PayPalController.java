@@ -2,7 +2,7 @@ package com.example.vericert.controller;
 
 import com.example.vericert.component.PaypalClientFactory;
 import com.example.vericert.domain.Payment;
-import com.example.vericert.domain.PlanDefinitions;
+import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.repo.PaymentRepository;
 import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.service.AdminPlanDefinitionsService;
@@ -52,7 +52,7 @@ public class PayPalController {
     ) throws Exception {
 
         billingCycle = billingCycle.toUpperCase();
-        PlanDefinitions plan = service.getPlan(planCode);
+        PlanDefinition plan = service.getPlan(planCode);
         boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
         String duration = annual ? "ANNUAL" : "MONTHLY";
         String desc = "Piano " + planCode + (annual ? " (Annuale -20%)" : " (Mensile)");

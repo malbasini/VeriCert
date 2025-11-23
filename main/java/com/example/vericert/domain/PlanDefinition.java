@@ -5,7 +5,7 @@ import java.time.Instant;
 // Piano “master” da cui generi sia l’HTML sia i limiti scritti in tenant_settings
 @Entity
 @Table(name = "plan_definitions")
-public class PlanDefinitions {
+public class PlanDefinition {
     @Id
     private Long id;
     @Column(unique = true, nullable = false) // es. "FREE", "PRO"...

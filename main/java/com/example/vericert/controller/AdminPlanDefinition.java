@@ -1,6 +1,6 @@
 package com.example.vericert.controller;
 
-import com.example.vericert.domain.PlanDefinitions;
+import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.service.AdminPlanDefinitionsService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -27,10 +27,10 @@ public class AdminPlanDefinition {
         model.addAttribute("tenantId", tenantId);
         boolean billingAnnual = Boolean.TRUE.equals(annual); // default false se null
         model.addAttribute("billingAnnual", billingAnnual);
-        PlanDefinitions p = service.getPlan("FREE".toUpperCase());
+        PlanDefinition p = service.getPlan("FREE".toUpperCase());
         if(p != null)
         {
-            List<PlanDefinitions> items = service.getPlans();
+            List<PlanDefinition> items = service.getPlans();
             model.addAttribute("items", items);
         }
         if(billingAnnual)

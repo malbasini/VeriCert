@@ -5,6 +5,7 @@ import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.domain.VerificationToken;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
+import com.example.vericert.service.PlanEnforcementService;
 import com.example.vericert.service.QrVerificationService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,13 +21,16 @@ public class PublicVerificationController {
     private final VerificationTokenRepository verificationRepo;
     private final CertificateRepository certificateRepo;
     private final QrVerificationService service;
+    private final PlanEnforcementService planEnforcementService;
 
     public PublicVerificationController(VerificationTokenRepository verificationRepo,
                                         CertificateRepository certificateRepo,
-                                        QrVerificationService service) {
+                                        QrVerificationService service,
+                                        PlanEnforcementService planEnforcementService) {
         this.verificationRepo = verificationRepo;
         this.certificateRepo = certificateRepo;
         this.service = service;
+        this.planEnforcementService = planEnforcementService;
     }
 
     /**
@@ -35,6 +39,7 @@ public class PublicVerificationController {
      */
     @GetMapping(value="/v/{code}", produces= MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> verifyCertificate(@PathVariable("code") String code) throws IOException {
+
         Optional<VerificationToken> tokenOpt = verificationRepo.findByCode(code);
 
         if (tokenOpt.isEmpty()) {
@@ -45,10 +50,14 @@ public class PublicVerificationController {
         Long certId = token.getCertificateId();
         Certificate certificate = certificateRepo.getById(certId);
 
+        // blocco se piano scaduto / oltre soglia API
+        planEnforcementService.checkCanCallApi(certificate.getTenant().getId());
+
         if (certificate.getStatus() == Stato.REVOKED) {
             return ResponseEntity.status(410) // Gone
                     .body("❌ Certificato revocato");
         }
+
         service.verify(certificate.getTenant().getId(),code, QrVerificationService.Source.API);
         // Puoi restituire un DTO con i dati del certificato
         return ResponseEntity.ok(new VerificationResponse(
