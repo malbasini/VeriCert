@@ -42,7 +42,7 @@ public class TenantUsageStatusService {
         for (DailyUsageDTO usage : rawToday) {
             Long tenantId = usage.getTenantId();
 
-            TenantSettings settings = tenantSettingsRepository.findByTenantId(tenantId).get();
+            TenantSettings settings = tenantSettingsRepository.findByTenantId(tenantId).orElseThrow();
 
             BigDecimal used = usage.getPdfStorageMb() != null
                     ? usage.getPdfStorageMb()

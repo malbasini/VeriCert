@@ -14,55 +14,7 @@
         actionsFrag=~{::actionsFrag},
         contentFrag=~{::contentFrag}
     )}">
-
-<!-- Banner piano / scadenza -->
-<div th:if="${currentPlan != null}">
-    <!-- Piano scaduto -->
-    <div th:if="${currentPlan.expired}"
-         class="alert alert-danger d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <strong>Piano scaduto.</strong>
-            Il tuo piano
-            <span th:text="${currentPlan.planCode}">PRO</span>
-            è scaduto. Non puoi emettere nuovi certificati o usare le API
-            finché non rinnovi.
-        </div>
-        <a class="btn btn-light btn-sm" href="/billing">Rinnova piano</a>
-    </div>
-
-    <!-- Piano in scadenza -->
-    <div th:if="${!currentPlan.expired and currentPlan.expiringSoon}"
-         class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <strong>Piano in scadenza.</strong>
-            Mancano
-            <span th:text="${currentPlan.daysLeft}">3</span>
-            giorni alla scadenza del tuo piano
-            <span th:text="${currentPlan.planCode}">PRO</span>
-            (<span th:text="${currentPlan.billingCycle}">MONTHLY</span>).
-        </div>
-        <a class="btn btn-outline-dark btn-sm" href="/billing">Rinnova ora</a>
-    </div>
-
-    <!-- Quasi a limite certificati o API -->
-    <div th:if="${!currentPlan.expired and (currentPlan.certsAlmostExceeded or currentPlan.apiAlmostExceeded)}"
-         class="alert alert-info mb-3">
-        <div>
-            <strong>Attenzione ai limiti del piano.</strong>
-            <span th:if="${currentPlan.certLimit != null}">
-                Certificati usati:
-                <span th:text="${currentPlan.usedCerts}">0</span> /
-                <span th:text="${currentPlan.certLimit}">100</span>.
-            </span>
-            <span th:if="${currentPlan.apiLimit != null}">
-                &nbsp;API usate:
-                <span th:text="${currentPlan.usedApi}">0</span> /
-                <span th:text="${currentPlan.apiLimit}">1000</span>.
-            </span>
-        </div>
-    </div>
-</div>
-<!-- ======= FRAMMENTO AZIONI (bottoni header pagina) ======= -->
+<!-- ======= FRAMMENTO AZIONI (bottoni header pagina) =======-->
 <div th:fragment="actionsFrag">
     <a class="btn btn-outline-primary btn-sm"
        th:href="@{/admin/templates}">
@@ -86,8 +38,54 @@
 <!-- ======= FRAMMENTO CONTENUTO PRINCIPALE ======= -->
 <div th:fragment="contentFrag">
 
-    <div class="row g-3">
+       <!-- Banner piano / scadenza -->
+       <div th:if="${currentPlan != null}">
+           <!-- Piano scaduto -->
+           <div th:if="${currentPlan.expired}"
+                class="alert alert-danger d-flex justify-content-between align-items-center mb-3">
+               <div>
+                   <strong>Piano scaduto.</strong>
+                   Il tuo piano
+                   <span th:text="${currentPlan.planCode}">PRO</span>
+                   è scaduto. Non puoi emettere nuovi certificati o usare le API
+                   finché non rinnovi.
+               </div>
+               <a class="btn btn-light btn-sm" href="/billing">Rinnova piano</a>
+           </div>
 
+           <!-- Piano in scadenza -->
+           <div th:if="${!currentPlan.expired and currentPlan.expiringSoon}"
+                class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
+               <div>
+                   <strong>Piano in scadenza.</strong>
+                   Mancano
+                   <span th:text="${currentPlan.daysLeft}">3</span>
+                   giorni alla scadenza del tuo piano
+                   <span th:text="${currentPlan.planCode}">PRO</span>
+                   (<span th:text="${currentPlan.billingCycle}">MONTHLY</span>).
+               </div>
+               <a class="btn btn-outline-dark btn-sm" href="/billing">Rinnova ora</a>
+           </div>
+
+           <!-- Quasi a limite certificati o API -->
+           <div th:if="${!currentPlan.expired and (currentPlan.certsAlmostExceeded or currentPlan.apiAlmostExceeded)}"
+                class="alert alert-info mb-3">
+               <div>
+                   <strong>Attenzione ai limiti del piano.</strong>
+                   <span th:if="${currentPlan.certLimit != null}">
+                       Certificati usati:
+                       <span th:text="${currentPlan.usedCerts}">0</span> /
+                       <span th:text="${currentPlan.certLimit}">100</span>.
+                   </span>
+                   <span th:if="${currentPlan.apiLimit != null}">
+                       &nbsp;API usate:
+                       <span th:text="${currentPlan.usedApi}">0</span> /
+                       <span th:text="${currentPlan.apiLimit}">1000</span>.
+                    </span>
+               </div>
+           </div>
+       </div>
+       <div class="row g-3">
         <!-- BOX TEMPLATE -->
         <div class="col-12 col-md-4">
             <div class="card shadow-sm border-0">

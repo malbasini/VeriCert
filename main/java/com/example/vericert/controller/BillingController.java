@@ -7,12 +7,16 @@ import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.repo.PlanDefinitionRepository;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.dto.CurrentPlanView;
+import com.stripe.exception.StripeException;
+import com.stripe.model.checkout.Session;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.example.vericert.util.PdfUtil.formatCents;
 
 @Controller
 @RequestMapping("/billing")
@@ -57,5 +61,18 @@ public class BillingController {
         String redirectUrl = billingService.startCheckout(tenantId, planCode, billingCycle, provider);
 
         return "redirect:" + redirectUrl;
+    }
+    @GetMapping("/success")
+    public String success(@RequestParam("session_id") String sessionId, Model model) throws StripeException {
+        // opzionale: recuperare la sessione da Stripe e mostrare info
+        Session session = Session.retrieve(sessionId);
+        model.addAttribute("sessionId", sessionId);
+        model.addAttribute("amount", formatCents(session.getAmountTotal()));
+        model.addAttribute("currency", session.getCurrency());
+        return "billing/success"; // templates/billing/success.html
+    }
+    @GetMapping("/cancel")
+    public String cancel() {
+        return "billing/cancel";  // templates/billing/cancel.html
     }
 }

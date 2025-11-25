@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface TenantSettingsRepository extends JpaRepository<TenantSettings, Long> {
 
     Optional<TenantSettings> findByTenantId(Long tenantId);
+
+    Optional<TenantSettings> findBySubscriptionId(String subscriptionId);
 }

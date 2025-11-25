@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+import static com.example.vericert.util.PdfUtil.formatCents;
+
 @Controller
 public class CheckoutPages {
     @GetMapping("/checkout/success")
@@ -19,14 +21,5 @@ public class CheckoutPages {
     }
     @GetMapping("/checkout/cancel")
     public String cancel() { return "stripe/cancel"; }
-
-
-    public static String formatCents(long cents) {
-        BigDecimal eur = BigDecimal.valueOf(cents).movePointLeft(2); // divide per 100 senza perdita
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.ITALY);
-        return fmt.format(eur); // es. 2990 -> "€ 29,90"
-    }
-
-
 }
 

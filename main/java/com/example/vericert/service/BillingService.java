@@ -1,14 +1,18 @@
 package com.example.vericert.service;
 
 import com.example.vericert.domain.PlanDefinition;
+import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.TenantSettings;
 import com.example.vericert.enumerazioni.BillingProvider;
+import com.example.vericert.enumerazioni.Plan;
 import com.example.vericert.enumerazioni.PlanStatus;
 import com.example.vericert.repo.PlanDefinitionRepository;
+import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.TenantSettingsRepository;
+import com.stripe.model.checkout.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
@@ -19,13 +23,16 @@ public class BillingService {
     private final TenantSettingsRepository tenantSettingsRepo;
     private final PlanDefinitionRepository planDefinitionRepo;
     private final StripeGateway stripeGateway;
+    private final TenantRepository tenantRepo;
 
     public BillingService(TenantSettingsRepository tenantSettingsRepo,
                           PlanDefinitionRepository planDefinitionRepo,
-                          StripeGateway stripeGateway) {
+                          StripeGateway stripeGateway,
+                          TenantRepository tenantRepo) {
         this.tenantSettingsRepo = tenantSettingsRepo;
         this.planDefinitionRepo = planDefinitionRepo;
         this.stripeGateway = stripeGateway;
+        this.tenantRepo = tenantRepo;
     }
 
     /**
@@ -45,33 +52,40 @@ public class BillingService {
                 .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
 
         String priceId = resolvePriceId(plan, billingCycle, provider);
-        String redirectUrl = "";
-        // TODO: qui agganci Stripe/PayPal veri.
+
+        Session session;
+
         try {
             if (provider == BillingProvider.STRIPE) {
-                redirectUrl = stripeGateway.createCheckoutSession(
-                        tenantId, priceId, planCode, billingCycle
-                );
+                // ⬇⬇ stripeGateway deve restituire UNA Session di Stripe
+                session = stripeGateway.createCheckoutSession(tenantId, priceId, planCode, billingCycle);
             } else {
-                // redirectUrl = paypalGateway.createCheckout(...);
                 throw new UnsupportedOperationException("PayPal da implementare");
             }
         } catch (Exception e) {
             throw new IllegalStateException("Errore nella creazione della sessione di pagamento", e);
         }
-        String checkoutSessionId = "dummy_session_" + System.currentTimeMillis();
-        redirectUrl = redirectUrl + checkoutSessionId;
 
-        // Salvi nella settings l'ultimo checkout in corso
+        // URL ESATTA DI STRIPE per il redirect
+        String redirectUrl = session.getUrl();
+        // ID ESATTO DELLA SESSIONE STRIPE (tipo cs_test_...)
+        String checkoutSessionId = session.getId();
+
+        // Salvo nel DB informazioni corrette
         settings.setPlanCode(planCode);
         settings.setBillingCycle(billingCycle);
         settings.setProvider(provider.name());
         settings.setCheckoutSessionId(checkoutSessionId);
-        settings.setStatusEnum(PlanStatus.TRIALING); // o "PENDING"
+        settings.setStatusEnum(PlanStatus.TRIALING); // o PENDING
         tenantSettingsRepo.save(settings);
 
-        return redirectUrl;
+        Tenant t = tenantRepo.getTenantById(tenantId);
+        t.setPlan(Plan.valueOf(planCode));
+        tenantRepo.save(t);
+
+        return redirectUrl;  // 👈 NIENTE concatenazioni, è già pronta
     }
+
 
     /**
      * Chiamato da un webhook Stripe/PayPal quando il pagamento è confermato.
@@ -98,16 +112,12 @@ public class BillingService {
         s.setProvider(provider.name());
         s.setSubscriptionId(providerSubscriptionId);
         s.setLastInvoiceId(lastInvoiceId);
-
         s.setCertsPerMonth(plan.getCertsPerMonth());
         s.setApiCallPerMonth(plan.getApiCallsPerMonth());
         s.setStorageMb(plan.getStorageMb());
-
         s.setCurrentPeriodStart(now);
         s.setCurrentPeriodEnd(calculatePeriodEnd(now, billingCycle));
-
         s.setStatusEnum(PlanStatus.ACTIVE);
-
         tenantSettingsRepo.save(s);
     }
 
@@ -136,12 +146,15 @@ public class BillingService {
 
         boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
 
-        return switch (provider) {
-            case STRIPE -> annual ? plan.getStripePriceAnnualId()
-                    : plan.getStripePriceMonthlyId();
-            case PAYPAL -> annual ? plan.getPaypalPlanAnnualId()
-                    : plan.getPaypalPlanMonthlyId();
+        switch (provider) {
+            case STRIPE:
+                String s = annual ? plan.getStripePriceAnnualId() : plan.getStripePriceMonthlyId();
+                return s;
+            case PAYPAL:
+                String p = annual ? plan.getPaypalPlanAnnualId() : plan.getPaypalPlanMonthlyId();
+                return p;
         };
+        return null;
     }
 
     private Instant calculatePeriodEnd(Instant start, String billingCycle) {
@@ -151,4 +164,104 @@ public class BillingService {
         // default: monthly
         return start.atZone(ZoneOffset.UTC).plus(1, ChronoUnit.MONTHS).toInstant();
     }
+
+    @Transactional
+    public void renewStripeSubscription(Long tenantId,
+                                        String planCode,
+                                        String billingCycle,
+                                        String providerSubscriptionId,
+                                        String invoiceId,
+                                        long currentPeriodStartEpoch,
+                                        long currentPeriodEndEpoch) {
+
+        TenantSettings s = tenantSettingsRepo.findById(tenantId)
+                .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
+
+        // Non tocco i limiti, perché sono già presi da PlanDefinition
+        s.setPlanCode(planCode);
+        s.setBillingCycle(billingCycle);
+        s.setProvider("STRIPE");
+        s.setSubscriptionId(providerSubscriptionId);
+        s.setLastInvoiceId(invoiceId);
+
+        Instant start = Instant.ofEpochSecond(currentPeriodStartEpoch);
+        Instant end = Instant.ofEpochSecond(currentPeriodEndEpoch);
+
+        s.setCurrentPeriodStart(start);
+        s.setCurrentPeriodEnd(end);
+
+        s.setStatusEnum(PlanStatus.ACTIVE);
+
+        tenantSettingsRepo.save(s);
+    }
+
+    @Transactional
+    public void renewPaypalSubscription(Long tenantId,
+                                        String planCode,
+                                        String billingCycle,
+                                        String providerSubscriptionId,
+                                        String transactionId,
+                                        Instant currentPeriodStart,
+                                        Instant currentPeriodEnd) {
+
+        TenantSettings s = tenantSettingsRepo.findById(tenantId)
+                .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
+
+        s.setPlanCode(planCode);
+        s.setBillingCycle(billingCycle);
+        s.setProvider("PAYPAL");
+        s.setSubscriptionId(providerSubscriptionId);
+        s.setLastInvoiceId(transactionId);
+
+        s.setCurrentPeriodStart(currentPeriodStart);
+        s.setCurrentPeriodEnd(currentPeriodEnd);
+
+        s.setStatusEnum(PlanStatus.ACTIVE);
+
+        tenantSettingsRepo.save(s);
+    }
+    private Long calculateAmount(Long amountMinor, String plan) {
+        BigDecimal vat = BigDecimal.valueOf(0);
+        BigDecimal discount = BigDecimal.valueOf(0L);
+        switch (plan){
+            case "MONTHLY":
+                //Calcolo l'iva
+                vat = BigDecimal.valueOf((amountMinor * 22) / 100);
+                vat = BigDecimal.valueOf(Math.round(vat.doubleValue()));
+                amountMinor = Math.round(amountMinor.doubleValue() + vat.doubleValue());
+                break;
+            case "ANNUAL":
+                //Calcolo l'iva
+                vat = BigDecimal.valueOf((amountMinor * 22) / 100);
+                vat = BigDecimal.valueOf(Math.round(vat.doubleValue()));
+                amountMinor = (Math.round(amountMinor.doubleValue() + vat.doubleValue())) * 12;
+                break;
+            default:
+                throw new IllegalArgumentException("Plan non supportato");
+
+        }
+        return amountMinor;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

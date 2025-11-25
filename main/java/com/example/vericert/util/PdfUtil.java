@@ -1,10 +1,12 @@
 package com.example.vericert.util;
 
 
-import io.micrometer.core.instrument.util.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.TextNode;
+
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 
 public class PdfUtil {
@@ -26,5 +28,11 @@ public class PdfUtil {
                 .escapeMode(org.jsoup.nodes.Entities.EscapeMode.xhtml)
                 .prettyPrint(false);
         return doc.outerHtml();
+    }
+
+    public static String formatCents(long cents) {
+        BigDecimal eur = BigDecimal.valueOf(cents).movePointLeft(2); // divide per 100 senza perdita
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.ITALY);
+        return fmt.format(eur); // es. 2990 -> "€ 29,90"
     }
 }

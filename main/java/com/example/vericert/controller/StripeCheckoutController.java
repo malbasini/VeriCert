@@ -56,7 +56,7 @@ public Map<String,Object> createCheckout(@RequestParam Long tenantId,
     params.put("metadata", metadata);
     params.put("payment_intent_data", Map.of("metadata", metadata));
     params.put("allow_promotion_codes", true);
-    params.put("automatic_tax", Map.of("enabled", true)); // opzionale
+    params.put("automatic_tax", Map.of("enabled", false)); // opzionale
 
 
     // opzionale: idempotenza lato Stripe
