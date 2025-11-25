@@ -24,15 +24,19 @@ public class BillingService {
     private final PlanDefinitionRepository planDefinitionRepo;
     private final StripeGateway stripeGateway;
     private final TenantRepository tenantRepo;
+    private final PaypalGateway  paypalGateway;
 
     public BillingService(TenantSettingsRepository tenantSettingsRepo,
                           PlanDefinitionRepository planDefinitionRepo,
                           StripeGateway stripeGateway,
-                          TenantRepository tenantRepo) {
+                          TenantRepository tenantRepo,
+                          PaypalGateway paypalGateway) {
+
         this.tenantSettingsRepo = tenantSettingsRepo;
         this.planDefinitionRepo = planDefinitionRepo;
         this.stripeGateway = stripeGateway;
         this.tenantRepo = tenantRepo;
+        this.paypalGateway = paypalGateway;
     }
 
     /**
@@ -45,22 +49,35 @@ public class BillingService {
                                 String billingCycle,       // "MONTHLY" o "ANNUAL"
                                 BillingProvider provider) {
 
+        boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
         PlanDefinition plan = planDefinitionRepo.findByCode(planCode)
                 .orElseThrow(() -> new IllegalArgumentException("Piano non trovato: " + planCode));
 
         TenantSettings settings = tenantSettingsRepo.findById(tenantId)
                 .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
-
         String priceId = resolvePriceId(plan, billingCycle, provider);
-
-        Session session;
-
+        Session session = null;
+        String redirect;
         try {
             if (provider == BillingProvider.STRIPE) {
                 // ⬇⬇ stripeGateway deve restituire UNA Session di Stripe
                 session = stripeGateway.createCheckoutSession(tenantId, priceId, planCode, billingCycle);
             } else {
-                throw new UnsupportedOperationException("PayPal da implementare");
+                String paypalPlanId = annual
+                        ? plan.getPaypalPlanAnnualId()
+                        : plan.getPaypalPlanMonthlyId();
+
+                String success = "http://localhost:8080/billing/paypal/success";
+                String cancel =  "http://localhost:8080/billing/paypal/cancel";
+
+                redirect = paypalGateway.createSubscription(
+                        tenantId,
+                        planCode,
+                        billingCycle,
+                        paypalPlanId,
+                        success,
+                        cancel
+                );
             }
         } catch (Exception e) {
             throw new IllegalStateException("Errore nella creazione della sessione di pagamento", e);

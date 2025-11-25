@@ -42,7 +42,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**","/vendor/**", "/js/**", "/images/**").permitAll() //
                         .requestMatchers("/home","/certificati","/revoke").permitAll()
-                        .requestMatchers("/webhooks/stripe").permitAll()
+                        .requestMatchers("/webhooks/stripe", "/webhooks/paypal").permitAll()
                         .requestMatchers("/admin/**", "/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/templates/**","/certificates/**").authenticated()
                         .requestMatchers("/v/**","/signup","/login","/files/**","/actuator/health").permitAll()

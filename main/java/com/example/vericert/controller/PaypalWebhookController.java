@@ -1,113 +1,140 @@
 package com.example.vericert.controller;
 
-import com.example.vericert.domain.TenantSettings;
+import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.enumerazioni.BillingProvider;
-import com.example.vericert.repo.TenantSettingsRepository;
 import com.example.vericert.service.BillingService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpStatus;
+import com.example.vericert.service.PaypalSubscriptionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/webhooks")
+@RequestMapping("/webhooks/paypal")
 public class PaypalWebhookController {
 
+    private final PaymentsProps.PaypalProps paypalProps;
     private final BillingService billingService;
-    private final ObjectMapper objectMapper;
-    private final TenantSettingsRepository tenantSettingsRepo;
-    public PaypalWebhookController(BillingService billingService,
-                                   ObjectMapper objectMapper,
-                                   TenantSettingsRepository tenantSettingsRepo) {
+    private final PaypalSubscriptionService paypalSubscriptionService;
+
+    public PaypalWebhookController(PaymentsProps paymentsProps,
+                                   BillingService billingService,
+                                   PaypalSubscriptionService paypalSubscriptionService) {
+        this.paypalProps = paymentsProps.getPaypal();
         this.billingService = billingService;
-        this.objectMapper = objectMapper;
-        this.tenantSettingsRepo = tenantSettingsRepo;
+        this.paypalSubscriptionService = paypalSubscriptionService;
     }
 
-    @PostMapping("/paypal")
-    public ResponseEntity<String> handlePaypalWebhook(@RequestBody String payload,
-                                                      @RequestHeader("Paypal-Transmission-Sig") String signature) {
+    @PostMapping
+    public ResponseEntity<String> handle(@RequestBody Map<String, Object> body,
+                                         @RequestHeader Map<String, String> headers) {
 
-        // TODO: verifica firma webhook PayPal con le loro SDK / API
+        // TODO: verificare la firma del webhook PayPal usando:
+        // - headers: PAYPAL-TRANSMISSION-ID, PAYPAL-TRANSMISSION-TIME, PAYPAL-TRANSMISSION-SIG, PAYPAL-CERT-URL, PAYPAL-AUTH-ALGO
+        // - body e paypalProps.getWebhookId()
 
-        try {
-            JsonNode root;
-            root = objectMapper.readTree(payload);
-            String eventType = root.path("event_type").asText();
+        String eventType = (String) body.get("event_type");
+        System.out.println(">>> PAYPAL EVENT = " + eventType);
 
-            // 1) attivazione iniziale
-            if ("BILLING.SUBSCRIPTION.ACTIVATED".equals(eventType)) {
-                JsonNode resource = root.path("resource");
-                String subscriptionId = resource.path("id").asText();
-                String tenantIdStr = resource.path("custom_id").asText(); // se lo metti qui
-                String planCode = resource.path("plan_id").asText(); // o mappi plan_id -> plan_code
-                String billingCycle = "MONTHLY"; // o deduci dalle settings PayPal
+        switch (eventType) {
+            case "BILLING.SUBSCRIPTION.ACTIVATED" -> handleSubscriptionActivated(body);
+            case "PAYMENT.SALE.COMPLETED" -> handlePaymentSaleCompleted(body);
+            case "BILLING.SUBSCRIPTION.CANCELLED" -> handleSubscriptionCancelled(body);
+            default -> System.out.println(">>> Evento PayPal ignorato: " + eventType);
+        }
 
-                Long tenantId = Long.valueOf(tenantIdStr);
+        return ResponseEntity.ok("ok");
+    }
 
-                // qui puoi chiamare activateSubscription(...) come per Stripe
-                billingService.activateSubscription(
-                        tenantId,
-                        planCode,
-                        billingCycle,
-                        BillingProvider.PAYPAL,
-                        subscriptionId,
-                        null // invoice id se lo hai
-                );
-            }
+    private void handleSubscriptionActivated(Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resource = (Map<String, Object>) body.get("resource");
+        if (resource == null) return;
 
-            // 2) pagamento ricorrente: rinnovo
-            if ("PAYMENT.SALE.COMPLETED".equals(eventType)) {
-                JsonNode resource = root.path("resource");
+        String subscriptionId = (String) resource.get("id");
+        var dto = paypalSubscriptionService.findById(subscriptionId);
 
-                // in questo evento trovi spesso billing_agreement_id = subscription id
-                String subscriptionId = resource.path("billing_agreement_id").asText();
+        if (dto.tenantId() == null || dto.planCode() == null || dto.billingCycle() == null) {
+            System.out.println(">>> Subscription PayPal senza custom_id valido, non attivo piano.");
+            return;
+        }
 
-                // Qui devi:
-                // - risalire al tenant (o via custom field memorizzata prima,
-                //   o cercando TenantSettings per subscriptionId)
-                TenantSettings s = tenantSettingsRepo.findBySubscriptionId(subscriptionId)
-                        .orElse(null);
-                if (s != null) {
-                    Long tenantId = s.getTenantId();
-                    String planCode = s.getPlanCode();
-                    String billingCycle = s.getBillingCycle();
+        Long tenantId = Long.valueOf(dto.tenantId());
 
-                    // PayPal restituisce spesso next_billing_time nella subscription,
-                    // ma NON in PAYMENT.SALE.COMPLETED.
-                    // Puoi:
-                    // - o fare una GET alla Subscriptions API per leggere next_billing_time
-                    // - oppure calcolare tu current_period_start/end aggiungendo 1 mese/1 anno
-                    Instant now = Instant.now();
-                    Instant newEnd = calculateNextPeriodEnd(now, billingCycle);
+        billingService.activateSubscription(
+                tenantId,
+                dto.planCode(),
+                dto.billingCycle(),
+                BillingProvider.PAYPAL,
+                dto.id(),
+                null
+        );
+    }
 
-                    billingService.renewPaypalSubscription(
-                            tenantId,
-                            planCode,
-                            billingCycle,
-                            subscriptionId,
-                            resource.path("id").asText(), // transaction id,
-                            now,
-                            newEnd
-                    );
+    private void handlePaymentSaleCompleted(Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resource = (Map<String, Object>) body.get("resource");
+        if (resource == null) return;
+
+        // Nelle notifiche subscription, di solito hai "billing_agreement_id" o "subscription_id"
+        String subscriptionId = (String) resource.get("billing_agreement_id");
+        if (subscriptionId == null) {
+            // in alcuni casi è nested in "supplementary_data" / "related_ids"
+            @SuppressWarnings("unchecked")
+            Map<String, Object> supplementary = (Map<String, Object>) resource.get("supplementary_data");
+            if (supplementary != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> relatedIds = (Map<String, Object>) supplementary.get("related_ids");
+                if (relatedIds != null) {
+                    subscriptionId = (String) relatedIds.get("billing_agreement_id");
                 }
             }
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("");
         }
 
-        return ResponseEntity.ok("");
+        if (subscriptionId == null) {
+            System.out.println(">>> PAYMENT.SALE.COMPLETED senza subscriptionId, ignorato.");
+            return;
+        }
+
+        var dto = paypalSubscriptionService.findById(subscriptionId);
+        if (dto.tenantId() == null || dto.planCode() == null || dto.billingCycle() == null) {
+            System.out.println(">>> Subscription PayPal senza custom_id valido, non rinnovo.");
+            return;
+        }
+
+        Long tenantId = Long.valueOf(dto.tenantId());
+
+        // Id della transazione PayPal
+        String transactionId = (String) resource.get("id");
+
+        Instant start = dto.currentPeriodStart();
+        Instant end = dto.currentPeriodEnd();
+
+        billingService.renewPaypalSubscription(
+                tenantId,
+                dto.planCode(),
+                dto.billingCycle(),
+                dto.id(),           // providerSubscriptionId
+                transactionId,      // lastInvoiceId / transactionId
+                start,
+                end
+        );
     }
 
-    private Instant calculateNextPeriodEnd(Instant start, String billingCycle) {
-        if ("ANNUAL".equalsIgnoreCase(billingCycle)) {
-            return start.plus(365, ChronoUnit.DAYS);
+    private void handleSubscriptionCancelled(Map<String, Object> body) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resource = (Map<String, Object>) body.get("resource");
+        if (resource == null) return;
+
+        String subscriptionId = (String) resource.get("id");
+        var dto = paypalSubscriptionService.findById(subscriptionId);
+
+        if (dto.tenantId() == null) {
+            return;
         }
-        return start.plus(30, ChronoUnit.DAYS); // semplice approssimazione
+
+        Long tenantId = Long.valueOf(dto.tenantId());
+        billingService.cancelSubscription(tenantId);
     }
 }
