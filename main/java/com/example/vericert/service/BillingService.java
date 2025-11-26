@@ -57,7 +57,7 @@ public class BillingService {
                 .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
         String priceId = resolvePriceId(plan, billingCycle, provider);
         Session session = null;
-        String redirect;
+        String redirect = "";
         try {
             if (provider == BillingProvider.STRIPE) {
                 // ⬇⬇ stripeGateway deve restituire UNA Session di Stripe
@@ -82,25 +82,42 @@ public class BillingService {
         } catch (Exception e) {
             throw new IllegalStateException("Errore nella creazione della sessione di pagamento", e);
         }
+        if(provider == BillingProvider.STRIPE) {
 
-        // URL ESATTA DI STRIPE per il redirect
-        String redirectUrl = session.getUrl();
-        // ID ESATTO DELLA SESSIONE STRIPE (tipo cs_test_...)
-        String checkoutSessionId = session.getId();
+            // URL ESATTA DI STRIPE per il redirect
+            String redirectUrl = session.getUrl();
+            // ID ESATTO DELLA SESSIONE STRIPE (tipo cs_test_...)
+            String checkoutSessionId = session.getId();
 
-        // Salvo nel DB informazioni corrette
-        settings.setPlanCode(planCode);
-        settings.setBillingCycle(billingCycle);
-        settings.setProvider(provider.name());
-        settings.setCheckoutSessionId(checkoutSessionId);
-        settings.setStatusEnum(PlanStatus.TRIALING); // o PENDING
-        tenantSettingsRepo.save(settings);
+            // Salvo nel DB informazioni corrette
+            settings.setPlanCode(planCode);
+            settings.setBillingCycle(billingCycle);
+            settings.setProvider(provider.name());
+            settings.setCheckoutSessionId(checkoutSessionId);
+            settings.setStatusEnum(PlanStatus.TRIALING); // o PENDING
+            tenantSettingsRepo.save(settings);
 
-        Tenant t = tenantRepo.getTenantById(tenantId);
-        t.setPlan(Plan.valueOf(planCode));
-        tenantRepo.save(t);
+            Tenant t = tenantRepo.getTenantById(tenantId);
+            t.setPlan(Plan.valueOf(planCode));
+            tenantRepo.save(t);
 
-        return redirectUrl;  // 👈 NIENTE concatenazioni, è già pronta
+            return redirectUrl;  // 👈 NIENTE concatenazioni, è già pronta
+        }
+        if(provider == BillingProvider.PAYPAL) {
+            
+            // Salvo nel DB informazioni corrette
+            settings.setPlanCode(planCode);
+            settings.setBillingCycle(billingCycle);
+            settings.setProvider(provider.name());
+            settings.setStatusEnum(PlanStatus.TRIALING); // o PENDING
+            tenantSettingsRepo.save(settings);
+            Tenant t = tenantRepo.getTenantById(tenantId);
+            t.setPlan(Plan.valueOf(planCode));
+            tenantRepo.save(t);
+
+            return redirect;  // 👈 NIENTE concatenazioni, è già pronta
+        }
+        return "";
     }
 
 

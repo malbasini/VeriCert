@@ -10,5 +10,7 @@ public record PaypalSubscriptionDto(
         String planCode,
         String billingCycle,
         Instant currentPeriodStart,
-        Instant currentPeriodEnd
+        Instant currentPeriodEnd,
+        String amountValue,
+        String amountCurrency
 ) {}
