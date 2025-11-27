@@ -225,9 +225,8 @@
                 }
             } else {
                 // Vista ANNUALE → display = media mensile del totale annuo scontato (+IVA se selezionata)
-                const annualTotalNet = Math.round(monthNet * 12 * (1 - DISCOUNT)); // netto fatturato
+                const annualTotalNet = Math.round(monthNet * 12 * (1 - DISCOUNT));
                 const monthlyAvgNet  = Math.round(annualTotalNet / 12);
-
                 const show = displayCentsFrom(monthlyAvgNet);
                 if (priceEl) priceEl.innerHTML = `${fmt(show)}<span class="fs-6 fw-normal price-period">/mese</span>`;
                 if (amountInp) amountInp.value = annualTotalNet; // pagamento = totale annuo NETTO
