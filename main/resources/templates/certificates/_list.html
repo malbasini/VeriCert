@@ -4,7 +4,12 @@
         <h1 class="h3 mb-0">Certificati</h1>
         <a class="btn btn-primary" th:href="@{/admin/certificates/new}"><i class="fa-solid fa-plus"></i>Nuovo certificato</a>
     </div>
-
+    <br>
+    <div id="div1"  class="alert alert-success alert-dismissible fade show" style="visibility: hidden" role="alert">
+        Certificato eliminato con successo.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <br>
     <!-- Filtri -->
     <form class="row gy-2 gx-2 align-items-end mb-3" method="get">
         <div class="input-group w-auto">
@@ -71,16 +76,35 @@
                             <a th:href="@{'/admin/certificates/' + ${c.id} + '/detail'}"
                                class="btn btn-sm btn-outline-secondary me-2"><i class="fa-solid fa-info"></i>Dettaglio</a>
                             <th:block th:if="${c.status?.name()=='REVOKED'}">
-                                <a class="js-del btn btn-outline-danger btn-sm" href="#" th:onclick="|openItem(event, ${c.id})|">
+                                <a class="js-del btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#">
                                     <i class="bi bi-trash"></i> Elimina
                                 </a>
                             </th:block>
                         </td>
+                        <!-- Modal -->
+                        <form th:action="|javascript:openItem(${c.id})|" method="DELETE">
+                            <div class="modal fade center" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Eliminazione cerificato</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                             Sei sicuro di voler eliminare il certificato?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="submit" class="btn btn-primary">Elimina</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </tr>
                     </tbody>
                 </table>
             </div>
-
             <!-- Pagination -->
             <nav th:if="${page.totalPages > 1}" class="p-3">
                 <ul class="pagination mb-0">
@@ -101,13 +125,10 @@
         </div>
     </div>
     <script>
-        async function openItem(ev, id) {
-            const btn = ev.target.closest('a.js-del');
-            if (!btn) return;
-            ev.preventDefault();
-            if (!confirm("Confermi l'eliminazione del certificato?")) return; // evita la navigazione
+        async function openItem(id) {
             try {
                 const API_BASE = "/api/certificates";
+                const divMessage = document.getElementById("div1");
                 const response = await fetch(`${API_BASE}/${id}/delete`, {
                     method: "DELETE",
                     headers: {
@@ -119,10 +140,10 @@
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    await showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
+                    showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
                 } else {
-                    await showToast("Certificato eliminato con successo", {colorClass: 'bg-success'});
-                    window.location.reload();
+                   divMessage.style.visibility = "visible";
+                   await window.location.reload();
                 }
             }
             catch (error) {

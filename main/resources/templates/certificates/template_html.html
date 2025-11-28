@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8"/>
     <title>Certificato [[${serial}]]</title>
-
     <style>
         :root{
             --primary:[[${themeColor}]];
@@ -233,7 +232,7 @@
             <div class="brand-left">
                 <h1>[[${tenantName}]]</h1>
                 <small>
-                    [[${issuerName}]]<br/>
+                    [[${issuerName}]]<br></br>
                     [[${issuerTitle}]]
                 </small>
             </div>
@@ -308,7 +307,7 @@
     <!-- BLOCCO VERIFICA PUBBLICA -->
     <section class="verify">
         <div class="qrbox">
-            <img th:src="'data:image/png;base64,' + ${qrBase64}" alt="QR Code"/>
+            <img th:src="'data:image/png;base64,' + ${qrBase64}" alt="QR Code"/></img>
         </div>
 
         <div class="desc">
@@ -354,7 +353,7 @@
         </div>
 
         <div class="foot-right">
-            Questo attestato è verificabile online.<br/>
+            Questo attestato è verificabile online
             [[${verifyUrl}]]
         </div>
     </footer>

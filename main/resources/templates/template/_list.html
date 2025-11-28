@@ -42,12 +42,32 @@
                             <i class="bi bi-eye"></i> Preview
                         </a>
                         <th:block th:if="${!t.active}">
-                        <a class="js-del btn btn-outline-danger btn-sm rounded" href="#" th:onclick="|openItem(event, ${t.id})|">
+                        <a class="js-del btn btn-outline-danger btn-sm rounded" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#">
                             <i class="bi bi-trash"></i> Elimina
                         </a>
                         </th:block>
                     </div>
                 </td>
+                <!-- Modal -->
+                <form th:action="|javascript:openItem(${t.id})|" method="DELETE">
+                    <div class="modal fade center" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Eliminazione cerificato</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Sei sicuro di voler eliminare il template?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-primary">Elimina</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </tr>
             <tr th:if="${page.empty}">
                 <td colspan="5" class="text-center text-muted py-4">Nessun template trovato.</td>
@@ -103,11 +123,7 @@
         </div>
     </div>
     <script>
-        async function openItem(ev, id) {
-            const btn = ev.target.closest('a.js-del');
-            if (!btn) return;
-            ev.preventDefault();
-            if (!confirm("Confermi l'eliminazione del template?")) return; // evita la navigazione
+        async function openItem(id) {
             try {
                 const API_BASE = "/api/admin/templates";
                 const response = await fetch(`${API_BASE}/${id}/delete`, {

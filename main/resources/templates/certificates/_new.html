@@ -213,32 +213,26 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(vars),
                 });
-                if (!resp.ok) {
-                    // Se 400 con JSON errori
-                    const ct = resp.headers.get('content-type') || '';
-                    if (ct.includes('application/json')) {
-                        const err = await resp.json();
-                        alert('Errore di validazione: ' + JSON.stringify(err.errors));
-                    } else {
-                        alert('Errore ' + resp.status + ': ' + (await resp.text()));
-                    }
-                } else {
-                    const resultDiv = document.getElementById("result");
                     const data = await resp.json();
-                    resultDiv.innerHTML = `
-                        <div class="alert alert-success">
-                            ✅<b>Certificato inserito con successo</b><br>
-                            <b>ID:</b> ${data.code}<br>
-                            <b>Serial:</b> ${data.serial}<br>
-                            <b>Url PDF:</b> ${data.pdfUrl}<br>
-                            <b>sha256:</b> ${data.sha256}<br>
-                            <b>Intestatario:</b> ${data.ownerName}<br>
-                            <b>Email:</b> ${data.ownerEmail}<br>
-                            <b>Data creazione:</b> ${data.issuedAt}<br>
-                        </div>
-                    `;
-                    showToast("Certficato emesso con successo",{ colorClass: 'bg-success' });
-                }
+                    if (!resp.ok) {
+                        await showToast(data?.error + ` Status HTTP ${resp.status}`, {colorClass: 'bg-danger'});
+                    }
+                    else{
+                        const resultDiv = document.getElementById("result");
+                        resultDiv.innerHTML = `
+                            <div class="alert alert-success">
+                                ✅<b>Certificato inserito con successo</b><br>
+                                <b>ID:</b> ${data.code}<br>
+                                <b>Serial:</b> ${data.serial}<br>
+                                <b>Url PDF:</b> ${data.pdfUrl}<br>
+                                <b>sha256:</b> ${data.sha256}<br>
+                                <b>Intestatario:</b> ${data.ownerName}<br>
+                                <b>Email:</b> ${data.ownerEmail}<br>
+                                <b>Data creazione:</b> ${data.issuedAt}<br>
+                            </div>
+                        `;
+                        showToast("Certficato emesso con successo",{ colorClass: 'bg-success' });
+                    }
             }
              catch (e) {
                 console.error('Errore nella creazione del certificato:', e.message);
