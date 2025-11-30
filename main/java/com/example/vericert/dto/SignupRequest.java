@@ -24,7 +24,6 @@ public record SignupRequest (
     @Email(message = "Formato email non valido")
     String email,
 
-    @NotBlank(message = "Il captcha è obbligatorio")
     String captchaToken
 ){}
 

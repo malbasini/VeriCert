@@ -140,16 +140,24 @@
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.error + ` Status HTTP ${response.status}`, cls: "bg-danger" }));
                 } else {
-                   divMessage.style.visibility = "visible";
-                   await window.location.reload();
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Certificato eliminato con successo", cls: "bg-success" }));
+                    window.location.reload();
                 }
             }
             catch (error) {
-                console.error("Errore durante l'eliminazione del template:", error);
-                showToast(error.message,{ colorClass: 'bg-danger' });
+                sessionStorage.setItem("flashMsg", JSON.stringify({ text: error.message, cls: "bg-danger" }));
             }
+        }
+    </script>
+    <script>
+        // all'avvio pagina (es. in uno script al fondo pagina):
+        const flash = sessionStorage.getItem("flashMsg");
+        if (flash) {
+            const { text, cls } = JSON.parse(flash);
+            showToast(text, { colorClass: cls });
+            sessionStorage.removeItem("flashMsg");
         }
     </script>
 </div>

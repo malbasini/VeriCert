@@ -128,21 +128,16 @@ public class CertificateService {
         c.setSha256(sha);
         c.setOwnerName(ownerName);
         c.setOwnerEmail(ownerEmail);
-
         c = certRepo.save(c);  // ora hai c.getId() (certId)
-
         // 4) Token di verifica (JWS compatto nel QR)
         long now = Instant.now().getEpochSecond();
         long exp = now + 31536000;                 // es. +1 anno
         Long tenantId = tenant.getId();
         Long certId   = c.getId();
-
         Path priv = Path.of("keys/ed25519-private.pem");
         Path pub  = Path.of("keys/ed25519-public.pem");
         String kid = "key-2025-10-30";
-
         QrSignerOkp signer = new QrSignerOkp(priv, pub, kid);
-
         Map<String,Object> payloads = Map.of(
                 "tenantId", tenantId,
                 "certId",   certId,
@@ -151,9 +146,7 @@ public class CertificateService {
                 "exp",      (System.currentTimeMillis()/1000) + 31536000,
                 "jti",      java.util.UUID.randomUUID().toString()
         );
-
         String compactJws = signer.sign(payloads);
-
         // 5) Salva VerificationToken in DB
         VerificationToken t = new VerificationToken();
         t.setCompactJws(compactJws);

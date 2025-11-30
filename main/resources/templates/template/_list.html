@@ -137,16 +137,24 @@
                 });
                 const data = await response.json();
                 if (!response.ok) {
-                    showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.error + ` Status HTTP ${response.status}`, cls: "bg-danger" }));
                 } else {
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Template eliminato con successo", cls: "bg-success" }));
                     window.location.reload();
-                    showToast("Template eliminato con successo", {colorClass: 'bg-success'});
                 }
             }
             catch (error) {
-                console.error("Errore durante l'eliminazione del template:", error);
-                showToast(error.message,{ colorClass: 'bg-danger' });
+                sessionStorage.setItem("flashMsg", JSON.stringify({ text: error.message + ' ', cls: "bg-danger" }));
             }
+        }
+    </script>
+    <script>
+        // all'avvio pagina (es. in uno script al fondo pagina):
+        const flash = sessionStorage.getItem("flashMsg");
+        if (flash) {
+            const { text, cls } = JSON.parse(flash);
+            showToast(text, { colorClass: cls });
+            sessionStorage.removeItem("flashMsg");
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>

@@ -33,18 +33,42 @@
                         <thead>
                         <tr>
                             <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
-                            <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th><th></th>
+                            <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th><th></th><th></th>
                         </tr>
                         </thead>
                         <tbody id="rows"></tbody>
                     </table>
                 </div>
                 <nav><ul class="pagination" id="pager"></ul></nav>
+                <!-- Modale conferma eliminazione -->
+                <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmDeleteTitle">Conferma eliminazione</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                            </div>
+                            <div class="modal-body">
+                                Sei sicuro di voler eliminare questo utente?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                                    <i class="bi bi-trash me-1"></i>Elimina
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 </body>
     <script>
         const API = '/api/admin/memberships';
         const ROLES = ['ADMIN','MANAGER','ISSUER','VIEWER'];
         let currentPage = 0, lastQuery = '';
+        // JavaScript
+        let toDeleteId = null;
+        let confirmModal; // istanza condivisa
+
 
         function checkbox(id){ const cb=document.createElement('input'); cb.type='checkbox'; cb.dataset.id=id; return cb; }
         function roleSelect(current, id) {
@@ -69,29 +93,19 @@
             aDett.href = `/admin/users/${id}/detail`;
             aDett.className = 'btn btn-outline-secondary me-2 rounded';
             aDett.innerHTML = '<i class="bi bi-info-circle me-1"></i>Dettaglio';
-            // bottone elimina
             if(role==='VIEWER') {
+                // bottone elimina
                 const btnDel = document.createElement('button');
                 btnDel.className = 'btn btn-sm btn-outline-danger rounded';
                 btnDel.innerHTML = `<i class="bi bi-trash"></i> Elimina`;
-                btnDel.onclick = async ()  => {
-                    try {
-                        const confirmed = confirm('Sei sicuro di voler eliminare questo utente?');
-                        if (!confirmed) return;
-                        await api(`${API}/${id}/delete`, { method: 'DELETE' });
-                        showToast('Utente eliminato', { colorClass: 'bg-success' });
-                        reload();
-                    } catch (e) {
-                        showToast(e.message, { colorClass: 'bg-danger' });
-                    }
-                }
+                btnDel.onclick = () => apriModaleEliminazione(id);
                 group.appendChild(aDett);
                 group.appendChild(btnDel);
-            }
-            else {
+                return group;
+            }else{
                 group.appendChild(aDett);
+                return group;
             }
-            return group;
         }
         function statusSwitch(status, id){
             const wrap = document.createElement('div'); wrap.className='form-check form-switch';
@@ -173,8 +187,42 @@
                 showToast('Operazione completata',{ colorClass: 'bg-success' }); reload();
             }catch(e){ showToast(e.message,{ colorClass: 'bg-danger' }); }
         }
-        document.addEventListener('DOMContentLoaded', ()=> load());
-    </script>
+        document.addEventListener('DOMContentLoaded', () => {
+            load(0);
+            const modalEl = document.getElementById('confirmDeleteModal');
+            confirmModal = new bootstrap.Modal(modalEl, { backdrop: 'static' });
 
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.addEventListener('click', onConfirmDelete);
+            modalEl.addEventListener('hidden.bs.modal', () => { toDeleteId = null; });
+        });
+        // Pulizia id se la modale viene chiusa
+        modalEl.addEventListener('hidden.bs.modal', () => { toDeleteId = null; });
+    </script>
+    <script>
+        function apriModaleEliminazione(id) {
+            toDeleteId = id;
+            confirmModal.show();
+        }
+
+        async function onConfirmDelete() {
+            if (!toDeleteId) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            const html = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminazione...';
+            try {
+                await api(`/api/admin/memberships/${toDeleteId}/delete`, { method: 'DELETE' });
+                showToast('Utente eliminato', { colorClass: 'bg-success' });
+                confirmModal.hide(); // CHIUSURA SICURA DELL’ISTANZA CORRETTA
+                reload();
+            } catch (e) {
+                showToast(e.message, { colorClass: 'bg-danger' });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = html;
+            }
+        }
+    </script>
 </div>
 </html>

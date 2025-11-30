@@ -45,7 +45,6 @@ public class TenantAuthController {
     //Insert Tenant, User, Membership
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request,
-                                    @RequestParam("g-recaptcha-response") String captchaResponse,
                                     BindingResult br) {
         if (br.hasErrors()) {
             var errors = br.getFieldErrors().stream()
