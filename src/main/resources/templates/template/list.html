@@ -1,0 +1,23 @@
+<div th:fragment="emptyActions"></div>
+    <th:block
+            th:with="
+        pageTitle='Template',
+        active='templates'
+    "
+            th:replace="~{admin :: layout(
+        ${pageTitle},
+        ${active},
+        ~{template/list :: emptyActions},
+        ~{/template/_list :: content(page=${page}, q=${q})}
+    )}">
+</th:block>
+
+
+
+
+
+
+
+
+
+</th:block>

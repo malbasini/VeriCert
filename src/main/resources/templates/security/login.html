@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="it" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+<div th:replace="base :: headerFragment"></div>
+<br>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <th:block th:if="${param.logout != null}">
+                <div style="text-align: center;" class="alert alert-success" role="alert">
+                    Logout effettuato con successo
+                </div>
+            </th:block>
+        </div>
+    </div>
+    <br>
+    <h2 class="mb-3">Login</h2>
+    <div class="input-group mb-3">
+        <label class="input-group-text" for="username">Username</label>
+        <input type="text" class="form-control" id="username" placeholder="Username" aria-label="User" aria-describedby="User">
+        <label class="input-group-text" for="password">Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Password" aria-label="Password" aria-describedby="Password">
+    </div>
+    <div class="input-group mb-3">
+        <div class="form-check">
+            <label class="form-check-label" for="rememberMe">Remember me</label>&nbsp;&nbsp;&nbsp;
+            <input class="form-check-input" type="checkbox" value="" id="rememberMe" aria-label="Remember" aria-describedby="Remember">
+        </div>
+        <button class="btn btn-primary form-control ms-5"  onclick="login()">Login</button>
+    </div>
+</div>
+<script>
+    async function login() {
+        const API_BASE = "http://localhost:8080";
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const remember = document.getElementById("rememberMe").checked;
+
+        const params = new URLSearchParams();
+        params.append("username", username);
+        params.append("password", password);
+        params.append("rememberMe", remember);
+
+        const response = await fetch(`${API_BASE}/login`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: params.toString()
+        });
+        window.location.href = "/";
+    }
+</script>
+</body>
+<div th:insert="footer :: footerFragment"></div>
+<!-- qui potresti caricare i file JS di Bootstrap, se serve -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <div th:replace="base :: headerFragment"></div>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>VeriCert – Piani</title>
+    <style>
+        body { background:#0b1020; color:#e8ecf7; }
+        .pricing-card { border:1px solid #1f2942; border-radius:16px; background:#111834; box-shadow:0 10px 30px rgba(0,0,0,.25); height:100%; }
+        .price { font-size:2rem; font-weight:700; }
+        .subtitle { color:#9fb0ff; }
+        .feature { color:#cfd6ff; }
+        .badge-plan { background:linear-gradient(135deg,#5b8cff,#8f5bff); }
+        .btn-outline-light { border-color:#5b8cff; color:#e8ecf7; }
+        .btn-outline-light:hover { background:#5b8cff; }
+        .btn-paypal { background:#ffc439; color:#1a1a1a; border:none; }
+        .btn-paypal:hover { filter:brightness(.95); }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <input type="hidden" id="tenantId" th:value="${tenantId}"/>
+        <h1 class="fw-bold">Scegli il tuo piano</h1>
+        <p class="subtitle mb-3">Mensile o Annuale con <strong>20% di sconto</strong>.</p>
+
+        <!-- Toggle mensile/annuale -->
+        <div class="d-inline-flex align-items-center gap-3 mb-2">
+            <div class="d-inline-flex align-items-center gap-2">
+                <span>Mensile</span>
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" th:checked="${billingAnnual}" id="billingToggle">
+                </div>
+                <span>Annuale <span class="badge badge-plan ms-1">-20%</span></span>
+            </div>
+        </div>
+        <!-- NUOVO: Toggle IVA -->
+        <div class="d-inline-flex align-items-center gap-2 ms-4">
+            <span>IVA</span>
+            <div class="form-check form-switch m-0" title="Solo visuale: non influisce sul pagamento">
+                <input class="form-check-input" type="checkbox" id="vatToggle" checked>
+            </div>
+            <span>inclusa</span>
+        </div>
+        <div id="annualBadge" class="small" style="color:#a6b3ff; display:none;">
+            Prezzo mostrato al mese, <strong>fatturato annualmente (-20%)</strong>.
+        </div>
+        <div id="vatBadge" class="small" style="color:#a6b3ff;">
+            Prezzi mostrati <strong>IVA inclusa (22%)</strong>. Il toggle è solo visivo.
+        </div>
+        </div>
+        <div class="row g-4">
+        <th:block th:each="plan : ${items}">
+        <th:block th:if="|${plan.getCode() == 'FREE'}|">
+            <!-- FREE -->
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">FREE</h3><span class="badge badge-plan">Inizia ora</span>
+                </div>
+                <div class="price" data-price-id="FREE">€0<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per test e uso personale</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ <th:block th:text="|${plan.getCertsPerMonth() + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getApiCallsPerMonth() + ' API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${plan.getStorageMb() + ' MB storage'}|"></th:block></li>
+                    <li class="feature">— <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                        <button onclick="activationFree()" class="btn btn-outline-light w-100">Attiva GRATIS</button>
+                </div>
+            </div>
+        </div>
+        </th:block>
+        <!-- PRO -->
+        <th:block th:if="|${plan.getCode() == 'PRO'}|">
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">PRO</h3><span class="badge badge-plan">Più usato</span>
+                </div>
+                <div class="price" data-price-id="PRO">€9,90<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per professionisti e freelance</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ <th:block th:text="|${plan.getCertsPerMonth() + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getApiCallsPerMonth(),0,'POINT') + ' API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${(plan.getStorageMb()/1000) + ' GB storage'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form id="form2"  th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor" th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}" data-amount-id="PRO"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="planCode" value="PRO"/>
+                        <input type="hidden" name="billingCycle" th:value="${period}">
+                        <input type="hidden" name="description" value="Piano PRO (Mensile)" data-desc-id="PRO"/>
+                        <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
+                    </form>
+                    <button class="btn btn-paypal w-100"
+                            data-plan="PRO" data-amount="990" data-desc="Piano PRO (Mensile)"
+                            th:attr="data-period=${period}" data-cycle th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}"
+                            onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+                </div>
+            </div>
+        </div>
+        </th:block>
+        <!-- BUSINESS -->
+        <th:block th:if="|${plan.getCode() == 'BUSINESS'}|">
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">BUSINESS</h3><span class="badge badge-plan">Team</span>
+                </div>
+                <div class="price" data-price-id="BUSINESS">€29,90<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per piccoli team e aziende</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ <th:block th:text="|${plan.getCertsPerMonth() + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getApiCallsPerMonth(),0,'POINT') + ' API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${(plan.getStorageMb()/1000) + ' GB storage'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor" th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}" data-amount-id="BUSINESS"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="planCode" value="BUSINESS"/>
+                        <input type="hidden" name="billingCycle" th:value="${period}">
+                        <input type="hidden" name="description" value="Piano BUSINESS (Mensile)" data-desc-id="BUSINESS"/>
+                        <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
+                    </form>
+                    <button class="btn btn-paypal w-100"
+                            data-plan="BUSINESS" data-amount="2990" data-desc="Piano BUSINESS (Mensile)"
+                            th:attr="data-period=${period}" data-cycle th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}"
+                            onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+                </div>
+            </div>
+        </div>
+        </th:block>
+        <!-- ENTERPRISE -->
+        <th:block th:if="|${plan.getCode() == 'ENTERPRISE'}|">
+        <div class="col-12 col-md-6 col-xl-3 d-flex">
+            <div class="pricing-card p-4 d-flex flex-column w-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">ENTERPRISE</h3><span class="badge badge-plan">Scalabilità</span>
+                </div>
+                <div class="price" data-price-id="ENTERPRISE">€99,90<span class="fs-6 fw-normal price-period">/mese</span></div>
+                <p class="subtitle mt-2">Per grandi volumi e SLA</p>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getCertsPerMonth(),0,'POINT') + ' certificati/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${#numbers.formatInteger(plan.getApiCallsPerMonth(),0,'POINT') + ' chiamate API/mese'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="|${(plan.getStorageMb()/1000) + ' GB storage'}|"></th:block></li>
+                    <li class="feature">✔ <th:block th:text="${plan.isSupportPriority()}"></th:block></li>
+                </ul>
+                <div class="mt-auto d-grid gap-2">
+                    <form th:action="@{/api/payments/stripe/checkout-redirect}" method="post">
+                        <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+                        <input type="hidden" name="amountMinor"  th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}" data-amount-id="ENTERPRISE"/>
+                        <input type="hidden" name="currency" value="EUR"/>
+                        <input type="hidden" name="planCode" value="ENTERPRISE"/>
+                        <input type="hidden" name="description" value="Piano ENTERPRISE (Mensile)" data-desc-id="ENTERPRISE"/>
+                        <input type="hidden" name="billingCycle" th:value="${period}">
+                        <button type="submit" class="btn btn-outline-light w-100">Acquista con Stripe</button>
+                    </form>
+
+                    <button class="btn btn-paypal w-100"
+                            data-plan="ENTERPRISE" data-amount="9990" data-desc="Piano ENTERPRISE (Mensile)"
+                            th:attr="data-period=${period}" th:value="${billingAnnual ? plan.getPriceAnnualCents():plan.getPriceMonthlyCents()}"
+                            onclick="buyWithPaypal(this)">Acquista con PayPal</button>
+                </div>
+            </div>
+        </div>
+        </th:block>
+      </th:block>
+    </div>
+    <p class="text-center mt-4" style="color:#a6b3ff">
+        * Sconto annuale applicato al totale (12 mesi)
+    </p>
+</div>
+<script th:inline="javascript">
+    const TENANT_ID = document.getElementById('tenantId').value;
+    // Prezzi mensili listino (centesimi, NETTI). I pagamenti usano questi importi (o il totale annuale scontato).
+    const monthly = { FREE: 0, PRO: 990, BUSINESS: 2990, ENTERPRISE: 9990 };
+    const DISCOUNT = 0.20;       // -20% annuale (totale)
+    const VAT_RATE = 0.22;       // 22% IT
+    let annualMode = false;      // false = mensile, true = annuale (fatturato annualmente)
+    let vatIncluded = true;// solo display
+
+    const fmt = cents => (cents/100).toLocaleString('it-IT', { style:'currency', currency:'EUR' });
+
+    // Calcola i CENTESIMI da MOSTRARE (applica IVA solo a video)
+    function displayCentsFrom(baseCents) {
+        const withVat = vatIncluded ? Math.round(baseCents * (1 + VAT_RATE)) : baseCents;
+        return withVat;
+    }
+
+    function refreshPrices() {
+        // badge
+        document.getElementById('annualBadge').style.display = annualMode ? 'block' : 'none';
+        document.getElementById('vatBadge').innerHTML =
+            `Prezzi mostrati <strong>IVA ${vatIncluded ? 'inclusa' : 'esclusa' } (${Math.round(VAT_RATE*100)}%)</strong>. Il toggle è solo visivo.`;
+
+        // la label vicino al numero resta “/mese” (anche in annuale mostriamo la media mensile)
+        document.querySelectorAll('.price-period').forEach(el => el.textContent = '/mese');
+
+        Object.keys(monthly).forEach(plan => {
+            const priceEl   = document.querySelector(`[data-price-id="${plan}"]`);
+            const amountInp = document.querySelector(`[data-amount-id="${plan}"]`); // IMPORTO REALE per Stripe (non IVA)
+            const descInp   = document.querySelector(`[data-desc-id="${plan}"]`);
+            const ppBtn     = document.querySelector(`button.btn-paypal[data-plan="${plan}"]`);
+
+            const monthNet = monthly[plan]; // netto di listino
+
+            if (!annualMode) {
+                // Vista MENSILE → display = mensile (+IVA se selezionata), pagamento = mensile netto
+                const show = displayCentsFrom(monthNet);
+                if (priceEl) priceEl.innerHTML = `${fmt(show)}<span class="fs-6 fw-normal price-period">/mese</span>`;
+                if (amountInp) amountInp.value = monthNet; // pagamento invariato (netto)
+                if (descInp)   descInp.value   = `Piano ${plan} (Mensile)`;
+                if (ppBtn) {
+                    ppBtn.setAttribute('data-amount', String(monthNet));
+                    ppBtn.setAttribute('data-desc',   `Piano ${plan} (Mensile)`);
+                }
+            } else {
+                // Vista ANNUALE → display = media mensile del totale annuo scontato (+IVA se selezionata)
+                const annualTotalNet = Math.round(monthNet * 12 * (1 - DISCOUNT));
+                const monthlyAvgNet  = Math.round(annualTotalNet / 12);
+                const show = displayCentsFrom(monthlyAvgNet);
+                if (priceEl) priceEl.innerHTML = `${fmt(show)}<span class="fs-6 fw-normal price-period">/mese</span>`;
+                if (amountInp) amountInp.value = annualTotalNet; // pagamento = totale annuo NETTO
+                if (descInp)   descInp.value   = `Piano ${plan} (Annuale -20%)`;
+                if (ppBtn) {
+                    ppBtn.setAttribute('data-amount', String(annualTotalNet));
+                    ppBtn.setAttribute('data-desc',   `Piano ${plan} (Annuale -20%)`);
+                }
+            }
+        });
+    }
+
+    const vatToggle = document.getElementById('vatToggle');
+    vatToggle.addEventListener('change', e => { vatIncluded = e.target.checked; refreshPrices(); });
+
+    // Stato iniziale
+    const billingToggle = document.getElementById('billingToggle').checked;
+    if (billingToggle) { annualMode = true; vatToggle.checked = true; refreshPrices();}
+    if (!billingToggle) { annualMode = false; vatToggle.checked = true; refreshPrices();}
+
+    // PayPal: crea ordine e redirigi all'approveUrl (IMPORTI NETTI inviati, IVA solo visuale)
+    async function buyWithPaypal(btn) {
+        const tenantId = document.getElementById('tenantId').value;
+        const amountMinor = btn.getAttribute('data-amount');
+        const description = btn.getAttribute('data-desc');
+        const billingCycle = btn.getAttribute('data-period');
+        const planCode = btn.getAttribute('data-plan');
+        const vat = vatIncluded ? true : false;
+
+        // Crea URLSearchParams per inviare come form data
+        const params = new URLSearchParams({
+            tenantId: tenantId,
+            amountMinor: amountMinor,
+            currency: 'EUR',
+            description: description,
+            planCode: planCode,
+            billingCycle: billingCycle,
+            vat: vat
+        });
+
+        const res = await fetch(`/api/payments/paypal/order`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: params
+        });
+        if (!res.ok) {
+            showToast(('Errore ' + res.status + ': ' + (await res.text())),{colorClass: 'bg-danger'});
+            return;
+        }
+        const data = await res.json();
+        window.location.href = data.approveUrl;
+    }
+    window.buyWithPaypal = buyWithPaypal;
+</script>
+<script>
+   document.getElementById('billingToggle').addEventListener('change', async (e) => {
+     const annual = e.target.checked;
+     // salva preferenza
+     await fetch('/pricing/billing?annual=' + annual, { method: 'POST' });
+     annualMode = annual;
+     refreshPrices();
+     window.location.reload();
+   });
+</script>
+<script>
+    async function activationFree(){
+        const tenantId = document.getElementById('tenantId').value;
+        const response = await fetch(`/api/payments/activate-free`,{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                tenantId: tenantId
+            })
+        });
+        const text = await response.text();
+        if (!response.ok)
+            showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
+        else
+            showToast("Attivazione avvenuta con successo", {colorClass: 'bg-success'})
+    }
+</script>
+</body>
+<div th:insert="footer :: footerFragment"></div>
+</html>
