@@ -21,7 +21,12 @@ public class AdminActivateFreePlan {
     @PostMapping("/api/payments/activate-free")
     public ResponseEntity<?> activateFree(@RequestBody activationRequest request)
     {
-        service.activatePlan(request.tenantId, "FREE", "MONTHLY", "FREE-" +request.tenantId, "FREE");
+        try {
+            service.activatePlan(request.tenantId, "FREE", "MONTHLY", "FREE-" + request.tenantId, "FREE");
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(400).body(Map.of("error", e.getMessage()));
+        }
         return ResponseEntity.ok(Map.of("ok", true));
     }
 

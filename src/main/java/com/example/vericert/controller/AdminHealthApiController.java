@@ -14,13 +14,15 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/admin/api")
-@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
+@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
 public class AdminHealthApiController {
 
     private final AppInfoService appInfoService;
@@ -38,8 +40,7 @@ public class AdminHealthApiController {
     }
 
     @GetMapping("/health")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> health() throws JsonProcessingException {
+    public ResponseEntity<?> health(){
         // stato generale
         Map<String, Object> map = new HashMap<>();
         Map<String, Object> info = healthInfoService.currentHealthInfo();
@@ -70,27 +71,30 @@ public class AdminHealthApiController {
                     }
                 }
             }
-
         }
 
         assert stato != null;
         assert map != null;
         assert statusDisk != null;
+        assert status != null;
+
+        //formatto il timestamp
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+                .withZone(ZoneId.systemDefault()); // o ZoneId.of("Europe/Rome")
+        String formatted = fmt.format(Instant.now());
 
         return ResponseEntity.ok(Map.of(
                 "status", status,
                 "db",stato,
                 "disk",map,
                 "disk1",statusDisk,
-                "timestamp", Instant.now().toString(),
+                "timestamp", formatted,
                 "app", appInfoService.currentInfo()  // versione, uptime ecc.
         ));
     }
-
     @GetMapping("/logs")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> lastLogs() {
-        // le ultime ~200 righe dalla tua app
+        // le ultime ~200 righe
         return ResponseEntity.ok(Map.of(
                 "lines", logTailService.tail()
         ));

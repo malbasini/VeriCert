@@ -3,14 +3,15 @@ package com.example.vericert.controller;
 import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.service.AdminPlanDefinitionsService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
 @Controller
+@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
 public class AdminPlanDefinition {
 
     private final AdminPlanDefinitionsService service;

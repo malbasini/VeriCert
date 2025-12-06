@@ -168,17 +168,21 @@
                             <input type="hidden" name="planCode" th:value="${plan.code}"/>
                             <div class="mb-2">
                                 <label class="form-label small mb-1">Ciclo di fatturazione</label>
-                                <select name="billingCycle" class="form-select form-select-sm">
-                                    <option value="MONTHLY" selected>Mensile</option>
-                                    <option value="ANNUAL">Annuale</option>
-                                </select>
+                                <label>
+                                    <select name="billingCycle" class="form-select form-select-sm">
+                                        <option value="MONTHLY" selected>Mensile</option>
+                                        <option value="ANNUAL">Annuale</option>
+                                    </select>
+                                </label>
                                 <div class="mb-2">
                                 <label class="form-label small mb-1">Provider di pagamento</label>
-                                <select name="provider" class="form-select form-select-sm">
-                                    <option value="STRIPE">Stripe</option>
-                                    <option value="PAYPAL">PayPal</option>
-                                </select>
-                            </div>
+                                    <label>
+                                        <select name="provider" class="form-select form-select-sm">
+                                            <option value="STRIPE">Stripe</option>
+                                            <option value="PAYPAL">PayPal</option>
+                                        </select>
+                                    </label>
+                                </div>
                         <!-- Eventuale nota -->
                         <p class="text-muted small mb-0">
                             Nessun vincolo: puoi cambiare piano in qualsiasi momento.
@@ -189,10 +193,10 @@
                </form>
             </div>
         </div>
+      </div>
     </div>
 </div>
 </body>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </html>

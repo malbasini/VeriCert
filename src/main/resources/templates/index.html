@@ -305,7 +305,7 @@
                 tenantId: tenantId
             })
         });
-        const text = await response.text();
+        const data = await response.json();
         if (!response.ok)
             showToast(data?.error + ` Status HTTP ${response.status}`, {colorClass: 'bg-danger'});
         else

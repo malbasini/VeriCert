@@ -9,7 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-@PreAuthorize("hasAnyRole('ADMIN','ISSUER')")
+@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
 public class AdminHealthController {
 
     @GetMapping("/admin/health")
@@ -21,7 +21,6 @@ public class AdminHealthController {
         model.addAttribute("active", "health");
         model.addAttribute("currentTenantName", user.getTenantName());
         model.addAttribute("currentUserName", user.getUsername());
-
         // La pagina farà poi fetch via JS dei dati live
         return "health/health";
     }

@@ -15,13 +15,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Locale;
-
 import static com.example.vericert.util.PdfUtil.formatCents;
 
 @Controller
@@ -98,10 +95,11 @@ public class BillingController {
 
         model.addAttribute("subscriptionId", subscriptionId);
         model.addAttribute("status", sub.status());
-        model.addAttribute("amount", formatEuroIT(sub.amountValue()));      // vediamo tra un attimo
+        model.addAttribute("amount", formatEuroIT(sub.amountValue()));
         model.addAttribute("currency", sub.amountCurrency());
         model.addAttribute("planCode", sub.planCode());
         model.addAttribute("billingCycle", sub.billingCycle());
+        model.addAttribute("token", token);
         return "billing/success";
     }
     @GetMapping("/paypal/cancel")
@@ -113,11 +111,4 @@ public class BillingController {
          NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.ITALY);
          return fmt.format(value); // "€ 12,08"
      }
-
-
-
-
-
-
-
 }

@@ -121,24 +121,20 @@
             <!-- USAGE -->
             <div class="tab-pane fade" id="tab-usage" role="tabpanel">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-8">
                         <div class="card border-success">
                             <div class="card-body">
                                 <div class="text-muted small">Certificati emessi questo mese</div>
-                                <div class="fs-4 fw-semibold"
-                                     th:text="${usage.issuedThisMonth} + ' / ' + ${usage.monthlyLimit}">
-                                    12 / 20
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card border-primary">
-                            <div class="card-body">
-                                <div class="text-muted small">Storage usato</div>
-                                <div class="fs-4 fw-semibold"
-                                     th:text="${usage.storageUsed} + ' / ' + ${usage.storageLimit}">
-                                    5.2 MB / 100 MB
+                                <div class="fs-4 fw-semibold">
+                                <p>Piano: <b th:text="${usage.planCode}"></b></p>
+                                <p>Ciclo: <b th:text="${usage.billingCycle}"></b></p>
+                                <ul>
+                                    <li>Certificati: <span th:text="${usage.usedCerts}"></span> / <span th:text="${usage.limitCerts}"></span></li>
+                                    <li>API: <span th:text="${usage.usedApiCalls}"></span> / <span th:text="${usage.limitApiCalls}"></span></li>
+                                    <li>Storage (MB):
+                                        <span th:text="${usage.usedStorageMb}"></span> / <span th:text="${usage.limitStorageMb}"></span>
+                                    </li>
+                                </ul>
                                 </div>
                             </div>
                         </div>

@@ -3,6 +3,7 @@ package com.example.vericert.repo;
 import com.example.vericert.domain.UsageMeter;
 import com.example.vericert.domain.UsageMeterKey;
 import com.example.vericert.dto.DailyUsageDTO;
+import com.example.vericert.dto.UsageTotals;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
@@ -99,4 +100,23 @@ public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMet
            """)
     int resetUsageForTenant(@Param("tenantId") Long tenantId,
                             @Param("now") Instant now);
+
+
+    @Query("""
+        select new com.example.vericert.dto.UsageTotals(
+            coalesce(sum(u.certsGenerated), 0),
+            coalesce(sum(u.apiCalls), 0),
+            coalesce(sum(u.pdfStorageMb), 0)
+        )
+        from UsageMeter u
+        where u.id.tenantId = :tenantId
+          and u.id.usageDay >= :fromDay
+          and u.id.usageDay <= :toDay
+    """)
+    UsageTotals sumUsageForTenantBetweenDays(
+            @Param("tenantId") Long tenantId,
+            @Param("fromDay") LocalDate fromDay,
+            @Param("toDay") LocalDate toDay
+    );
 }
+
