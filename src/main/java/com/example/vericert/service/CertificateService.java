@@ -26,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -116,6 +117,17 @@ public class CertificateService {
         String html = templateService.renderHtml(templateId, vars, sysVars);
         //TemplateHtmlSanitizer.POLICY.sanitize(html);
         byte[] pdf  = htmlToPdf(html); // tua util
+        //Controllo che la capienza in MB non venga superata.
+        long bytes = pdf.length;
+        BigDecimal mb  = BigDecimal.valueOf(bytes / 1_000_000.0);
+        planEnforcementService.checkCanStorePdf(tenant.getId(),mb);
+
+
+
+
+
+
+
         // Costruisci URL pubblico coerente
         String Url = savePdf(serial, pdf,tenant);
         String pdfUrl = "/files/" + tenant.getId().toString() + "/" + serial + ".pdf";

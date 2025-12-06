@@ -11,7 +11,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     <h1 class="h3 mb-3">
-        Impostazioni organizzazione
+        <b>Impostazioni organizzazione</b>
+        <br>
+        <hr>
         <small class="text-muted d-block" th:text="${#authentication.principal.tenantName}">TenantName</small>
     </h1>
     <form method="post" th:object="${form}">
@@ -121,48 +123,87 @@
             <!-- USAGE -->
             <div class="tab-pane fade" id="tab-usage" role="tabpanel">
                 <div class="row g-3">
-                    <div class="col-md-8">
+                    <p>Piano: <b th:text="${usage.planCode}"></b></p>
+                    <p>Ciclo: <b th:text="${usage.billingCycle}"></b></p>
+                    <div class="col-md-4">
                         <div class="card border-success">
                             <div class="card-body">
-                                <div class="text-muted small">Certificati emessi questo mese</div>
+                                <div class="text-muted small"></div>
                                 <div class="fs-4 fw-semibold">
-                                <p>Piano: <b th:text="${usage.planCode}"></b></p>
-                                <p>Ciclo: <b th:text="${usage.billingCycle}"></b></p>
-                                <ul>
-                                    <li>Certificati: <span th:text="${usage.usedCerts}"></span> / <span th:text="${usage.limitCerts}"></span></li>
-                                    <li>API: <span th:text="${usage.usedApiCalls}"></span> / <span th:text="${usage.limitApiCalls}"></span></li>
-                                    <li>Storage (MB):
-                                        <span th:text="${usage.usedStorageMb}"></span> / <span th:text="${usage.limitStorageMb}"></span>
-                                    </li>
-                                </ul>
+                                     Certificati: <span th:text="${usage.usedCerts}"></span> / <span th:text="${usage.limitCerts}"></span>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 d-flex align-items-center">
-                        <div class="text-muted small">
-                            Questi limiti dipendono dal piano del tenant.
+                    <div class="col-md-4">
+                        <div class="card border-primary">
+                            <div class="card-body">
+                                <div class="text-muted small"></div>
+                                <div class="fs-4 fw-semibold">
+                                     API: <span th:text="${usage.usedApiCalls}"></span> / <span th:text="${usage.limitApiCalls}"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body">
+                                <div class="text-muted small"></div>
+                                <div class="fs-4 fw-semibold">
+                                    Storage (MB):<span th:text="${usage.usedStorageMb}"></span> / <span th:text="${usage.limitStorageMb}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <b>Questi limiti dipendono dal piano del tenant.</b>
+                    <br>
                 </div>
             </div>
-        </div>
-
         <!-- footer form -->
         <div class="d-flex justify-content-between mt-3">
             <a href="/admin" class="btn btn-outline-secondary">
                 ← Torna alla dashboard
             </a>
 
-            <button type="submit" class="btn btn-primary">
+            <button id="btn" type="submit" class="btn btn-primary">
                 Salva impostazioni
             </button>
         </div>
     </form>
-</div>
-</body>
     <script th:if="${saved}" >
         showToast("Impostazioni salvate con successo",{ colorClass: 'bg-success'});
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabs = document.getElementById('settingsTabs');
+            const saveBtn = document.getElementById('btn');
+
+            function toggleSave(targetId) {
+                const isUsageTab = targetId === '#tab-usage';
+                if (isUsageTab) {
+                    saveBtn.classList.add('d-none');   // nasconde
+                    saveBtn.disabled = true;           // opzionale: disabilita
+                } else {
+                    saveBtn.classList.remove('d-none');
+                    saveBtn.disabled = false;
+                }
+            }
+
+            // stato iniziale (se la pagina apre su una tab specifica)
+            const active = document.querySelector('#settingsTabs .nav-link.active');
+            if (active && active.dataset.bsTarget) {
+                toggleSave(active.dataset.bsTarget);
+            }
+
+            tabs.addEventListener('shown.bs.tab', function (e) {
+                const targetId = e.target.getAttribute('data-bs-target'); // es. "#tab-usage"
+                toggleSave(targetId);
+            });
+        });
+
+    </script>
+</div>
+</body>
 </div>
 </html>

@@ -2,6 +2,8 @@ package com.example.vericert.service;
 
 
 import com.example.vericert.domain.TenantSettings;
+import com.example.vericert.dto.UsageTotals;
+import com.example.vericert.enumerazioni.PlanStatus;
 import com.example.vericert.enumerazioni.PlanViolationType;
 import com.example.vericert.exception.PlanLimitExceededException;
 import com.example.vericert.repo.TenantSettingsRepository;
@@ -9,8 +11,10 @@ import com.example.vericert.repo.UsageMeterRepository;
 import com.example.vericert.dto.CurrentPlanView;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
@@ -19,7 +23,7 @@ public class PlanEnforcementService {
 
     private final TenantSettingsRepository tenantSettingsRepo;
     private final UsageMeterRepository usageMeterRepo;
-
+    private final ZoneId zone = ZoneId.of("Europe/Rome");
     public PlanEnforcementService(TenantSettingsRepository tenantSettingsRepo,
                                   UsageMeterRepository usageMeterRepo) {
         this.tenantSettingsRepo = tenantSettingsRepo;
@@ -49,6 +53,50 @@ public class PlanEnforcementService {
         }
     }
 
+    public void checkCanStorePdf(Long tenantId, BigDecimal additionalMb) {
+        TenantSettings ts = loadActiveSettings(tenantId);
+
+        UsageTotals totals = currentMonthlyTotals(ts);
+
+        long limitMb = ts.getStorageMb();
+        if (limitMb <= 0) return;
+
+        BigDecimal limit = BigDecimal.valueOf(limitMb);
+        BigDecimal projected = totals.storageMb().add(additionalMb);
+
+        if (projected.compareTo(limit) > 0) {
+            throw new IllegalStateException("Limite storage mensile superato");
+        }
+    }
+    // ----------------- helper -----------------
+
+    private TenantSettings loadActiveSettings(Long tenantId) {
+        TenantSettings ts = tenantSettingsRepo.findById(tenantId)
+                .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
+
+        PlanStatus status = ts.getStatusEnum();
+        if (status == null || status != PlanStatus.ACTIVE) {
+            throw new IllegalStateException("Piano non attivo o scaduto");
+        }
+
+        return ts;
+    }
+
+    /**
+     * Restituisce i totali SOLO della finestra mensile corrente
+     * ancorata al current_period_start.
+     */
+    private UsageTotals currentMonthlyTotals(TenantSettings ts) {
+        LocalDate periodStart = ts.getCurrentPeriodStart().atZone(zone).toLocalDate();
+        LocalDate periodEnd = ts.getCurrentPeriodEnd().atZone(zone).toLocalDate();
+        LocalDate today = LocalDate.now(zone);
+
+        LocalDate[] window = UsageWindowCalculator.currentMonthlyWindow(periodStart, periodEnd, today);
+        LocalDate from = window[0];
+        LocalDate to = window[1];
+
+        return usageMeterRepo.sumUsageForTenantBetweenDays(ts.getTenantId(), from, to);
+    }
     @Transactional(readOnly = true)
     public void checkCanCallApi(Long tenantId) {
         TenantSettings s = load(tenantId);
@@ -157,4 +205,3 @@ public class PlanEnforcementService {
         return new LocalDate[]{today.withDayOfMonth(1), today};
     }
 }
-
