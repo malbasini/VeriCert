@@ -1,0 +1,10 @@
+<div th:fragment="emptyActions"></div>
+<th:block
+        th:with="pageTitle='Usage', active='Usage Meter'"
+        th:replace="~{admin :: layout(
+        ${pageTitle},
+        ${active},
+        ~{usage/usage_detail :: emptyActions},
+        ~{/usage/_usage_detail :: content(pageTitle=${pageTitle}, active=${active}, tenantId=${tenantId}, history7days=${history7days})}
+        )}">
+</th:block>

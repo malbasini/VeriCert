@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title th:text="'Certificato ' + ${serial}">Certificato</title>
+    <style>
+        /* --- Pagina / palette PRO --- */
+        @page { size: A4; margin: 14mm; }
+        * { box-sizing: border-box; }
+        html, body { margin:0; padding:0; color:#0f172a; font-family: Arial, Helvetica, sans-serif; }
+
+        /* Tavolozza PRO (blu profondo, accenti dorati) */
+        .pro {
+            --ink:#0f172a; --muted:#6b7280; --bg:#ffffff; --paper:#f8fafc;
+            --primary:#0a376e;            /* blu profondo */
+            --primary-900:#082a53;
+            --accent:#b58b00;             /* oro sobrio */
+            --border:#d1d5db;
+            --verify-bg:#f3f4f6;
+            --badge-bg:#0a376e; --badge-fg:#fff;
+            --chip-bg:#fff7e6; --chip-fg:#8a6d00;
+        }
+
+        /* --- Cornice principale --- */
+        .page { background: var(--paper); border: 1px solid var(--border); border-radius: 10px; }
+        .frame { margin: 8mm; padding: 10mm; background: var(--bg); border: 2px solid var(--primary); border-radius: 8px; }
+
+        /* --- Banda superiore di sicurezza --- */
+        .security-band {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-900) 100%);
+            color: #fff; padding: 3mm 6mm; border-radius: 6px; margin-bottom: 8mm;
+        }
+        .security-band .left { display:inline-block; width: 60%; vertical-align: middle; }
+        .security-band .right { display:inline-block; width: 39%; text-align: right; vertical-align: middle; }
+        .security-kicker { font-size: 9pt; opacity: .9; }
+        .security-title { font-size: 12pt; font-weight: 700; letter-spacing: .5px; }
+
+        /* --- Header --- */
+        .header { border-bottom: 2px solid var(--border); padding-bottom: 6mm; margin-bottom: 8mm; }
+        .brand { display: inline-block; vertical-align: top; }
+        .crest { display:inline-block; width:42px; height:42px; border-radius:8px; background: var(--primary);
+            border:2px solid #fff; outline:2px solid var(--primary); margin-right:10px; vertical-align: middle; }
+        .brand-title { display:inline-block; vertical-align: middle; color: var(--primary);
+            font-weight: 800; font-size: 18pt; letter-spacing:.3px; }
+        /* Titoli serif (fallback generico) */
+        .serif { font-family: "Georgia", "Times New Roman", serif; }
+
+        .meta { float: right; text-align: right; color: var(--muted); font-size: 10pt; }
+        .chip { display:inline-block; padding:2px 8px; border-radius:999px; background: var(--chip-bg); color: var(--chip-fg); font-weight:700; font-size:9pt; }
+        .serial { display:inline-block; padding:2px 6px; border:1px solid var(--border); background:#f3f4f6; border-radius:6px;
+            font-family: "Courier New", Courier, monospace; font-size:10pt; color: var(--ink); }
+
+        /* --- Titolo documento --- */
+        .title { text-align:center; margin: 10mm 0 8mm 0; }
+        .title h1 { margin:0; font-size: 24pt; color: var(--ink); }
+        .subtitle { margin-top: 2mm; color: var(--muted); font-size: 11pt; }
+        .badge { display:inline-block; margin-top: 4mm; padding: 3px 10px; border-radius: 999px;
+            background: var(--badge-bg); color: var(--badge-fg); font-weight: 700; font-size: 10pt; border:1px solid #163c6a; }
+
+        /* --- Griglie semplici --- */
+        .row { width:100%; }
+        .col { display:inline-block; vertical-align: top; width: 48.5%; }
+        .spacer { height: 2mm; }
+
+        /* --- Card dati --- */
+        .card { border:1px solid var(--border); border-radius:10px; background:#fff; padding:8mm; margin-bottom:8mm; }
+        .kv { margin: 3mm 0; }
+        .kv label { display:block; font-size:9pt; color: var(--muted); margin-bottom: 1mm; letter-spacing: .2px; }
+        .kv .v { font-size:12.5pt; font-weight:700; color: var(--ink); }
+
+        /* --- Sezione verifica --- */
+        .verify { border:1px dashed #9aa3b2; background: var(--verify-bg); border-radius:10px; padding:6mm; }
+        .qr { display:inline-block; width: 120px; vertical-align: top; }
+        .qr img { width:120px; height:120px; border:1px solid var(--border); border-radius:8px; }
+        .verify-text { display:inline-block; width: calc(100% - 130px); padding-left: 6mm; vertical-align: top; }
+        .verify-label { font-weight: 800; margin-bottom: 2mm; letter-spacing: .2px; }
+        .verify-url { word-break: break-all; color: var(--primary-900); font-weight: 800; font-size: 10.5pt; margin: 2mm 0 3mm; }
+        .note { color: var(--muted); font-size: 9.5pt; }
+
+        /* --- Firme --- */
+        .sign { margin-top: 10mm; }
+        .sigbox { display:inline-block; width: 48.5%; vertical-align: top; text-align: center; }
+        .sigline { border-top:1px solid var(--ink); margin-top:18mm; padding-top:2mm; font-size:10pt; color:#374151; }
+        .siglabel { font-size:9pt; color: var(--muted); }
+
+        /* --- Footer --- */
+        .footer { margin-top: 12mm; border-top:1px solid var(--border); padding-top:4mm; color: var(--muted); font-size: 9pt;
+            display: table; width:100%; }
+        .foot-left, .foot-right { display: table-cell; width:50%; vertical-align: middle; }
+        .foot-right { text-align: right; }
+
+        /* --- Divider sottile con accento --- */
+        .divider { height:1px; background: linear-gradient(90deg, rgba(181,139,0,.0), rgba(181,139,0,.8), rgba(181,139,0,.0)); margin: 6mm 0; }
+
+        /* Evita orfani/righe spezzate brutte in PDF */
+        .kv .v, .verify, .sigbox, .title { page-break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="page pro">
+    <div class="frame">
+        <!-- Banda superiore -->
+        <div class="security-band">
+            <div class="left">
+                <div class="security-kicker">Documento digitale firmato e verificabile</div>
+                <div class="security-title serif">Attestato di conseguimento</div>
+            </div>
+            <div class="right">
+                <span class="chip">Seriale</span>
+                <span class="serial" th:text="${serial}">ABCDEF123456</span>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="brand">
+                <span class="crest"></span>
+                <span class="brand-title serif" th:text="${tenantName != null ? tenantName : 'Azienda Demo'}">Azienda Demo</span>
+            </div>
+            <div class="meta">
+                <div>
+                    <span th:text="${issuerName != null ? issuerName : 'Dott. Mario Rossi'}">Dott. Mario Rossi</span><br></br>
+                    <span th:text="${issuerTitle != null ? issuerTitle : 'Direttore Formazione'}">Direttore Formazione</span>
+                </div>
+                <div class="spacer"></div>
+                <div>Emesso il: <strong th:text="${issuedAt}">10/11/2025</strong></div>
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+
+        <!-- Titolo -->
+        <div class="title">
+            <h1 class="serif">Certificato di Completamento</h1>
+            <div class="subtitle">Si attesta che il/la candidato/a ha completato con profitto il seguente percorso.</div>
+            <div class="badge">Attestato digitale verificabile</div>
+        </div>
+
+        <!-- Dati principali -->
+        <div class="card">
+            <div class="row">
+                <div class="col">
+                    <div class="kv">
+                        <label>Intestatario</label>
+                        <div class="v" th:text="${ownerName}">Nome Cognome</div>
+                    </div>
+                    <div class="kv">
+                        <label>Email</label>
+                        <div class="v" th:text="${ownerEmail}">nome.cognome@example.com</div>
+                    </div>
+                    <div class="kv">
+                        <label>Corso / Oggetto</label>
+                        <div class="v" th:text="${courseName}">SPRING-BOOT</div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="kv">
+                        <label>Codice interno</label>
+                        <div class="v"><span class="chip" th:text="${courseCode}">SPRING-K987</span></div>
+                    </div>
+                    <div class="kv">
+                        <label>Ore / Esito</label>
+                        <div class="v">
+                            <span th:text="${hours}">45</span><span> ore — </span><span th:text="${grade}">A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Verifica pubblica -->
+            <div class="verify">
+                <div class="qr">
+                    <img th:src="'data:image/png;base64,' + ${qrBase64}" alt="QR Code"></img>
+                </div>
+                <div class="verify-text">
+                    <div class="verify-label serif">Verifica pubblica</div>
+                    <div class="note">Inquadra il QR oppure visita:</div>
+                    <div class="verify-url" th:text="${verifyUrl}">https://example.org/v/ABCDE12345</div>
+                    <div class="note">
+                        Seriale: <span class="serial" th:text="${serial}">ABCDEF123456</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Firme -->
+        <div class="sign">
+            <div class="sigbox">
+                <div class="sigline serif" th:text="${issuerName}">Dott. Mario Rossi</div>
+                <div class="siglabel" th:text="${issuerTitle}">Direttore Formazione</div>
+            </div>
+            <div class="sigbox">
+                <div class="sigline serif" th:text="${tenantName}">Azienda Demo</div>
+                <div class="siglabel">Autorità Emettente</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="foot-left">
+                © <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}">2025</span>
+                · <span th:text="${tenantName != null ? tenantName : 'Azienda Demo'}">Azienda Demo</span>
+            </div>
+            <div class="foot-right">
+                Documento firmato digitalmente · Verifica: <span th:text="${verifyUrl}">https://example.org/v/ABCDE12345</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

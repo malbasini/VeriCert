@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>PayPal - Conferma</title></head>
+<body>
+<div th:replace="base :: headerFragment"></div>
+<h2>Pagamento PayPal approvato, sto finalizzando…</h2>
+<p>OrderID: <span th:text="${orderId}"></span></p>
+<input type="hidden" id="order" name="order" th:value="${orderId}"/>
+</body>
+<div th:replace="footer :: footerFragment"></div>
+<script>
+    (async () => {
+        const orderId = document.getElementById('order').value;
+        const res = await fetch('/api/payments/paypal/capture/' + orderId, { method: 'POST' });
+        window.location.href = res.ok ? '/paypal/success/'+ orderId : '/paypal/cancel';
+    })();
+</script>
+</html>

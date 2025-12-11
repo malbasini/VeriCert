@@ -1,0 +1,6 @@
+<!-- users/list.html -->
+<div th:fragment="emptyActions"></div>
+<!-- users/list.html -->
+<th:block th:with="pageTitle='Utenti & Ruoli', active='Utenti & Ruoli'"
+          th:replace="~{admin :: layout(${pageTitle}, ${active}, ~{users/list :: emptyActions}, ~{/users/_list :: content})}">
+</th:block>

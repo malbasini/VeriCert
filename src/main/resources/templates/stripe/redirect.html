@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirect Stripe</title>
+</head>
+<body>
+<div class="container">
+<form action="/api/payments/stripe/checkout-redirect" method="post">
+    <input type="hidden" name="tenantId" th:value="${tenantId}"/>
+    <input type="hidden" name="amountMinor" th:value="${990}"/>
+    <br>
+    <hr>
+    <button type="submit" class="btn btn-outline-primary">Paga 9,90 €</button>
+</form>
+</div>
+<script>
+    window.apiFetch('/api/payments/stripe/checkout-redirect',{method:'POST'}).then(response => {alert('invocata')});
+</script>
+</body>
+</html>

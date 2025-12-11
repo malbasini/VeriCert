@@ -1,0 +1,10 @@
+<div th:fragment="emptyActions"></div>
+<th:block
+        th:with="pageTitle='Detail user', active='Utenti & Ruoli'"
+        th:replace="~{admin :: layout(
+        ${pageTitle},
+        ${active},
+        ~{users/detail :: emptyActions},
+        ~{/users/_detail :: content(membership=${membership},user=${user},pageTitle=${pageTitle}, active=${active},currentTenant=${currentTenant})}
+        )}">
+</th:block>

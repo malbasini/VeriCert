@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Dashboard</title>
+</head>
+
+<body th:replace="~{admin :: layout(
+        pageTitle=${pageTitle},
+        active=${active},
+        actionsFrag=~{::actionsFrag},
+        contentFrag=~{::contentFrag}
+    )}">
+<!-- ======= FRAMMENTO AZIONI (bottoni header pagina) =======-->
+<div th:fragment="actionsFrag">
+    <a class="btn btn-outline-primary btn-sm"
+       th:href="@{/admin/templates}">
+        <i class="bi bi-layout-text-window-reverse me-1"></i>
+        Template
+    </a>
+
+    <a class="btn btn-outline-success btn-sm ms-2"
+       th:href="@{/admin/certificates}">
+        <i class="bi bi-award me-1"></i>
+        Certificati
+    </a>
+
+    <a class="btn btn-outline-secondary btn-sm ms-2"
+       th:href="@{/admin/users}">
+        <i class="bi bi-people me-1"></i>
+        Utenti & Ruoli
+    </a>
+</div>
+
+<!-- ======= FRAMMENTO CONTENUTO PRINCIPALE ======= -->
+<div th:fragment="contentFrag">
+
+       <!-- Banner piano / scadenza -->
+       <div th:if="${currentPlan != null}">
+           <!-- Piano scaduto -->
+           <div th:if="${currentPlan.expired}"
+                class="alert alert-danger d-flex justify-content-between align-items-center mb-3">
+               <div>
+                   <strong>Piano scaduto.</strong>
+                   Il tuo piano
+                   <span th:text="${currentPlan.planCode}">PRO</span>
+                   è scaduto. Non puoi emettere nuovi certificati o usare le API
+                   finché non rinnovi.
+               </div>
+               <a class="btn btn-light btn-sm" href="/billing">Rinnova piano</a>
+           </div>
+
+           <!-- Piano in scadenza -->
+           <div th:if="${!currentPlan.expired and currentPlan.expiringSoon}"
+                class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
+               <div>
+                   <strong>Piano in scadenza.</strong>
+                   Mancano
+                   <span th:text="${currentPlan.daysLeft}">3</span>
+                   giorni alla scadenza del tuo piano
+                   <span th:text="${currentPlan.planCode}">PRO</span>
+                   (<span th:text="${currentPlan.billingCycle}">MONTHLY</span>).
+               </div>
+               <a class="btn btn-outline-dark btn-sm" href="/billing">Rinnova ora</a>
+           </div>
+
+           <!-- Quasi a limite certificati o API -->
+           <div th:if="${!currentPlan.expired and (currentPlan.certsAlmostExceeded or currentPlan.apiAlmostExceeded)}"
+                class="alert alert-info mb-3">
+               <div>
+                   <strong>Attenzione ai limiti del piano.</strong>
+                   <span th:if="${currentPlan.certLimit != null}">
+                       Certificati usati:
+                       <span th:text="${currentPlan.usedCerts}">0</span> /
+                       <span th:text="${currentPlan.certLimit}">100</span>.
+                   </span>
+                   <span th:if="${currentPlan.apiLimit != null}">
+                       &nbsp;API usate:
+                       <span th:text="${currentPlan.usedApi}">0</span> /
+                       <span th:text="${currentPlan.apiLimit}">1000</span>.
+                    </span>
+               </div>
+           </div>
+       </div>
+       <div class="row g-3">
+        <!-- BOX TEMPLATE -->
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small">Template attivi</div>
+                            <div class="fs-3 fw-semibold"
+                                 th:text="${totalTemplates}">0</div>
+                        </div>
+                        <div class="text-primary">
+                            <i class="bi bi-layout-text-window-reverse fs-2"></i>
+                        </div>
+                    </div>
+                    <a class="stretched-link text-decoration-none small"
+                       th:href="@{/admin/templates}">
+                        Gestisci template →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOX CERTIFICATI -->
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small">Certificati emessi</div>
+                            <div class="fs-3 fw-semibold"
+                                 th:text="${totalCertificates}">0</div>
+                        </div>
+                        <div class="text-success">
+                            <i class="bi bi-award fs-2"></i>
+                        </div>
+                    </div>
+                    <a class="stretched-link text-decoration-none small"
+                       th:href="@{/admin/certificates}">
+                        Vai ai certificati →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOX UTENTI -->
+        <div class="col-12 col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small">Utenti attivi</div>
+                            <div class="fs-3 fw-semibold"
+                                 th:text="${totalUsers}">0</div>
+                        </div>
+                        <div class="text-info">
+                            <i class="bi bi-people fs-2"></i>
+                        </div>
+                    </div>
+                    <a class="stretched-link text-decoration-none small"
+                       th:href="@{/admin/users}">
+                        Gestisci utenti →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MESSAGGIO DI BENVENUTO -->
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body">
+            <h5 class="card-title mb-2">
+                Benvenuto in <span th:text="${currentTenant}">TenantName</span>
+            </h5>
+            <p class="text-muted mb-0">
+                Qui puoi gestire template, certificati e utenti del tuo tenant.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

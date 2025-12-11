@@ -1,0 +1,60 @@
+<!-- Dettaglio utente (semplice, read-only) -->
+<div th:fragment="content(membership,user,pageTitle, active,currentTenant)">
+    <div class="container py-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="input-group mb-3">
+                <a class="btn btn-outline-secondary" th:href="@{/admin/users}">
+                    <i class="bi bi-arrow-left"></i> Torna alla lista
+                </a>
+            </div>
+        </div>
+        <br>
+        <hr>
+        <h5 class="mb-3">Dati utente</h5>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <!-- Header: stato + seriale -->
+                <div class="input-group mb-3">
+                    <div class="input-group-text">
+                         Stato &nbsp &nbsp &nbsp
+          <span class="badge"
+                th:classappend="${membership.status.name()=='SUSPENDED'} ? ' text-bg-danger' : ' text-bg-success'"
+                th:text="${membership.status}">ACTIVE</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="input-group mb-3">
+                    <div class="input-group-text">
+                    Ruolo &nbsp &nbsp &nbsp
+          <span class="badge"
+                th:classappend="${membership.role.name()=='VIEWER'} ? ' text-bg-secondary' : ' text-bg-success'"
+                th:text="${membership.role}">ADMIN</span>
+                </div>
+            </div>
+                <!-- Metadati principali (solo lettura) -->
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" readonly th:value="${user.userName}">
+                            <label>Nome utente</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" readonly th:value="${user.email}">
+                            <label>Email utente</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            <input class="form-control" readonly
+                                   th:value="${#temporals.format(user.getCreated_at,'dd/MM/yyyy HH:mm')}">
+                            <label>Utente creato il</label>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
