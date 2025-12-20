@@ -1,0 +1,71 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: vericert-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: vericert
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}    # CAMBIA in qualcosa di robusto
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}   # CAMBIA anche questo
+    command: [
+      "--default-authentication-plugin=mysql_native_password",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - vericert-net
+
+  app:
+    build: .
+    container_name: vericert-app
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - db
+    working_dir: /app
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://vericert-db:3306/vericert?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Rome
+      SPRING_DATASOURCE_USERNAME: vericert
+      SPRING_DATASOURCE_PASSWORD: vericert_pwd
+      # Stripe (placeholder: li metterai via .env)
+      PAYMENTS_STRIPE_SECRET_KEY: ${PAYMENTS_STRIPE_SECRET_KEY}
+      PAYMENTS_STRIPE_WEBHOOK_SECRET: ${PAYMENTS_STRIPE_WEBHOOK_SECRET}
+
+      # PayPal
+      PAYMENTS_PAYPAL_CLIENT_ID: ${PAYMENTS_PAYPAL_CLIENT_ID}
+      PAYMENTS_PAYPAL_CLIENT_SECRET: ${PAYMENTS_PAYPAL_CLIENT_SECRET}
+      PAYMENTS_PAYPAL_WEBHOOK_ID: ${PAYMENTS_PAYPAL_WEBHOOK_ID}
+
+      # Base URL pubblica (per link nei certificati / QR)
+      APP_PUBLIC_BASE_URL: https://app.vercert.org
+    networks:
+      - vericert-net
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: vericert-nginx
+    restart: always
+    depends_on:
+        - app
+
+    ports:
+      - "80:80"
+      # quando abiliterai HTTPS:
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - vericert-net
+networks:
+  vericert-net:
+    driver: bridge
+
+volumes:
+  db_data:
