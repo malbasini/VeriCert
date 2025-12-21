@@ -47,6 +47,8 @@ services:
       APP_PUBLIC_BASE_URL: https://app.vercert.org
     networks:
       - vericert-net
+    volumes:
+        - /opt/vericert/storage:/app/storage
   nginx:
     image: nginx:1.27-alpine
     container_name: vericert-nginx
@@ -70,3 +72,4 @@ networks:
         - subnet: 172.30.0.0/24
 volumes:
   db_data:
+  opt/vericert/storage:

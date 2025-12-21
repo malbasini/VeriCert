@@ -231,7 +231,7 @@
         <script>
             function renderValidationErrors(errors) {
                 if (!errors || typeof errors !== 'object') {
-                showToast('Si è verificato un errore di validazione.');
+                showToast('Si è verificato un errore di validazione. Spunta come prima cosa il captcha');
                 return;
                 }
 
@@ -248,7 +248,7 @@
                           </ul>
                         </div>
                       `;
-            showToast(html, { colorClass: 'bg-danger'});
+            showToast(html, { colorClass: 'bg-danger',autohide: false });
         }
         // Piccola funzione per evitare injection nell’HTML del toast
         function escapeHtml(s) {
