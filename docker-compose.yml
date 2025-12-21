@@ -1,8 +1,9 @@
 version: "3.9"
-
 services:
   db:
     image: mysql:8.0
+    ports:
+      - "127.0.0.1:3306:3306"
     container_name: vericert-db
     restart: always
     environment:
@@ -18,8 +19,8 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - vericert-net
-
+      vericert-net:
+        ipv4_address: 172.30.0.10
   app:
     build: .
     container_name: vericert-app
@@ -31,13 +32,12 @@ services:
     working_dir: /app
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:mysql://vericert-db:3306/vericert?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Rome
-      SPRING_DATASOURCE_USERNAME: vericert
-      SPRING_DATASOURCE_PASSWORD: vericert_pwd
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/vericert?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Europe/Rome
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       # Stripe (placeholder: li metterai via .env)
       PAYMENTS_STRIPE_SECRET_KEY: ${PAYMENTS_STRIPE_SECRET_KEY}
       PAYMENTS_STRIPE_WEBHOOK_SECRET: ${PAYMENTS_STRIPE_WEBHOOK_SECRET}
-
       # PayPal
       PAYMENTS_PAYPAL_CLIENT_ID: ${PAYMENTS_PAYPAL_CLIENT_ID}
       PAYMENTS_PAYPAL_CLIENT_SECRET: ${PAYMENTS_PAYPAL_CLIENT_SECRET}
@@ -53,7 +53,6 @@ services:
     restart: always
     depends_on:
         - app
-
     ports:
       - "80:80"
       # quando abiliterai HTTPS:
@@ -66,6 +65,8 @@ services:
 networks:
   vericert-net:
     driver: bridge
-
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
 volumes:
   db_data:
