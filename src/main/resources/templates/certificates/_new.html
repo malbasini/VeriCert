@@ -231,10 +231,8 @@
         <script>
             function renderValidationErrors(errors) {
                 if (!errors || typeof errors !== 'object') {
-                showToast('Si è verificato un errore di validazione. Spunta come prima cosa il captcha');
-                return;
+                showToast('Si è verificato un errore di validazione.');
                 }
-
                 // Costruisci una UL con i messaggi
                 const items = Object.entries(errors).flatMap(([field, messages]) => {
                 const list = Array.isArray(messages) ? messages : [String(messages)];
