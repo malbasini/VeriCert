@@ -68,14 +68,12 @@ public class CertificateApiController {
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
-    @PostMapping("/new/{ownerName}/{ownerEmail}/{captchaToken}")
+    @PostMapping("/new")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','ISSUER')")
     public ResponseEntity<?> create(
-            @PathVariable(name="ownerName") String ownerName,
-            @PathVariable(name="ownerEmail") String ownerEmail,
-            @PathVariable(name="captchaToken") String captchaResponse,
             @Valid @RequestBody CertificateDto rec,
             BindingResult br) throws IOException {
+
         try {
             int hours = Integer.parseInt(rec.hours());
         } catch (NumberFormatException e) {
@@ -90,7 +88,6 @@ public class CertificateApiController {
                     ));
             return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
         }
-        // 1) CAPTCHA
         if (!captchaValidator.verifyCaptcha(rec.captchaToken())) {
             return ResponseEntity.unprocessableEntity()
                     .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
@@ -105,6 +102,8 @@ public class CertificateApiController {
         Certificate c = null;
         Optional<Tenant> t = tenantRepo.findByName(tenantName);
         Tenant tenant = t.orElseThrow();
+        String ownerName = rec.ownerName();
+        String ownerEmail = rec.ownerEmail();
         try {
             c = service.issue(tpl.getId(), map, ownerName, ownerEmail,tenant);
         }

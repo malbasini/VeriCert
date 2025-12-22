@@ -209,15 +209,20 @@
                     return;
                 }
                 const captchaToken = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
-                const resp = await fetch(`/api/certificates/new/${name}/${email}/${captchaToken}`, {
+                const url = `/api/certificates/new/${encodeURIComponent(name)}/${encodeURIComponent(email)}/${encodeURIComponent(captchaToken)}`;
+                const resp = await fetch(`/api/certificates/new`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(vars),
+                    body: JSON.stringify({ name, email, captchaToken, vars }),
                 });
-                const contentType = resp.headers.get('Content-Type') || '';
-                const data = contentType.includes('application/json') ? await resp.json() : null;
+                const ct = (resp.headers.get('content-type') || '').toLowerCase();
+                const data = ct.includes('application/json') ? await resp.json().catch(() => null) : null;
                 if (!resp.ok) {
-                    renderValidationErrors(data?.errors)
+                    if (resp.status === 400 && data?.errors) {
+                        renderValidationErrors(data.errors);
+                    } else {
+                        showToast(data?.message || `Errore ${resp.status}`, { colorClass: 'bg-danger', autohide: false });
+                    }
                     return;
                 }
                 showToast("Certficato creato con successo",{ colorClass: 'bg-success', autohide: false });
