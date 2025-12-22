@@ -39,7 +39,7 @@
                         <td class="text-end">
                             <span th:text="${row.certsGeneratedToday}">0</span>
                             <small class="text-muted d-block"
-                                   th:text="'/ limite mese: ' + (${row.maxCertsPerMonth} != null ? ${row.maxCertsPerMonth} : '∞')">
+                                   th:text="'/ limite mese: ' + (${row.maxCertsPerMonth} != null ? ${#numbers.formatInteger(row.maxCertsPerMonth,0,'POINT')} : '∞')">
                                 / limite mese: ∞
                             </small>
                         </td>
@@ -47,7 +47,7 @@
                         <td class="text-end">
                             <span th:text="${row.apiCallsToday}">0</span>
                             <small class="text-muted d-block"
-                                   th:text="'/ limite mese: ' + (${row.maxApiCallsPerDay} != null ? ${row.maxApiCallsPerDay} : '∞')">
+                                   th:text="'/ limite mese: ' + (${row.maxApiCallsPerDay} != null ? ${#numbers.formatInteger(row.maxApiCallsPerDay,0,'POINT')} : '∞')">
                                 / limite mese: ∞
                             </small>
                         </td>
@@ -77,7 +77,7 @@
                         <td class="text-end">
                             <a class="btn btn-outline-secondary btn-sm"
                                th:href="@{'/admin/usage/detail/' + ${row.tenantId}}">
-                                Dettagli
+                                Dettaglio
                             </a>
                         </td>
 

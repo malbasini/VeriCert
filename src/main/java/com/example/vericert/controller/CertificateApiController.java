@@ -88,10 +88,10 @@ public class CertificateApiController {
                             FieldError::getField,
                             Collectors.mapping(DefaultMessageSourceResolvable::getDefaultMessage, Collectors.toList())
                     ));
-            return ResponseEntity.badRequest().body(Map.of("message","Validation failed","errors",errors));
+            return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
         }
         // 1) CAPTCHA
-        if (!captchaValidator.verifyCaptcha(captchaResponse)) {
+        if (!captchaValidator.verifyCaptcha(rec.captchaToken())) {
             return ResponseEntity.unprocessableEntity()
                     .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
         }

@@ -31,7 +31,7 @@ public class MvcExceptionHandler {
         model.addAttribute("status", 403);
         model.addAttribute("title", "Accesso negato");
         model.addAttribute("message", "Non hai accesso alla risorsa");
-        return "error/error";
+        return "error/403";
     }
 
 

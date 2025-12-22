@@ -72,4 +72,4 @@ networks:
         - subnet: 172.30.0.0/24
 volumes:
   db_data:
-  opt/vericert/storage:
+  opt-vericert-storage:
