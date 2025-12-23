@@ -19,7 +19,6 @@ public record CertificateDto(
         String courseName,
         @Email(message = "Email non valida")
         @NotBlank(message = "Owner email obbligatoria")
-        String ownerEmail,
-        String captchaToken
+        String ownerEmail
 ) {
 }

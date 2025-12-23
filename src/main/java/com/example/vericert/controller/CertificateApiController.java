@@ -2,7 +2,6 @@ package com.example.vericert.controller;
 
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.dto.CertificateDto;
-import com.example.vericert.dto.TemplateUpsert;
 import com.example.vericert.enumerazioni.Stato;
 import com.example.vericert.domain.Template;
 import com.example.vericert.domain.Tenant;
@@ -12,10 +11,6 @@ import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.service.*;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,7 +21,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.lang.reflect.RecordComponent;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -68,9 +62,12 @@ public class CertificateApiController {
         var user = (com.example.vericert.service.CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
-    @PostMapping("/new")
+    @PostMapping("/new/{ownerName}/{ownerEmail}")
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','ISSUER')")
     public ResponseEntity<?> create(
+            @PathVariable String ownerName,
+            @PathVariable String ownerEmail,
+            @RequestParam String recaptcha,
             @Valid @RequestBody CertificateDto rec,
             BindingResult br) throws IOException {
 
@@ -88,7 +85,7 @@ public class CertificateApiController {
                     ));
             return ResponseEntity.badRequest().body(Map.of("message", "Validation failed", "errors", errors));
         }
-        if (!captchaValidator.verifyCaptcha(rec.captchaToken())) {
+        if (!captchaValidator.verifyCaptcha(recaptcha)) {
             return ResponseEntity.unprocessableEntity()
                     .body(Map.of("errors", Map.of("captcha", List.of("Captcha non valido"))));
         }
@@ -102,8 +99,6 @@ public class CertificateApiController {
         Certificate c = null;
         Optional<Tenant> t = tenantRepo.findByName(tenantName);
         Tenant tenant = t.orElseThrow();
-        String ownerName = rec.ownerName();
-        String ownerEmail = rec.ownerEmail();
         try {
             c = service.issue(tpl.getId(), map, ownerName, ownerEmail,tenant);
         }

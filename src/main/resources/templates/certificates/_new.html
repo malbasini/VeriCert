@@ -208,24 +208,20 @@
                     showToast('Inserisci nome e email',{ colorClass: 'bg-danger' });
                     return;
                 }
-                const captchaToken = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
-                const url = `/api/certificates/new/${encodeURIComponent(name)}/${encodeURIComponent(email)}/${encodeURIComponent(captchaToken)}`;
-                const resp = await fetch(`/api/certificates/new`, {
+                const captcha = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
+                const url = `/api/certificates/new/${encodeURIComponent(name)}/${encodeURIComponent(email)}?recaptcha=${encodeURIComponent(captcha)}`;
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ name, email, captchaToken, vars }),
+                    body: JSON.stringify(vars)
                 });
-                const ct = (resp.headers.get('content-type') || '').toLowerCase();
-                const data = ct.includes('application/json') ? await resp.json().catch(() => null) : null;
-                if (!resp.ok) {
-                    if (resp.status === 400 && data?.errors) {
-                        renderValidationErrors(data.errors);
-                    } else {
-                        showToast(data?.message || `Errore ${resp.status}`, { colorClass: 'bg-danger', autohide: false });
-                    }
+                const contentType = res.headers.get('Content-Type') || '';
+                const data = contentType.includes('application/json') ? await res.json() : null;
+                if (!res.ok) {
+                    renderValidationErrors(data?.errors);
                     return;
                 }
-                showToast("Certficato creato con successo",{ colorClass: 'bg-success', autohide: false });
+                showToast("Certificato creato con successo",{ colorClass: 'bg-success', autohide: false });
             }
              catch (e) {
                  console.error('Errore nella creazione del certificato:', e.message);
