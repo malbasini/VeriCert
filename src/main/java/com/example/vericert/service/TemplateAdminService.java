@@ -63,14 +63,14 @@ public class TemplateAdminService {
 
     @Transactional
     public void delete(Long id) {
-        Long tenantId = tenantService.currentTenantId();
-        Template t = repo.findByTenantIdAndId(tenantId, id).orElseThrow();
+        Template t = repo.findById(id).orElseThrow();
         repo.delete(t);
     }
     private String normalizeVars(String vjson) {
         if (vjson == null || vjson.isBlank()) return "[]";
         return vjson;
     }
+    @Transactional
     public void deactivateAll(Long tenantId,Template template) {
         List<Template> list = repo.findAll();
         for (Template t : list) {
@@ -81,6 +81,7 @@ public class TemplateAdminService {
         repo.save(template);
     }
 
+    @Transactional
     public void controlsValidity(Long tenantId, Template t) {
         List<Template> list = repo.findAll();
         boolean valid = false;

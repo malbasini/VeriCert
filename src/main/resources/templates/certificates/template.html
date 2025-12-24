@@ -7,18 +7,18 @@
         /* --- Pagina / palette PRO --- */
         @page { size: A4; margin: 14mm; }
         * { box-sizing: border-box; }
-        html, body { margin:0; padding:0; color:#0f172a; font-family: Arial, Helvetica, sans-serif; }
+        html, body { margin:0; padding:0; color:#0f172a!important; font-family: Arial, Helvetica, sans-serif; }
 
         /* Tavolozza PRO (blu profondo, accenti dorati) */
         .pro {
-            --ink:#0f172a; --muted:#6b7280; --bg:#ffffff; --paper:#f8fafc;
-            --primary:#0a376e;            /* blu profondo */
-            --primary-900:#082a53;
-            --accent:#b58b00;             /* oro sobrio */
-            --border:#d1d5db;
-            --verify-bg:#f3f4f6;
-            --badge-bg:#0a376e; --badge-fg:#fff;
-            --chip-bg:#fff7e6; --chip-fg:#8a6d00;
+            --ink:#0f172a!important; --muted:#6b7280!important; --bg:#ffffff!important; --paper:#f8fafc!important;
+            --primary:#0a376e!important;            /* blu profondo */
+            --primary-900:#082a53!important;
+            --accent:#b58b00!important;             /* oro sobrio */
+            --border:#d1d5db!important;
+            --verify-bg:#f3f4f6!important;
+            --badge-bg:#0a376e!important; --badge-fg:#fff!important;
+            --chip-bg:#ffffff!important; --chip-fg:#000000!important;
         }
 
         /* --- Cornice principale --- */
@@ -114,6 +114,9 @@
         <!-- Header -->
         <div class="header">
             <div class="brand">
+                <div class="img">
+                    <img th:src="${logoUrl}" alt="${logoUrl}"></img>
+                </div>
                 <span class="crest"></span>
                 <span class="brand-title serif" th:text="${tenantName != null ? tenantName : 'Azienda Demo'}">Azienda Demo</span>
             </div>
@@ -123,7 +126,8 @@
                     <span th:text="${issuerTitle != null ? issuerTitle : 'Direttore Formazione'}">Direttore Formazione</span>
                 </div>
                 <div class="spacer"></div>
-                <div>Emesso il: <strong th:text="${issuedAt}">10/11/2025</strong></div>
+                <span>Emesso il:</span>
+                <span th:text="${#temporals.format(issuedAt, 'dd/MM/yyyy')}">01/01/2025</span>
             </div>
             <div style="clear:both;"></div>
         </div>
@@ -189,6 +193,9 @@
             <div class="sigbox">
                 <div class="sigline serif" th:text="${issuerName}">Dott. Mario Rossi</div>
                 <div class="siglabel" th:text="${issuerTitle}">Direttore Formazione</div>
+                <div class="img">
+                    <img th:src="${signatureImageUrl}" width="100px" height="70px" alt="Signature"></img>
+                </div>
             </div>
             <div class="sigbox">
                 <div class="sigline serif" th:text="${tenantName}">Azienda Demo</div>
@@ -203,7 +210,7 @@
                 · <span th:text="${tenantName != null ? tenantName : 'Azienda Demo'}">Azienda Demo</span>
             </div>
             <div class="foot-right">
-                Documento firmato digitalmente · Verifica: <span th:text="${verifyUrl}">https://example.org/v/ABCDE12345</span>
+                Documento firmato digitalmente <br></br><span th:text="${verifyUrl}">https://example.org/v/ABCDE12345</span>
             </div>
         </div>
     </div>
