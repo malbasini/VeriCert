@@ -22,7 +22,7 @@
     <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
     <!-- CAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script src="/static/js/app.js"></script>
+    <script th:src="@{/js/app.js}"></script>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
         <a class="navbar-brand fw-semibold" th:href="@{/admin}">
@@ -37,6 +37,8 @@
                     <th:block sec:authorize="hasAnyRole('ADMIN','MANAGER','ISSUER','VIEWER')">
                         <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
                         <li class="nav-item"><a class="nav-link" th:href="@{/admin}">Sezione admin</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/contact}">Contatti</a></li>
+                        <li class="nav-item"><a class="nav-link" th:href="@{/docs}">Documentazione</a></li>
                     </th:block>
                 </ul>
             </div>

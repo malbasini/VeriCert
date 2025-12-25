@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <title>Documentazione - VeriCert</title>
+</head>
+
+<body>
+<th:block th:replace="~{base :: headerFragment}"></th:block>
+
+<main class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+          <h1 class="mb-1">Documentazione</h1>
+          <p class="text-muted mb-0">
+            Guida rapida per usare VeriCert: template, certificati, verifica e revoca.
+          </p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm" th:href="@{/}">
+          <i class="bi bi-house me-1"></i> Home
+        </a>
+      </div>
+
+      <!-- Indice -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <div class="fw-semibold mb-2">Indice</div>
+          <div class="d-flex flex-wrap gap-3 small">
+            <a class="text-decoration-none" href="#getting-started">Getting started</a>
+            <a class="text-decoration-none" href="#templates">Template</a>
+            <a class="text-decoration-none" href="#certificates">Certificati</a>
+            <a class="text-decoration-none" href="#verify">Verifica</a>
+            <a class="text-decoration-none" href="#revoke">Revoca ed eliminazione</a>
+            <a class="text-decoration-none" href="#plans">Piani e limiti</a>
+            <a class="text-decoration-none" href="#security">Sicurezza</a>
+            <a class="text-decoration-none" href="#faq">FAQ</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sezioni -->
+      <div class="card shadow-sm border-0 mb-4" id="getting-started">
+        <div class="card-body">
+          <h3 class="mb-2">Getting started</h3>
+          <ol class="mb-0">
+            <li>Accedi o registrati.</li>
+            <li>Vai nella sezione admin per creare/gestire i template.</li>
+            <li>Genera un certificato scegliendo un template e inserendo i dati richiesti.</li>
+            <li>Condividi il link/QR di verifica.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="templates">
+        <div class="card-body">
+          <h3 class="mb-2">Template</h3>
+          <p class="mb-2">
+            I template definiscono il layout e i campi necessari per emettere certificati.
+          </p>
+          <ul class="mb-0">
+            <li>Puoi creare più template e mantenerne attivi solo quelli utili.</li>
+            <li>Un template inattivo non viene proposto per nuove emissioni.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="certificates">
+        <div class="card-body">
+          <h3 class="mb-2">Certificati</h3>
+          <p class="mb-2">
+            Un certificato viene generato a partire da un template e produce un PDF associato.
+          </p>
+          <ul class="mb-0">
+            <li>I PDF sono conservati finché l’utente decide di mantenerli.</li>
+            <li>La lista certificati mostra stato e azioni disponibili.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="verify">
+        <div class="card-body">
+          <h3 class="mb-2">Verifica</h3>
+          <p class="mb-2">
+            La verifica consente di controllare l’autenticità del certificato tramite link/QR.
+          </p>
+          <ul class="mb-0">
+            <li>Usa il link di verifica presente nel certificato o associato al QR.</li>
+            <li>La pagina di verifica mostra stato (valido/revocato) e dettagli essenziali.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="revoke">
+        <div class="card-body">
+          <h3 class="mb-2">Revoca ed eliminazione</h3>
+          <p class="mb-2">
+            La revoca marca il certificato come non valido. L’eliminazione rimuove definitivamente
+            i dati e il PDF, se richiesta dall’utente.
+          </p>
+          <ul class="mb-0">
+            <li><strong>Revoca</strong>: il certificato risulta non valido in verifica.</li>
+            <li><strong>Elimina</strong>: cancella record e file PDF (azione a discrezione dell’utente).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="plans">
+        <div class="card-body">
+          <h3 class="mb-2">Piani e limiti</h3>
+          <p class="mb-2">
+            Il piano determina eventuali limiti (es. numero certificati / chiamate API).
+          </p>
+          <ul class="mb-0">
+            <li>In prossimità dei limiti, l’app può mostrare avvisi nella dashboard.</li>
+            <li>In scadenza o scaduto, alcune funzionalità possono essere bloccate.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="security">
+        <div class="card-body">
+          <h3 class="mb-2">Sicurezza</h3>
+          <ul class="mb-0">
+            <li>Accesso protetto con autenticazione e ruoli.</li>
+            <li>Cookie tecnici (sessione/remember-me) necessari al funzionamento.</li>
+            <li>Misure anti-abuso (es. reCAPTCHA nei form pubblici, se abilitato).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0" id="faq">
+        <div class="card-body">
+          <h3 class="mb-2">FAQ</h3>
+
+          <div class="mb-3">
+            <div class="fw-semibold">Posso eliminare un certificato revocato?</div>
+            <div class="text-muted">
+              Sì. La revoca cambia lo stato, mentre l’eliminazione rimuove definitivamente dati e PDF.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="fw-semibold">Serve un banner cookie?</div>
+            <div class="text-muted">
+              Se vengono usati solo cookie tecnici, non è richiesto consenso, ma l’informativa è disponibile.
+            </div>
+          </div>
+
+          <div>
+            <div class="fw-semibold">Come contatto il supporto?</div>
+            <div class="text-muted">
+              Vai su <a th:href="@{/contact}">Contatti</a> e invia un messaggio.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer link legali (se non l’hai già messo globale) -->
+      <footer class="border-top mt-5 py-4 bg-body-tertiary">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
+          <div class="text-muted small">
+            © <span th:text="${T(java.time.Year).now()}">2025</span> VeriCert
+          </div>
+          <div class="d-flex flex-wrap gap-3 small">
+            <a class="text-decoration-none" th:href="@{/}">Home</a>
+            <a class="text-decoration-none" th:href="@{/contact}">Contatti</a>
+            <a class="text-decoration-none" th:href="@{/privacy}">Privacy</a>
+            <a class="text-decoration-none" th:href="@{/cookie-policy}">Cookie</a>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

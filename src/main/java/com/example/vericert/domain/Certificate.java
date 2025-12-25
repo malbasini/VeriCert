@@ -35,6 +35,9 @@ public class Certificate extends BaseTenantEntity {
     @Column(name="revoked_at")
     private Instant revokedAt;
 
+    @Column(name="user_vars_json",columnDefinition="JSON")
+    private String userVarsJson;
+
     @ManyToOne(fetch=FetchType.LAZY, optional=false)
     @JoinColumn(name="tenant_id", nullable=false)
     private Tenant tenant;
@@ -128,5 +131,13 @@ public class Certificate extends BaseTenantEntity {
 
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
+    }
+
+    public String getUserVarsJson() {
+        return userVarsJson;
+    }
+
+    public void setUserVarsJson(String userVarsJson) {
+        this.userVarsJson = userVarsJson;
     }
 }

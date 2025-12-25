@@ -95,7 +95,6 @@ public class CertificateService {
         // 1) controllo piano
         planEnforcementService.checkCanIssueCertificate(tenant.getId());
         // 1) Precondizioni/base
-        Template template = tempRepo.findById(templateId).orElseThrow();
         String serial = UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
         String code   = randomCode(24);
         Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenant.getId());
@@ -110,8 +109,6 @@ public class CertificateService {
         sysVars.put("tenantName", tenant.getName());
         ObjectMapper om = new ObjectMapper();
         String json = om.writeValueAsString(vars);   // -> "{\"nome\":\"Mario\",\"eta\":30}"
-        template.setUserVarJson(json);
-        tempRepo.save(template);
         // 1) Render HTML e genera PDF
         //    (se vuoi storicizzare le vars usate, salvale in Template o meglio in una tabella "certificate_data")
         String html = templateService.renderHtml(templateId, vars, sysVars);
@@ -133,6 +130,7 @@ public class CertificateService {
         c.setSha256(sha);
         c.setOwnerName(ownerName);
         c.setOwnerEmail(ownerEmail);
+        c.setUserVarsJson(json);
         c = certRepo.save(c);  // ora hai c.getId() (certId)
         // 4) Token di verifica (JWS compatto nel QR)
         long now = Instant.now().getEpochSecond();

@@ -57,10 +57,11 @@ public class SecurityConfig {
                         .requestMatchers("/certificati","/revoke").permitAll()
                         .requestMatchers("/webhooks/stripe", "/webhooks/paypal").permitAll()
                         .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN","MANAGER","ISSUER","VIEWER")
-                        .requestMatchers("/templates/**","/certificates/**").authenticated()
+                        .requestMatchers("/templates/**","/certificates/**","/contact").authenticated()
                         .requestMatchers("/v/**","/vui/**","/signup","/login","/index","/files/**","/actuator/health").permitAll()
                         .requestMatchers("/api/payments/stripe/**", "/webhooks/stripe", "/checkout/**").permitAll()
                         .requestMatchers("/api/payments/paypal/**", "/paypal/**").permitAll()
+                        .requestMatchers("/privacy", "/cookie-policy","/docs").permitAll()
                         .anyRequest().authenticated()
                 )
                         .formLogin(form -> form

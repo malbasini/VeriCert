@@ -32,7 +32,6 @@ public class TemplateAdminService {
         t.setHtml(req.html());
         t.setUserVarSchema(req.variablesUserJson());
         t.setSysVarsSchema(req.systemsVariables());
-        t.setUserVarJson(null);
         t.setActive(req.active());
         t = repo.save(t);
         return t;

@@ -129,7 +129,7 @@ public class CertificateAdminController {
         Template tpl = templatePicker.getActiveTemplateOrThrow(tenantId);
         model.addAttribute("currentTenant", tenant.getName());
         model.addAttribute("certificate", certificate);
-        model.addAttribute("variablesDataJson", tpl.getUserVarJson());
+        model.addAttribute("variablesDataJson", certificate.getUserVarsJson());
         model.addAttribute("variablesUserJson", tpl.getUserVarSchema());
         model.addAttribute("templateName", tpl.getName());
         model.addAttribute("pageTitle", "Dettaglio certificato");
