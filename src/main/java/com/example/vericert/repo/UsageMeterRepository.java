@@ -84,7 +84,7 @@ public interface UsageMeterRepository extends JpaRepository<UsageMeter, UsageMet
                                 @Param("to") LocalDate to);
 
     @Query("""
-       SELECT COALESCE(MAX(u.pdfStorageMb), 0)
+       SELECT COALESCE(SUM(u.pdfStorageMb), 0)
        FROM UsageMeter u
        WHERE u.id.tenantId = :tenantId
          AND u.id.usageDay BETWEEN :from AND :to
