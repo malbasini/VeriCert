@@ -1,6 +1,7 @@
 package com.example.vericert.service;
 
 import com.example.vericert.config.VericertStorageProperties;
+import com.example.vericert.domain.UsageMeter;
 import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -23,37 +24,31 @@ public class StorageUsageService {
      *
      * Se la cartella non esiste ancora, ritorna 0.00
      */
-    public BigDecimal calculateCurrentStorageMb(Long tenantId) {
+    public BigDecimal calculateCurrentStorageMb(Long tenantId, UsageMeter m) {
         Path tenantRoot = Paths.get(storageProperties.getLocalPath(), tenantId.toString());
-
         if (!Files.exists(tenantRoot) || !Files.isDirectory(tenantRoot)) {
             return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         }
+        long totalBytes = m.getPdfStorageMb().multiply(BigDecimal.valueOf(1024 * 1024)).longValue();
+        return calculateSizeMb(totalBytes);
+    }
+    /**
+     * Converte i byte in MB con una precisione maggiore.
+     * Usiamo 1024 * 1024 per i MiB (standard binario) o 1.000.000 per MB (standard decimale).
+     */
+    public BigDecimal bytesToMb(long bytes) {
+        if (bytes <= 0) return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
 
-        long totalBytes = 0L;
+        // Usiamo una scala più alta (es. 4) per i calcoli intermedi e poi arrotondiamo a 2
+        return BigDecimal.valueOf(bytes)
+                .divide(BigDecimal.valueOf(1024 * 1024), 4, RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
 
-        // camminiamo ricorsivamente nella cartella del tenant
-        try (Stream<Path> walk = Files.walk(tenantRoot)) {
-            totalBytes = walk
-                    .filter(Files::isRegularFile)
-                    .mapToLong(p -> {
-                        try {
-                            return Files.size(p);
-                        } catch (IOException e) {
-                            // se un file dà errore di lettura, lo consideriamo 0 e andiamo avanti
-                            return 0L;
-                        }
-                    })
-                    .sum();
-        } catch (IOException e) {
-            // se proprio non riusciamo a camminare la cartella, restituiamo 0
-            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
-        }
-
-        // Conversione byte -> MB decimali (1 MB = 1_000_000 byte)
-        BigDecimal mb = new BigDecimal(totalBytes)
-                .divide(new BigDecimal(1_000_000), 2, RoundingMode.HALF_UP);
-
-        return mb;
+    /**
+     * Invece di scansionare tutto il disco, calcola i MB di un singolo incremento.
+     */
+    public BigDecimal calculateSizeMb(long fileSizeBytes) {
+        return bytesToMb(fileSizeBytes);
     }
 }

@@ -6,7 +6,6 @@ import com.example.vericert.repo.UsageMeterRepository;
 import com.example.vericert.dto.DailyUsageDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,10 +38,12 @@ public class UsageMeterService {
     }
 
     @Transactional
-    public void incrementCertsGenerated(Long tenantId) {
+    public void incrementCertsGenerated(Long tenantId,long bytesGenerated) {
         UsageMeter m = getOrCreateToday(tenantId);
         m.setCertsGenerated(m.getCertsGenerated() + 1);
         m.setLastUpdateTs(Instant.now());
+        //AGGIORNO LO STORAGE
+        m.setPdfStorageMb(m.getPdfStorageMb().add(storageUsageService.calculateSizeMb(bytesGenerated)));
         usageMeterRepository.save(m);
         // aggiorniamo anche lo storage, perché spesso generare un certificato = salvare un PDF
         refreshStorageForTenant(tenantId);
@@ -70,9 +71,8 @@ public class UsageMeterService {
      */
     @Transactional
     public void refreshStorageForTenant(Long tenantId) {
-        BigDecimal currentStorageMb = storageUsageService.calculateCurrentStorageMb(tenantId);
-
         UsageMeter m = getOrCreateToday(tenantId);
+        BigDecimal currentStorageMb = storageUsageService.calculateCurrentStorageMb(tenantId,m);
         m.setPdfStorageMb(currentStorageMb);
         m.setLastUpdateTs(Instant.now());
         usageMeterRepository.save(m);
