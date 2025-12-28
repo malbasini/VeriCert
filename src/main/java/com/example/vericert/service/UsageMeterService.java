@@ -50,7 +50,6 @@ public class UsageMeterService {
     @Transactional
     public void decrementStorage(Long tenantId,long bytesGenerated) {
         UsageMeter m = getOrCreateToday(tenantId);
-        m.setCertsGenerated(m.getCertsGenerated() + 1);
         m.setLastUpdateTs(Instant.now());
         //AGGIORNO LO STORAGE
         m.setPdfStorageMb(m.getPdfStorageMb().subtract(storageUsageService.bytesToMb(bytesGenerated)));

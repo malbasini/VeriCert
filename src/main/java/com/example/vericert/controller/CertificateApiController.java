@@ -8,6 +8,7 @@ import com.example.vericert.domain.Tenant;
 import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.TenantRepository;
+import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.service.*;
 import jakarta.validation.Valid;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -42,6 +43,7 @@ public class CertificateApiController {
     private final TemplatePicker templatePicker;
     private final CaptchaValidator captchaValidator;
     private final UsageMeterService usageMeterService;
+    private final VerificationTokenRepository tokRepo;
 
     public CertificateApiController(CertificateService service,
                                     TenantRepository tenantRepo,
@@ -49,7 +51,8 @@ public class CertificateApiController {
                                     TemplateRepository tempRepo,
                                     TemplatePicker templatePicker,
                                     CaptchaValidator captchaValidator,
-                                    UsageMeterService usageMeterService) {
+                                    UsageMeterService usageMeterService,
+                                    VerificationTokenRepository tokRepo) {
 
         this.service = service;
         this.tenantRepo = tenantRepo;
@@ -58,6 +61,7 @@ public class CertificateApiController {
         this.templatePicker = templatePicker;
         this.captchaValidator = captchaValidator;
         this.usageMeterService = usageMeterService;
+        this.tokRepo = tokRepo;
     }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -171,9 +175,9 @@ public class CertificateApiController {
             }
             assert p != null;
             if (!Files.exists(p)) return ResponseEntity.notFound().build();
+            usageMeterService.decrementStorage(currentTenantId(),Files.size(p));
             Files.delete(p);
             service.deleteCertificate(id);
-            usageMeterService.decrementStorage(currentTenantId(),Files.size(p));
         }
         catch (Exception e) {
             e.printStackTrace();

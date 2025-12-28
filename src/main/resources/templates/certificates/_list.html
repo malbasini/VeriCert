@@ -138,6 +138,7 @@
                         })
                     });
                     const data = await response.json();
+                    alert(JSON.stringify(data));
                     if (!response.ok) {
                         sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.error + ` Status HTTP ${response.status}`, cls: "bg-danger" }));
                     } else {
