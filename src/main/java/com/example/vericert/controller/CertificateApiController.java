@@ -41,13 +41,15 @@ public class CertificateApiController {
     private final TemplateRepository tempRepo;
     private final TemplatePicker templatePicker;
     private final CaptchaValidator captchaValidator;
+    private final UsageMeterService usageMeterService;
 
     public CertificateApiController(CertificateService service,
                                     TenantRepository tenantRepo,
                                     CertificateRepository certRepo,
                                     TemplateRepository tempRepo,
                                     TemplatePicker templatePicker,
-                                    CaptchaValidator captchaValidator) {
+                                    CaptchaValidator captchaValidator,
+                                    UsageMeterService usageMeterService) {
 
         this.service = service;
         this.tenantRepo = tenantRepo;
@@ -55,6 +57,7 @@ public class CertificateApiController {
         this.tempRepo = tempRepo;
         this.templatePicker = templatePicker;
         this.captchaValidator = captchaValidator;
+        this.usageMeterService = usageMeterService;
     }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -170,6 +173,7 @@ public class CertificateApiController {
             if (!Files.exists(p)) return ResponseEntity.notFound().build();
             Files.delete(p);
             service.deleteCertificate(id);
+            usageMeterService.decrementStorage(currentTenantId(),Files.size(p));
         }
         catch (Exception e) {
             e.printStackTrace();

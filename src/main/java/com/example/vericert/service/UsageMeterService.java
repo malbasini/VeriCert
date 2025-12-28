@@ -43,11 +43,24 @@ public class UsageMeterService {
         m.setCertsGenerated(m.getCertsGenerated() + 1);
         m.setLastUpdateTs(Instant.now());
         //AGGIORNO LO STORAGE
-        m.setPdfStorageMb(m.getPdfStorageMb().add(storageUsageService.calculateSizeMb(bytesGenerated)));
+        m.setPdfStorageMb(m.getPdfStorageMb().add(storageUsageService.bytesToMb(bytesGenerated)));
         usageMeterRepository.save(m);
-        // aggiorniamo anche lo storage, perché spesso generare un certificato = salvare un PDF
-        refreshStorageForTenant(tenantId);
     }
+
+    @Transactional
+    public void decrementStorage(Long tenantId,long bytesGenerated) {
+        UsageMeter m = getOrCreateToday(tenantId);
+        m.setCertsGenerated(m.getCertsGenerated() + 1);
+        m.setLastUpdateTs(Instant.now());
+        //AGGIORNO LO STORAGE
+        m.setPdfStorageMb(m.getPdfStorageMb().subtract(storageUsageService.bytesToMb(bytesGenerated)));
+        usageMeterRepository.save(m);
+    }
+
+
+
+
+
 
     @Transactional
     public void incrementApiCalls(Long tenantId) {
@@ -63,21 +76,6 @@ public class UsageMeterService {
         m.setLastUpdateTs(Instant.now());
         usageMeterRepository.save(m);
     }
-    /**
-     * Forza un ricalcolo dello spazio occupato dal tenant e lo salva nella riga di oggi.
-     * Puoi chiamarlo:
-     * - dopo aver generato/eliminato un PDF
-     * - in uno scheduler periodico
-     */
-    @Transactional
-    public void refreshStorageForTenant(Long tenantId) {
-        UsageMeter m = getOrCreateToday(tenantId);
-        BigDecimal currentStorageMb = storageUsageService.calculateCurrentStorageMb(tenantId,m);
-        m.setPdfStorageMb(currentStorageMb);
-        m.setLastUpdateTs(Instant.now());
-        usageMeterRepository.save(m);
-    }
-
     @Transactional(readOnly = true)
     public List<DailyUsageDTO> getUsageHistoryForTenant(Long tenantId, int daysBack) {
         LocalDate to = LocalDate.now();
