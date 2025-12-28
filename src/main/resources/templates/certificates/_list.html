@@ -76,34 +76,33 @@
                                 <a th:href="@{'/admin/certificates/' + ${c.id} + '/detail'}"
                                    class="btn btn-sm btn-outline-secondary me-2"><i class="fa-solid fa-info"></i>Dettaglio</a>
                                 <th:block th:if="${c.status?.name()=='REVOKED'}">
-                                    <a class="js-del btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#">
+                                    <a class="js-del btn btn-outline-danger btn-sm rounded" data-bs-toggle="modal" data-bs-target="#deleteCertificateModal"  th:data-certificate-id="${c.id}">
                                         <i class="bi bi-trash"></i> Elimina
                                     </a>
                                 </th:block>
                             </td>
-                            <!-- Modal -->
-                            <form th:action="|javascript:openItem(${c.id})|" method="DELETE">
-                                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h1 class="modal-title fs-5" id="exampleModalLabel">Eliminazione cerificato</h1>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                Sei sicuro di voler eliminare il certificato?
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                <button type="submit" class="btn btn-primary">Elimina</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
                         </tr>
                         </tbody>
                     </table>
+                </div>
+                <div class="modal fade" id="deleteCertificateModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content center">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Conferma eliminazione</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                Vuoi eliminare questo certificato?
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Elimina</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <!-- Pagination -->
                 <nav th:if="${page.totalPages > 1}" class="p-3">
@@ -125,31 +124,37 @@
             </div>
         </div>
         <script>
-            async function openItem(id) {
-                try {
-                    const API_BASE = "/api/certificates";
-                    const response = await fetch(`${API_BASE}/${id}/delete`, {
-                        method: "DELETE",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            id: id
-                        })
-                    });
-                    const data = await response.json();
-                    alert(JSON.stringify(data));
-                    if (!response.ok) {
-                        sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.error + ` Status HTTP ${response.status}`, cls: "bg-danger" }));
-                    } else {
-                        sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Certificato e file PDF eliminato con successo", cls: "bg-success" }));
-                        window.location.reload();
-                    }
+            const modalEl = document.getElementById('deleteCertificateModal');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+            modalEl.addEventListener('show.bs.modal', (event) => {
+                const trigger = event.relatedTarget; // bottone che ha aperto la modale
+                const certificateId = trigger.getAttribute('data-certificate-id');
+                // salva l'id sul bottone di conferma (o sulla modale)
+                confirmBtn.dataset.certificateId = certificateId;
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                const id = confirmBtn.dataset.certificateId;
+                if (!id) return;
+                const resp = await fetch(`/api/certificates/${encodeURIComponent(id)}/delete`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (resp.ok) {
+                    // chiudi modale e aggiorna pagina/lista
+                    hideModal()
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Certificato eliminato con successo", cls: "bg-success" }));
+                    location.reload();
+                } else {
+                    // gestisci errore
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.error + ` Status HTTP ${resp.status}`, cls: "bg-danger" }));
                 }
-                catch (error) {
-                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: error.message, cls: "bg-danger" }));
+
+                function hideModal() {
+                    const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    instance.hide();
                 }
-            }
+            });
+
         </script>
         <script>
             // all'avvio pagina (es. in uno script al fondo pagina):
