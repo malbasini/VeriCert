@@ -32,13 +32,12 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    private final DataSource dataSource;
 
+    public SecurityConfig(CustomUserDetailsService userDetailsService, DataSource dataSource) {
         this.userDetailsService = userDetailsService;
+        this.dataSource = dataSource;
     }
-
-    private DataSource dataSource;
-
 
     // 🔑 Config della security
     @Bean

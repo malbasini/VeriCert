@@ -25,7 +25,7 @@ public class StripeGateway {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl("https://app.vercert.ord/billing/success?session_id={CHECKOUT_SESSION_ID}")
+                .setSuccessUrl("https://app.vercert.org/billing/success?session_id={CHECKOUT_SESSION_ID}")
                 .setCancelUrl("https://app.vercert.org/billing/cancel")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
