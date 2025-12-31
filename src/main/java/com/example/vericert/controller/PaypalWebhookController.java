@@ -16,8 +16,7 @@ import java.time.Instant;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/webhooks/paypal")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+@RequestMapping("/api/paypal/webhook")
 public class PaypalWebhookController {
 
     private final PaymentsProps.PaypalProps paypalProps;
@@ -47,6 +46,13 @@ public class PaypalWebhookController {
 
         System.out.println("RAW BODY: " + rawBody);
 
+        System.out.println("PAYPAL HEADERS = " + headers.keySet());
+        System.out.println("TX-ID=" + headers.get("paypal-transmission-id") + " / " + headers.get("PAYPAL-TRANSMISSION-ID"));
+        System.out.println("TX-TIME=" + headers.get("paypal-transmission-time") + " / " + headers.get("PAYPAL-TRANSMISSION-TIME"));
+        System.out.println("TX-SIG=" + headers.get("paypal-transmission-sig") + " / " + headers.get("PAYPAL-TRANSMISSION-SIG"));
+        System.out.println("CERT=" + headers.get("paypal-cert-url") + " / " + headers.get("PAYPAL-CERT-URL"));
+        System.out.println("ALGO=" + headers.get("paypal-auth-algo") + " / " + headers.get("PAYPAL-AUTH-ALGO"));
+
         // 1) Verifica firma via API PayPal
         if (!verifyWithPaypalApi(headers, rawBody)) {
             return ResponseEntity.status(400).body("invalid paypal signature");
@@ -60,7 +66,7 @@ public class PaypalWebhookController {
         System.out.println(">>> PAYPAL EVENT = " + eventType);
 
         switch (eventType) {
-            case "BILLING.SUBSCRIPTION.ACTIVATED" -> handleSubscriptionActivated(body);
+            case "BILLING.SUBSCRIPTION.ACTIVATED" -> handleSubscriptionActivated(body,headers);
             case "PAYMENT.SALE.COMPLETED" -> handlePaymentSaleCompleted(body);
             case "BILLING.SUBSCRIPTION.CANCELLED" -> handleSubscriptionCancelled(body);
             default -> System.out.println(">>> Evento PayPal ignorato: " + eventType);
@@ -69,38 +75,44 @@ public class PaypalWebhookController {
         return ResponseEntity.ok("ok");
     }
 
-    private void handleSubscriptionActivated(Map<String, Object> body) {
-        Object resourceObj = body.get("resource");
-        if (!(resourceObj instanceof Map<?, ?> resource)) {
-            System.out.println(">>> [PayPal] resource NON è una Map in BILLING.SUBSCRIPTION.ACTIVATED");
-            System.out.println(">>> resource class = " + (resourceObj == null ? "null" : resourceObj.getClass().getName()));
-            System.out.println(">>> BODY = " + body);
-            return; // evito il ClassCastException
-        }
-        Object idObj = resource.get("id");
-        if (!(idObj instanceof String subscriptionId)) {
-            System.out.println(">>> [PayPal] resource.id non è una String");
-            System.out.println(">>> id class = " + (idObj == null ? "null" : idObj.getClass().getName()));
-            System.out.println(">>> resource = " + resource);
+    private void handleSubscriptionActivated(Map<String, Object> body, Map<String, String> headers) {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resource = (Map<String, Object>) body.get("resource");
+        System.out.println("HEADERS KEYS = " + headers.keySet());
+        if (resource == null) return;
+
+        String subscriptionId = (String) resource.get("id");
+        String customId = (String) resource.get("custom_id"); // <-- è una STRINGA JSON
+
+        if (subscriptionId == null || customId == null) {
+            System.out.println(">>> [PayPal] missing id/custom_id");
             return;
         }
 
-        System.out.println(">>> [PayPal] Subscription ACTIVATED, id = " + subscriptionId);
-        var dto = paypalSubscriptionService.findById(subscriptionId);
-        if (dto.tenantId() == null || dto.planCode() == null || dto.billingCycle() == null) {
-            System.out.println(">>> Subscription PayPal senza custom_id valido, non attivo piano.");
-            return;
+        try {
+            var node = new com.fasterxml.jackson.databind.ObjectMapper().readTree(customId);
+            Long tenantId = node.get("tenant_id").asLong();
+            String planCode = node.get("plan_code").asText();
+            String billingCycle = node.get("billing_cycle").asText();
+
+            System.out.println(">>> [PayPal] ACTIVATED tenantId=" + tenantId
+                    + " planCode=" + planCode + " billingCycle=" + billingCycle
+                    + " subscriptionId=" + subscriptionId);
+
+            billingService.activateSubscription(
+                    tenantId,
+                    planCode,
+                    billingCycle,
+                    BillingProvider.PAYPAL,
+                    subscriptionId,
+                    null
+            );
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        Long tenantId = Long.valueOf(dto.tenantId());
-        billingService.activateSubscription(
-                tenantId,
-                dto.planCode(),
-                dto.billingCycle(),
-                BillingProvider.PAYPAL,
-                dto.id(),
-                null
-        );
     }
+
     private void handlePaymentSaleCompleted(Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         Map<String, Object> resource = (Map<String, Object>) body.get("resource");

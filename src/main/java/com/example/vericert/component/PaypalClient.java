@@ -1,6 +1,8 @@
 package com.example.vericert.component;
 
 import com.example.vericert.component.PaymentsProps;
+import com.example.vericert.config.PaypalWebClientConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -14,15 +16,13 @@ public class PaypalClient {
 
     private final PaymentsProps.PaypalProps props;
     private final WebClient webClient;
-
     private String cachedAccessToken;
     private Instant accessTokenExpiry;
 
-    public PaypalClient(PaymentsProps paymentsProps) {
+    public PaypalClient(PaymentsProps paymentsProps,
+                        @Qualifier("paypalWebClient") WebClient paypalWebClient) {
         this.props = paymentsProps.getPaypal();
-        this.webClient = WebClient.builder()
-                .baseUrl(props.getApiBaseUrl())
-                .build();
+        this.webClient = paypalWebClient;
     }
 
     /**

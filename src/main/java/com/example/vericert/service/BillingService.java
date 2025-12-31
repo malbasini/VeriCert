@@ -1,6 +1,5 @@
 package com.example.vericert.service;
 
-import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.domain.Tenant;
 import com.example.vericert.domain.TenantSettings;
@@ -17,10 +16,13 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class BillingService {
 
+    private static final Logger log = LoggerFactory.getLogger(BillingService.class);
     private final TenantSettingsRepository tenantSettingsRepo;
     private final PlanDefinitionRepository planDefinitionRepo;
     private final StripeGateway stripeGateway;
@@ -46,84 +48,105 @@ public class BillingService {
      * Avvia un checkout per il tenant, scegliendo provider e ciclo.
      * Ritorna l'URL su cui il frontend deve fare redirect.
      */
-    @Transactional
-    public String startCheckout(Long tenantId,
-                                String planCode,
-                                String billingCycle,       // "MONTHLY" o "ANNUAL"
-                                BillingProvider provider) {
+        @Transactional
+        public String startCheckout(Long tenantId,
+                                    String planCode,
+                                    String billingCycle,       // "MONTHLY" o "ANNUAL"
+                                    BillingProvider provider) {
 
-        boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
-        PlanDefinition plan = planDefinitionRepo.findByCode(planCode)
-                .orElseThrow(() -> new IllegalArgumentException("Piano non trovato: " + planCode));
+            boolean annual = "ANNUAL".equalsIgnoreCase(billingCycle);
 
-        TenantSettings settings = tenantSettingsRepo.findById(tenantId)
-                .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
-        String priceId = resolvePriceId(plan, billingCycle, provider);
-        Session session = null;
-        String redirect = "";
-        try {
-            if (provider == BillingProvider.STRIPE) {
-                // ⬇⬇ stripeGateway deve restituire UNA Session di Stripe
-                session = stripeGateway.createCheckoutSession(tenantId, priceId, planCode, billingCycle);
-            } else {
-                String paypalPlanId = annual
-                        ? plan.getPaypalPlanAnnualId()
-                        : plan.getPaypalPlanMonthlyId();
+            PlanDefinition plan = planDefinitionRepo.findByCode(planCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Piano non trovato: " + planCode));
 
-                String success = "https://app.vercert.org/billing/paypal/success";
-                String cancel =  "https://app.vercert.org/billing/paypal/cancel";
+            TenantSettings settings = tenantSettingsRepo.findById(tenantId)
+                    .orElseThrow(() -> new IllegalStateException("TenantSettings mancanti per " + tenantId));
 
-                redirect = paypalGateway.createSubscription(
-                        tenantId,
-                        planCode,
-                        billingCycle,
-                        paypalPlanId,
-                        success,
-                        cancel
-                );
+            log.info("startCheckout: tenantId={} planCode={} billingCycle={} provider={} annual={} currentStatus={} currentProvider={} currentPlanCode={}",
+                    tenantId,
+                    planCode,
+                    billingCycle,
+                    provider,
+                    annual,
+                    settings.getStatus(),
+                    settings.getProvider(),
+                    settings.getPlanCode()
+            );
+
+            try {
+                if (provider == BillingProvider.STRIPE) {
+
+                    String priceId = resolvePriceId(plan, billingCycle, provider);
+                    log.info("startCheckout STRIPE: resolved priceId={}", priceId);
+
+                    Session session = stripeGateway.createCheckoutSession(tenantId, priceId, planCode, billingCycle);
+                    log.info("Stripe checkoutSession created: id={} url={}", session.getId(), session.getUrl());
+
+                    // Aggiorno settings
+                    settings.setPlanCode(planCode);
+                    settings.setBillingCycle(billingCycle);
+                    settings.setProvider(provider.name());
+                    settings.setCheckoutSessionId(session.getId());
+                    settings.setStatusEnum(PlanStatus.TRIALING);
+                    tenantSettingsRepo.save(settings);
+
+                    Tenant t = tenantRepo.getTenantById(tenantId);
+                    t.setPlan(Plan.valueOf(planCode));
+                    tenantRepo.save(t);
+
+                    return session.getUrl();
+                }
+
+                if (provider == BillingProvider.PAYPAL) {
+
+                    String paypalPlanId = annual
+                            ? plan.getPaypalPlanAnnualId()
+                            : plan.getPaypalPlanMonthlyId();
+
+                    log.info("startCheckout PAYPAL: tenantId={} planCode={} billingCycle={} annual={} paypalPlanId={}",
+                            tenantId, planCode, billingCycle, annual, paypalPlanId);
+
+                    if (paypalPlanId == null || paypalPlanId.isBlank()) {
+                        throw new IllegalStateException("PayPal planId non configurato per planCode=" + planCode
+                                + " billingCycle=" + billingCycle);
+                    }
+
+                    String success = "https://app.vercert.org/billing/paypal/success";
+                    String cancel  = "https://app.vercert.org/billing/paypal/cancel";
+
+                    String redirect = paypalGateway.createSubscription(
+                            tenantId,
+                            planCode,
+                            billingCycle,
+                            paypalPlanId,
+                            success,
+                            cancel
+                    );
+
+                    log.info("startCheckout PAYPAL: redirectUrl={}", redirect);
+
+                    // Aggiorno settings
+                    settings.setPlanCode(planCode);
+                    settings.setBillingCycle(billingCycle);
+                    settings.setProvider(provider.name());
+                    settings.setStatusEnum(PlanStatus.TRIALING);
+                    tenantSettingsRepo.save(settings);
+
+                    Tenant t = tenantRepo.getTenantById(tenantId);
+                    t.setPlan(Plan.valueOf(planCode));
+                    tenantRepo.save(t);
+
+                    return redirect;
+                }
+
+                throw new IllegalArgumentException("Provider di billing non supportato: " + provider);
+
+            } catch (Exception e) {
+                log.error("Errore nella creazione della sessione di pagamento: tenantId={} provider={} planCode={} billingCycle={}",
+                        tenantId, provider, planCode, billingCycle, e);
+                throw new IllegalStateException("Errore nella creazione della sessione di pagamento: " + e.getMessage(), e);
             }
-        } catch (Exception e) {
-            throw new IllegalStateException("Errore nella creazione della sessione di pagamento", e);
         }
-        if(provider == BillingProvider.STRIPE) {
-
-            // URL ESATTA DI STRIPE per il redirect
-            String redirectUrl = session.getUrl();
-            // ID ESATTO DELLA SESSIONE STRIPE (tipo cs_test_...)
-            String checkoutSessionId = session.getId();
-
-            // Salvo nel DB informazioni corrette
-            settings.setPlanCode(planCode);
-            settings.setBillingCycle(billingCycle);
-            settings.setProvider(provider.name());
-            settings.setCheckoutSessionId(checkoutSessionId);
-            settings.setStatusEnum(PlanStatus.TRIALING); // o PENDING
-            tenantSettingsRepo.save(settings);
-
-            Tenant t = tenantRepo.getTenantById(tenantId);
-            t.setPlan(Plan.valueOf(planCode));
-            tenantRepo.save(t);
-
-            return redirectUrl;  // 👈 NIENTE concatenazioni, è già pronta
-        }
-        if(provider == BillingProvider.PAYPAL) {
-            
-            // Salvo nel DB informazioni corrette
-            settings.setPlanCode(planCode);
-            settings.setBillingCycle(billingCycle);
-            settings.setProvider(provider.name());
-            settings.setStatusEnum(PlanStatus.TRIALING); // o PENDING
-            tenantSettingsRepo.save(settings);
-            Tenant t = tenantRepo.getTenantById(tenantId);
-            t.setPlan(Plan.valueOf(planCode));
-            tenantRepo.save(t);
-
-            return redirect;  // 👈 NIENTE concatenazioni, è già pronta
-        }
-        return "";
-    }
-
-
     /**
      * Chiamato da un webhook Stripe/PayPal quando il pagamento è confermato.
      * Qui attivi effettivamente il piano.

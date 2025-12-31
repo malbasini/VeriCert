@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -14,6 +15,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -48,18 +50,20 @@ public class SecurityConfig {
                                         "/admin/**",
                                         "/pricing/billing",       // toggle mensile/annuale sulla index
                                         "/api/**",                // tutte le API (Stripe, PayPal, FREE, ecc.)
-                                        "/webhooks/**"            // Stripe / PayPal webhooks
+                                        "/webhooks/**",
+                                        "/api/paypal/webhook",
+                                        "/api/stripe/webhook"// Stripe / PayPal webhooks
                                 )
                         )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/403", "/error/**","/css/**","/vendor/**", "/js/**", "/images/**").permitAll() //
-                        .requestMatchers("/certificati","/revoke").permitAll()
-                        .requestMatchers("/webhooks/stripe", "/webhooks/paypal").permitAll()
+                         .requestMatchers("/certificati","/revoke").permitAll()
+                        .requestMatchers("/api/paypal/webhook").permitAll()
+                        .requestMatchers("/api/stripe/webhook").permitAll()
                         .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN","MANAGER","ISSUER","VIEWER")
                         .requestMatchers("/templates/**","/certificates/**","/contact").authenticated()
                         .requestMatchers("/v/**","/vui/**","/signup","/login","/index","/files/**","/actuator/health").permitAll()
-                        .requestMatchers("/api/payments/stripe/**", "/webhooks/stripe", "/checkout/**").permitAll()
-                        .requestMatchers("/api/payments/paypal/**", "/paypal/**").permitAll()
+                        .requestMatchers("/checkout/**").permitAll()
                         .requestMatchers("/privacy", "/cookie-policy","/docs").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -131,4 +135,5 @@ public class SecurityConfig {
         ));
         return firewall;
     }
+
 }

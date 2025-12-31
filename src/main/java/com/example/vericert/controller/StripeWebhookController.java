@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 
 @RestController
-@RequestMapping("/webhooks/stripe")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
+@RequestMapping("/api/stripe/webhook")
 public class StripeWebhookController {
 
     private final PaymentsProps props;
