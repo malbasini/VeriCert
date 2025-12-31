@@ -3,14 +3,15 @@
 <head><meta charset="UTF-8"><title>Pagamento annullato</title></head>
 <body>
 <div class="container">
-
+<div th:replace="base :: headerFragment"></div>
+    <br>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         Pagamento annullato
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-
     <br>
     <a href="/">Home</a>
 </div>
 </body>
+<div th:replace="footer :: footerFragment"></div>
 </html>

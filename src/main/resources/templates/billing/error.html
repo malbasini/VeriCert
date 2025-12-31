@@ -10,7 +10,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-
+<div th:replace="base :: headerFragment"></div>
 <div class="container py-5" style="max-width: 880px;">
     <div class="card shadow-sm">
         <div class="card-body p-4">
@@ -38,7 +38,7 @@
                     </div>
 
                     <div class="d-flex flex-wrap gap-2">
-                        <a class="btn btn-primary" th:href="@{/pricing}">
+                        <a class="btn btn-primary" th:href="@{/billing}">
                             <i class="fa-solid fa-rotate-right me-2"></i>Riprova
                         </a>
 
@@ -63,7 +63,7 @@
         </div>
     </div>
 </div>
-
 <script th:src="@{/vendor/bootstrap/bootstrap.bundle.min.js}"></script>
 </body>
+<div th:replace="footer :: footerFragment"></div>
 </html>
