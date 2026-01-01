@@ -1,23 +1,13 @@
 package com.example.vericert.service;
 
 import com.example.vericert.component.PaypalClient;
-import com.example.vericert.domain.PlanDefinition;
 import com.example.vericert.dto.PaypalSubscriptionDto;
-import com.example.vericert.repo.PlanDefinitionRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Map;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Service;
-
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class PaypalSubscriptionService {
@@ -35,6 +25,8 @@ public class PaypalSubscriptionService {
         System.out.println("RAW SUB FROM PAYPAL = " + raw);
 
         String status = (String) raw.get("status");
+        System.out.println("STATUS FROM PAYPAL = " + status);
+
         String planId = (String) raw.get("plan_id");
 
         // ---------- custom_id: è una STRINGA ----------

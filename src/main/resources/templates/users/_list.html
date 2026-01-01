@@ -78,8 +78,12 @@
             sel.addEventListener('change', async () => {
                 try{
                     await api(`${API}/${id}/role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({role: sel.value})});
-                    showToast('Ruolo aggiornato con successo',{ colorClass: 'bg-success' });
-                }catch(e){ showToast(e.message,{ colorClass: 'bg-danger'})};
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Ruolo aggiornato con successo", cls: "bg-success" }));
+                    location.reload();
+                }catch(e)
+                { sessionStorage.setItem("flashMsg", JSON.stringify({ text: e?.message , cls: "bg-danger" }));
+                   location.reload();
+                };
             });
             return sel;
         }
@@ -222,6 +226,15 @@
                 btn.disabled = false;
                 btn.innerHTML = html;
             }
+        }
+    </script>
+    <script>
+        // all'avvio pagina (es. in uno script al fondo pagina):
+        const flash = sessionStorage.getItem("flashMsg");
+        if (flash) {
+            const { text, cls } = JSON.parse(flash);
+            showToast(text, { colorClass: cls });
+            sessionStorage.removeItem("flashMsg");
         }
     </script>
 </div>

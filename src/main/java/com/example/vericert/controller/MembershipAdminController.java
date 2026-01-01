@@ -73,7 +73,7 @@ public class MembershipAdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> changeRole(@PathVariable Long id, @RequestBody ChangeRoleReq req, Principal principal) {
         try {
-            MembershipId mid = new MembershipId(id, getCurrentTenantId());
+            MembershipId mid = new MembershipId(getCurrentTenantId(),id);
             service.changeRole(mid, Role.valueOf(req.role().toUpperCase()), principal.getName());
             return ResponseEntity.noContent().build();
         }
