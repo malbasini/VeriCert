@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/payments/stripe")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
 public class StripeCheckoutController {
 
 private final PaymentRepository payRepo;
@@ -29,7 +28,6 @@ public StripeCheckoutController(PaymentsProps props, PaymentRepository payRepo) 
 
 
 @PostMapping("/checkout")
-@PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
 public Map<String,Object> createCheckout(@RequestParam Long tenantId,
                                          @RequestParam long amountMinor,
                                          @RequestParam(required=false) Long certificateId,

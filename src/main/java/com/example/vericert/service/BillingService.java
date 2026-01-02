@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,9 @@ import org.slf4j.LoggerFactory;
 public class BillingService {
 
     private static final Logger log = LoggerFactory.getLogger(BillingService.class);
+
+
+
     private final TenantSettingsRepository tenantSettingsRepo;
     private final PlanDefinitionRepository planDefinitionRepo;
     private final StripeGateway stripeGateway;
@@ -89,11 +94,9 @@ public class BillingService {
                     settings.setCheckoutSessionId(session.getId());
                     settings.setStatusEnum(PlanStatus.TRIALING);
                     tenantSettingsRepo.save(settings);
-
                     Tenant t = tenantRepo.getTenantById(tenantId);
                     t.setPlan(Plan.valueOf(planCode));
                     tenantRepo.save(t);
-
                     return session.getUrl();
                 }
 
@@ -243,17 +246,12 @@ public class BillingService {
         s.setProvider("STRIPE");
         s.setSubscriptionId(providerSubscriptionId);
         s.setLastInvoiceId(invoiceId);
-
         Instant start = Instant.ofEpochSecond(currentPeriodStartEpoch);
         Instant end = Instant.ofEpochSecond(currentPeriodEndEpoch);
-
         s.setCurrentPeriodStart(start);
         s.setCurrentPeriodEnd(end);
-
         s.setStatusEnum(PlanStatus.ACTIVE);
-
         tenantSettingsRepo.save(s);
-
         planUsageResetService.resetUsageForNewPeriod(tenantId);
     }
 
@@ -285,26 +283,4 @@ public class BillingService {
         planUsageResetService.resetUsageForNewPeriod(tenantId);
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

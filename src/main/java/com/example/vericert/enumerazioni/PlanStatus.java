@@ -5,5 +5,7 @@ public enum PlanStatus {
     ACTIVE,     // tutto ok
     PAST_DUE,   // pagamento in ritardo (Stripe past_due / PayPal problemi)
     CANCELED,   // abbonamento cancellato dal cliente o da te
-    EXPIRED     // periodo scaduto e nessun rinnovo
+    EXPIRED,
+    PENDING,
+    SUCCEDED// periodo scaduto e nessun rinnovo
 }

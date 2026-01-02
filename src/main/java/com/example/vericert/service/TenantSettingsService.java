@@ -1,6 +1,7 @@
 package com.example.vericert.service;
 
 import com.example.vericert.domain.TenantSettings;
+import com.example.vericert.enumerazioni.BillingProvider;
 import com.example.vericert.repo.TenantSettingsRepository;
 import com.example.vericert.dto.TenantSettingsDto;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -10,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class TenantSettingsService {
@@ -22,7 +25,6 @@ public class TenantSettingsService {
         this.repo = repo;
         this.objectMapper = objectMapper;
     }
-
     public TenantSettingsDto loadForTenant(Long tenantId) {
         TenantSettings ts = repo.findByTenantId(tenantId)
                 .orElseGet(() -> new TenantSettings(
@@ -99,7 +101,6 @@ public class TenantSettingsService {
         ts.setJsonSettings(json);
         repo.save(ts);
     }
-
     // piccolo helper interno per costruire il JSON
     private static class ObjectNodeBuilder {
         private final ObjectMapper om;
@@ -170,11 +171,7 @@ public class TenantSettingsService {
         // puoi aggiungere anche logoUrl, footerText ecc. in futuro
         return map;
     }
-
-
-
-
-
-
-
+    public Optional<TenantSettings> findPendingBySubscriptionId(long tenantId) {
+        return repo.findByTenantId(tenantId);
+    }
 }

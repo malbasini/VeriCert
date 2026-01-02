@@ -3,13 +3,10 @@ package com.example.vericert.domain;
 
 import com.example.vericert.tenancy.BaseTenantEntity;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Filter;
-
 import java.time.Instant;
 
 @Entity
 @Table(name="audit_log")
-@Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 public class AuditLog extends BaseTenantEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

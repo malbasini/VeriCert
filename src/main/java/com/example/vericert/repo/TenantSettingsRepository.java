@@ -1,6 +1,7 @@
 package com.example.vericert.repo;
 
 import com.example.vericert.domain.TenantSettings;
+import com.example.vericert.enumerazioni.BillingProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.Instant;

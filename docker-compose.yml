@@ -36,7 +36,7 @@ services:
       - db
     working_dir: /app
     environment:
-      JAVA_TOOL_OPTIONS: "-Dreactor.netty.tcp.sslHandshakeTimeout=20000"
+      #JAVA_TOOL_OPTIONS: "-Dreactor.netty.tcp.sslHandshakeTimeout=30000"
       SPRING_PROFILES_ACTIVE: prod
       BREVO_SMTP_USER: ${BREVO_SMTP_USER}
       BREVO_SMTP_PASS: ${BREVO_SMTP_PASS}
@@ -57,14 +57,14 @@ services:
     networks:
       - vericert-net
     volumes:
-        - /opt/vericert/storage:/app/storage
+      - /opt/vericert/storage:/app/storage
   nginx:
     image: nginx:1.27-alpine
     container_name: vericert-nginx
     restart: always
     depends_on:
-          app:
-            condition: service_healthy
+      app:
+        condition: service_healthy
     ports:
       - "80:80"
       # quando abiliterai HTTPS:
