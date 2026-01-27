@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head>
+    <meta charset="UTF-8">
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/stripe/success', 'noindex,nofollow')"></head>
+    <title>Pagamento completato</title>
+    <style>
+        body {
+            background: #f5f5f7;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        .success-page-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .success-card {
+            max-width: 700px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+            padding: 2.5rem 2.75rem;
+        }
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #e7f7ed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem auto;
+        }
+        .success-icon svg {
+            width: 32px;
+            height: 32px;
+            color: #198754;
+        }
+        .plan-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: #eff2ff;
+            color: #3949ab;
+        }
+        .summary-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6c757d;
+            margin-bottom: 0.2rem;
+        }
+        .summary-value {
+            font-weight: 600;
+            color: #212529;
+        }
+        .divider {
+            border-top: 1px solid #e2e2ea;
+            margin: 1.75rem 0;
+        }
+    </style>
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+<div class="success-page-container">
+    <div class="success-card">
+        <!-- Icona success -->
+        <div class="success-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" stroke-width="1.7">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9
+                         9 0 0 1 18 0Z" />
+            </svg>
+        </div>
+
+        <!-- Titolo e sottotitolo -->
+        <div class="text-center mb-3">
+            <h1 class="h3 mb-1">Pagamento completato</h1>
+            <p class="text-muted mb-0">
+                Grazie! Il tuo pagamento è stato registrato correttamente.
+            </p>
+        </div>
+
+        <!-- Badge piano -->
+        <div class="text-center mb-3">
+            <span class="plan-badge"
+                  th:text="${currentPlan != null} ? ${currentPlan.planCode} : 'Piano aggiornato'">
+                PIANO
+            </span>
+        </div>
+
+        <!-- Riepilogo pagamento -->
+        <div class="row g-3 mt-3">
+            <div class="col-md-6">
+                <div class="summary-label">Piano</div>
+                <div class="summary-value"
+                     th:text="${currentPlan != null} ? ${currentPlan.getPlanCode()} : '—'">
+                    PRO
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="summary-label">Frequenza di fatturazione</div>
+                <div class="summary-value"
+                     th:text="${currentPlan != null} ? ${currentPlan.getBillingCycle()} : '—'">
+                    MENSILE
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="summary-label">Metodo di pagamento</div>
+                <div class="summary-value"
+                     th:text="${provider != null} ? ${provider} : 'Stripe / PayPal'">
+                    Stripe
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="summary-label">Importo</div>
+                <div class="summary-value"
+                     th:text="${amountFormatted != null} ? ${amountFormatted} : '—'">
+                    € 0,00
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="summary-label">Prossima scadenza</div>
+                <div class="summary-value"
+                     th:text="${nextRenewalDate != null} ? ${nextRenewalDate} : '—'">
+                    31/12/2025
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="summary-label">ID transazione</div>
+                <div class="summary-value text-truncate"
+                     th:text="${transactionId != null} ? ${transactionId} : '—'">
+                    txn_1234567890
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Messaggio informativo -->
+        <p class="text-muted mb-3">
+            Puoi gestire il tuo piano, scaricare le fatture e verificare i limiti mensili
+            direttamente dalla sezione <strong>Impostazioni</strong>.
+        </p>
+
+        <!-- Pulsanti azione -->
+        <div class="d-flex flex-wrap gap-2 justify-content-between">
+            <a th:href="@{/}" class="btn btn-outline-secondary">
+                Vai alla Home
+            </a>
+            <a th:href="@{/admin}" class="btn btn-outline-secondary">
+                Torna alla dashboard
+            </a>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    (async () => {
+        const url = new URL(window.location.href);
+        const sid = url.searchParams.get('session_id');
+        if (sid) {
+            await fetch('/api/payments/stripe/confirm', {
+                method: 'POST',
+                headers: {'Content-Type':'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({sessionId: sid})
+            });
+        }
+    })();
+</script>
+
+</html>

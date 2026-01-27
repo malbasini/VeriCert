@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="it">
+<div th:fragment="content">
+    <body>
+    <div class="d-flex gap-2 align-items-center mb-3 only-list">
+        <div class="input-group w-auto">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <label for="q"></label><input id="q" class="form-control" placeholder="Cerca utente o email…" style="max-width:380px">
+        </div>
+        <button class="btn btn-outline-secondary" onclick="reload()">Cerca</button>
+        <div id= "div1" class="ms-auto d-flex gap-2">
+            <label for="bulkValue"></label><select id="bulkValue" class="form-select form-select-sm w-auto">
+            <option disabled selected>Bulk…</option>
+            <optgroup label="Ruolo">
+                <option value="ROLE:ADMIN">ADMIN</option>
+                <option value="ROLE:MANAGER">MANAGER</option>
+                <option value="ROLE:ISSUER">ISSUER</option>
+                <option value="ROLE:VIEWER">VIEWER</option>
+            </optgroup>
+            <optgroup label="Stato">
+                <option value="STATUS:ACTIVE">Attiva</option>
+                <option value="STATUS:SUSPENDED">Sospendi</option>
+            </optgroup>
+        </select>
+            <button class="btn btn-sm btn-dark" onclick="applyBulk()"><i class="fa-regular fa-circle-up"></i>Applica</button>
+            <a class="btn btn-sm btn-warning" href="/api/admin/memberships/export.csv"><i class="bi bi-filetype-csv"></i>Export CSV</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th><input type="checkbox" id="checkAll" onclick="toggleAll(this)"></th>
+                <th>#</th><th>Utente</th><th>Email</th><th>Ruolo</th><th>Stato</th><th>Azioni</th><th></th><th></th>
+            </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+        </table>
+    </div>
+    <nav id="pagerNav"><ul class="pagination" id="pager"></ul></nav>
+    <!-- Modale conferma eliminazione -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteTitle">Conferma eliminazione</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body">
+                    Sei sicuro di voler eliminare questo utente?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash me-1"></i>Elimina
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </body>
+    <script>
+        const API = '/api/admin/memberships';
+        const ROLES = ['ADMIN','MANAGER','ISSUER','VIEWER'];
+        let currentPage = 0, lastQuery = '';
+        // JavaScript
+        let toDeleteId = null;
+        let confirmModal; // istanza condivisa
+        const PAGE_SIZE = 10;
+
+        function checkbox(id){ const cb=document.createElement('input'); cb.type='checkbox'; cb.dataset.id=id; return cb; }
+        function roleSelect(current, id) {
+            const sel = document.createElement('select');
+            sel.className = 'form-select form-select-sm w-auto';
+            ROLES.forEach(r => { const o=document.createElement('option'); o.value=r; o.text=r; if(r===current) o.selected=true; sel.appendChild(o); });
+            sel.addEventListener('change', async () => {
+                try{
+                    await api(`${API}/${id}/role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({role: sel.value})});
+                    sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Ruolo aggiornato con successo", cls: "bg-success" }));
+                    location.reload();
+                }catch(e)
+                { sessionStorage.setItem("flashMsg", JSON.stringify({ text: e?.message , cls: "bg-danger" }));
+                    location.reload();
+                };
+            });
+            return sel;
+        }
+
+        function creaAzioni(id,role){
+            // wrapper input-group
+            const group = document.createElement('div');
+            group.className = 'input-group input-group-sm w-auto';
+            // bottone dettaglio
+            const aDett = document.createElement('a');
+            aDett.href = `/admin/users/${id}/detail`;
+            aDett.className = 'btn btn-outline-secondary me-2 rounded';
+            aDett.innerHTML = '<i class="bi bi-info-circle me-1"></i>Dettaglio';
+            if(role==='VIEWER') {
+                // bottone elimina
+                const btnDel = document.createElement('button');
+                btnDel.className = 'btn btn-sm btn-outline-danger rounded';
+                btnDel.innerHTML = `<i class="bi bi-trash"></i> Elimina`;
+                btnDel.onclick = () => apriModaleEliminazione(id);
+                group.appendChild(aDett);
+                group.appendChild(btnDel);
+                return group;
+            }else{
+                group.appendChild(aDett);
+                return group;
+            }
+        }
+        function statusSwitch(status, id){
+            const wrap = document.createElement('div'); wrap.className='form-check form-switch';
+            const inp = document.createElement('input'); inp.type='checkbox'; inp.className='form-check-input';
+            inp.checked = (status==='ACTIVE');
+            inp.onchange = async ()=> {
+                const newSt = inp.checked ? 'ACTIVE':'SUSPENDED';
+                try{
+                    await api(`${API}/${id}/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status:newSt})});
+                    showToast('Stato aggiornato con successo',{ colorClass: 'bg-success' });
+                }catch(e){ showToast(e.message,{ colorClass: 'bg-danger' }); inp.checked = !inp.checked; }
+            };
+            wrap.appendChild(inp);
+            return wrap;
+        }
+
+        function render(page){
+            const totalPages = page.totalPages ?? 1;
+            currentPage = page.number;
+            const rows = document.getElementById('rows'); rows.innerHTML='';
+            page.content.forEach(m=>{
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td></td>
+          <td>${m.id}</td>
+          <td>${m.userName}</td>
+          <td>${m.email??''}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          ${m.role==='VIEWER'?'':`<td></td>`}
+          `;
+                rows.appendChild(tr);
+                tr.children[0].appendChild(checkbox(m.id));
+                tr.children[4].appendChild(roleSelect(m.role, m.id));
+                tr.children[5].appendChild(statusSwitch(m.status, m.id));
+                tr.children[6].appendChild(creaAzioni(m.id,m.role));
+            });
+
+            const pager = document.getElementById('pager');
+            const pagerNav = document.getElementById('pagerNav');
+            pager.innerHTML='';
+            if (totalPages <= 1) {
+                pagerNav.classList.add('d-none');
+                return;
+            }
+            pagerNav.classList.remove('d-none');
+
+            const mk=(label, pageNum, disabled=false, active=false)=> {
+                const li=document.createElement('li'); li.className=`page-item ${disabled?'disabled':''} ${active?'active':''}`;
+                const a=document.createElement('a'); a.className='page-link'; a.href='#'; a.textContent=label;
+                a.onclick=(e)=>{e.preventDefault(); if(!disabled) load(pageNum);}; li.appendChild(a); pager.appendChild(li);
+            };
+            mk('«', page.number-1, page.first);
+            for(let i=0;i<totalPages;i++) mk(String(i+1), i, false, i===page.number);
+            mk('»', page.number+1, page.last);
+        }
+
+        async function api(url,opt={}) {
+            const r = await fetch(url, {credentials:'include', ...opt});
+            if(!r.ok){ let msg='Errore'; try{const p=await r.json(); msg=p.message||JSON.stringify(p);}catch(_){msg=await r.text();} throw new Error(msg); }
+            return r;
+        }
+
+        async function load(page=0){
+            const q = document.getElementById('q').value.trim();
+            lastQuery=q;
+            const url = new URL(API, window.location.origin);
+            url.searchParams.set('page', page);
+            url.searchParams.set('size', PAGE_SIZE);  // ← Aggiun
+            if(q) url.searchParams.set('q', q);
+            const data = await (await api(url)).json();
+            render(data);
+        }
+        function reload(){ load(0); }
+        function toggleAll(src){ document.querySelectorAll('tbody #rows input[type=checkbox]').forEach(cb=>cb.checked=src.checked); }
+        async function applyBulk(){
+            const ids=[...document.querySelectorAll('#rows input[type=checkbox]:checked')].map(cb=>parseInt(cb.dataset.id));
+            if(ids.length===0) return showToast('Seleziona almeno un utente',{ colorClass: 'bg-warning' });
+            const v = document.getElementById('bulkValue').value;
+            if(!v) return;
+            const [kind,val] = v.split(':'); // ROLE:ADMIN oppure STATUS:ACTIVE
+            try{
+                if(kind==='ROLE'){
+                    await api(`${API}/bulk/role`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids, value:val})});
+                } else {
+                    await api(`${API}/bulk/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ids, value:val})});
+                }
+                showToast('Operazione completata con successo',{ colorClass: 'bg-success' }); reload();
+            }catch(e){ showToast(e.message,{ colorClass: 'bg-danger' }); }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            load(0);
+            const modalEl = document.getElementById('confirmDeleteModal');
+            confirmModal = new bootstrap.Modal(modalEl, { backdrop: 'static' });
+
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.addEventListener('click', onConfirmDelete);
+            modalEl.addEventListener('hidden.bs.modal', () => { toDeleteId = null; });
+        });
+    </script>
+    <script>
+        function apriModaleEliminazione(id) {
+            toDeleteId = id;
+            confirmModal.show();
+        }
+
+        async function onConfirmDelete() {
+            if (!toDeleteId) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            const html = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminazione...';
+            try {
+                const resp = await api(`/api/admin/memberships/${toDeleteId}/delete`, { method: 'DELETE' });
+                const data = await resp.json();
+                if (!resp.ok) {
+                    showToast(data?.message, {colorClass: 'bg-danger'});
+                    return
+                }
+                showToast('Utente eliminato', { colorClass: 'bg-success' });
+                confirmModal.hide(); // CHIUSURA SICURA DELL’ISTANZA CORRETTA
+                reload();
+            } catch (e) {
+                showToast(e.message, { colorClass: 'bg-danger' });
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = html;
+            }
+        }
+    </script>
+    <script>
+        // all'avvio pagina (es. in uno script al fondo pagina):
+        const flash = sessionStorage.getItem("flashMsg");
+        if (flash) {
+            const { text, cls } = JSON.parse(flash);
+            showToast(text, { colorClass: cls });
+            sessionStorage.removeItem("flashMsg");
+        }
+    </script>
+</div>
+</html>

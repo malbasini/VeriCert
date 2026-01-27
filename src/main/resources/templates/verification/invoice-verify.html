@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/invoice', 'noindex,nofollow')"></head>
+    <title>Verifica fattura</title>
+</head>
+
+<body class="bg-light">
+<header th:replace="fragments/base :: navFragment"></header>
+
+<div class="container my-5" style="max-width: 860px;">
+    <div class="text-center mb-4">
+        <h1 class="h3 mb-1">Verifica fattura</h1>
+        <div class="text-muted">Codice pubblico: <span class="fw-semibold" th:text="${publicCode}"></span></div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <div id="result">
+                <div class="text-muted">Verifica in corso...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-3 text-muted small">
+        Se hai dubbi, contatta il fornitore che ha emesso la fattura.
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const publicCode = [[${publicCode}]];
+</script>
+
+<script>
+    const euro = (minor) => {
+        if (minor == null) return "-";
+        return ((minor / 100).toFixed(2)).replace(".", ",") + " €";
+    };
+    const fmtDate = (iso) => iso ? new Date(iso).toLocaleString("it-IT") : "-";
+
+    (async function () {
+        const el = document.getElementById("result");
+
+        try {
+            const res = await fetch(`/v/invoices/${encodeURIComponent(publicCode)}`, {
+                headers: { "Accept": "application/json" }
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                renderError(data.message);
+                return;
+            }
+
+            const ok = (data.status === "ISSUED");
+            const badge = ok
+                ? `<span class="badge text-bg-success">VALIDA</span>`
+                : `<span class="badge text-bg-warning text-dark">NON EMESSA</span>`;
+
+            const pdfBtn = data.hasPdf
+                ? `<a class="btn btn-primary btn-lg px-4"
+            style="border-radius: 12px; font-weight:600;"
+            target="_blank"
+            href="/v/invoices/${encodeURIComponent(publicCode)}/pdf">
+            Apri PDF
+         </a>`
+                : `<button class="btn btn-secondary btn-lg px-4" style="border-radius: 12px;" disabled>
+            PDF non disponibile
+         </button>`;
+
+            el.innerHTML = `
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+          <div class="fs-5 fw-semibold">Esito verifica ${ok ? "✅" : "⚠️"}</div>
+          <div class="text-muted small">Stato: <span class="fw-semibold">${data.status}</span></div>
+        </div>
+        <div>${badge}</div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="border rounded-3 p-3 bg-light">
+            <div class="text-muted small">Numero</div>
+            <div class="fw-semibold">${data.number || "-"}</div>
+            <div class="text-muted small mt-2">Emessa il</div>
+            <div class="fw-semibold">${fmtDate(data.issuedAt)}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="border rounded-3 p-3 bg-light">
+            <div class="text-muted small">Cliente</div>
+            <div class="fw-semibold">${data.customerName || "-"}</div>
+            <div class="text-muted small mt-2">Totale</div>
+            <div class="fw-semibold fs-4">${euro(data.grossTotalMinor)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 border rounded-3 p-3">
+        <div class="d-flex justify-content-between">
+          <div class="text-muted small">Imponibile</div>
+          <div class="fw-semibold">${euro(data.netTotalMinor)}</div>
+        </div>
+        <div class="d-flex justify-content-between">
+          <div class="text-muted small">IVA ${data.vatRate ?? 22}%</div>
+          <div class="fw-semibold">${euro(data.vatTotalMinor)}</div>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="fw-semibold">Totale</div>
+          <div class="fw-semibold fs-5">${euro(data.grossTotalMinor)}</div>
+        </div>
+      </div>
+    `;
+        } catch (e) {
+            el.innerHTML = `
+      <div class="alert alert-danger mb-0">
+        <div class="fw-semibold">Errore di rete ❌</div>
+        <div class="small">${e?.message || "Imprevisto"}</div>
+      </div>
+    `;
+        }
+    })();
+</script>
+<script>
+        function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+        function renderError(message) {
+            const resultEl = document.getElementById('result');
+            resultEl.innerHTML = `
+      <div class="alert alert-danger mb-0">
+        <div class="fw-bold">Verifica non completata</div>
+        <div class="small mt-1">${escapeHtml(message)}</div>
+      </div>
+    `;
+        }
+</script>
+</body>
+</html>

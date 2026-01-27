@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{admin :: layout(
+        pageTitle=${'Utenti & Ruoli'},
+        active=${'users'},
+        actionsFrag=~{::actionsFrag},
+        contentFrag=~{::contentFrag}
+    )}">
+
+<!-- Frammento azioni (può anche essere vuoto) -->
+<div th:fragment="actionsFrag">
+    <!-- Se non vuoi bottoni qui, lascialo vuoto -->
+</div>
+
+<!-- Frammento contenuto principale -->
+<div th:fragment="contentFrag">
+    <!-- qui includiamo il vero contenuto della lista -->
+    <div th:replace="~{users/_list :: content}"></div>
+</div>
+
+</body>
+</html>

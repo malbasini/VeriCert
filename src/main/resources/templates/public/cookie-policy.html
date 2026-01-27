@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+  <title>Cookie Policy - VeriCert</title>
+  <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/cokie-policy', 'noindex,nofollow')"></head>
+</head>
+
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+
+<main class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+      <h1 class="mb-3">Cookie Policy</h1>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+          <p class="text-muted">
+            Ultimo aggiornamento: <strong>25/12/2025</strong>
+          </p>
+
+          <p>
+            Questo sito utilizza <strong>cookie tecnici</strong> necessari al funzionamento del servizio.
+            Non vengono utilizzati cookie di profilazione o marketing.
+          </p>
+
+          <h5 class="mt-4">Cookie tecnici utilizzati</h5>
+          <ul class="mb-0">
+            <li>
+              <strong>Cookie di sessione</strong> (es. <code>JSESSIONID</code>):
+              consente di mantenere la sessione autenticata e le funzionalità di sicurezza.
+            </li>
+            <li>
+              <strong>Cookie “remember me”</strong> (se attivato):
+              consente di mantenere l’accesso dell’utente su richiesta.
+            </li>
+          </ul>
+
+          <h5 class="mt-4">Consenso</h5>
+          <p class="mb-0">
+            L’uso dei cookie tecnici non richiede consenso, poiché indispensabile per fornire il servizio.
+            L’utente è informato tramite questa pagina.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

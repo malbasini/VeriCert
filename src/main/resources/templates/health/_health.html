@@ -1,0 +1,187 @@
+<div th:fragment="content(pageTitle, active)">
+
+        <button class="btn btn-outline-secondary btn-sm" onclick="reloadAll()">
+            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+        </button>
+        <div class="row g-4">
+
+            <!-- CARD HEALTH -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">
+              <i class="bi bi-heart-pulse me-1 text-danger"></i>
+              Stato sistema
+            </span>
+                        <span id="healthStatusBadge" class="badge rounded-pill text-bg-secondary">...</span>
+                    </div>
+                    <br>
+                    <div class="card-body small">
+                        <div class="mb-2">
+                            <div class="text-muted">Timestamp</div>
+                            <div id="healthTs" class="fw-medium">-</div>
+                        </div>
+                        <br>
+                        <div class="mb-2">
+                            <div class="text-muted">Database</div>
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                 <span class="fw-semibold">
+                                      <i class="bi bi-heart-pulse me-1 text-danger"></i>
+                                         Status Database
+                                        </span>
+                                <span id="healthDb" class="badge rounded-pill text-bg-secondary">...</span>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="mb-2">
+                            <div class="text-muted">Disk</div>
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                 <span class="fw-semibold">
+                                      <i class="bi bi-heart-pulse me-1 text-danger"></i>
+                                         Status Disk
+                                        </span>
+                                <span id="statusDisk" class="badge rounded-pill text-bg-secondary">...</span>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="mb-2">
+                            <div class="text-muted">Disk</div>
+                            <div id="healthDisk" class="fw-medium">-</div>
+                        </div>
+                        <br>
+                        <div class="mb-2">
+                            <div class="text-muted">App</div>
+                            <div id="healthApp" class="fw-medium">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARD LOG -->
+            <div class="col-md-8">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <span class="fw-semibold">
+              <i class="bi bi-terminal me-1 text-primary"></i>
+              Ultimi log
+            </span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="reloadLogs()">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+            <pre id="logBox" class="mb-0 p-3 bg-black text-white small" style="height:300px; overflow:auto; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;">
+              caricamento...
+            </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+<script>
+            async function apiGet(url) {
+                const r = await fetch(url, { credentials: 'include' });
+                if (!r.ok) {
+                    const txt = await r.text();
+                    throw new Error(txt || 'Errore chiamata ' + url);
+                }
+                return r.json();
+            }
+
+            async function reloadHealth() {
+                try {
+                    const data = await apiGet('/admin/api/health');
+
+                    // stato
+                    const badge = document.getElementById('healthStatusBadge');
+                    const badgedb = document.getElementById('healthDb');
+                    const badgedisk = document.getElementById('statusDisk');
+                    const st = (data.status || 'UNKNOWN').toUpperCase();
+                    badge.textContent = st;
+                    badge.classList.remove('text-bg-secondary','text-bg-success','text-bg-danger');
+                    if (st === 'UP') {
+                        badge.classList.add('text-bg-success');
+                    } else {
+                        badge.classList.add('text-bg-danger');
+                    }
+
+                    // timestamp
+                    document.getElementById('healthTs').textContent = data.timestamp || '-';
+
+                    // db info (best effort, dipende da actuator)
+                    const stdb = (data.db || 'UNKNOWN').toUpperCase();
+                    badgedb.textContent = stdb;
+                    badgedb.classList.remove('text-bg-secondary','text-bg-success','text-bg-danger');
+                    if (stdb === 'UP') {
+                        badgedb.classList.add('text-bg-success');
+                    } else {
+                        badgedb.classList.add('text-bg-danger');
+                    }
+                    document.getElementById('healthDb').textContent =
+                        data.db ? data.db : '(no db details)';
+
+                    //disk
+
+                    // db info (best effort, dipende da actuator)
+                    const stdisk = (data.disk1 || 'UNKNOWN').toUpperCase();
+                    badgedisk.textContent = stdb;
+                    badgedisk.classList.remove('text-bg-secondary','text-bg-success','text-bg-danger');
+                    if (stdisk === 'UP') {
+                        badgedisk.classList.add('text-bg-success');
+                    } else {
+                        badgedisk.classList.add('text-bg-danger');
+                    }
+                    const dataDisk = data.disk || {};
+                    data.disk1 = data.disk1 || {};
+                    const diskStr = ["total: " + dataDisk.total + "<br>",
+                         "free: " + dataDisk.free + "<br>",
+                         "threshold: " + dataDisk.threshold + "<br>",
+                         "usage: " + dataDisk.usage + "<br>",
+                         "path: " + dataDisk.path + "<br>",
+                         "exists: " + dataDisk.exists
+                    ].filter(Boolean).join(' ');
+                    document.getElementById('healthDisk').innerHTML = diskStr ? diskStr : '(no disk info)';
+                    document.getElementById('statusDisk').textContent = data.disk1 || '(no disk info)';
+
+                    // app info
+                    const appInfo = data.app || {};
+                    const appStr = [
+                        appInfo.name,
+                        'v ' + appInfo.version,
+                        '(uptime ' + appInfo.uptimeSeconds + 's)'
+                    ].filter(Boolean).join(' ');
+                    document.getElementById('healthApp').textContent = appStr || '(no app info)';
+
+                } catch(err) {
+                    console.error(err);
+                    document.getElementById('healthStatusBadge').textContent = 'ERR';
+                    document.getElementById('healthStatusBadge').className = 'badge rounded-pill text-bg-danger';
+                    document.getElementById('healthTs').textContent = 'errore';
+                    document.getElementById('healthDb').textContent = 'ERR';
+                    document.getElementById('healthDb').className = 'badge rounded-pill text-bg-danger';
+                    document.getElementById('statusDisk').textContent = 'ERR';
+                    document.getElementById('statusDisk').className = 'badge rounded-pill text-bg-danger';
+                    document.getElementById('healthApp').textContent = '-';
+                }
+            }
+
+            async function reloadLogs() {
+                try {
+                    const data = await apiGet('/admin/api/logs');
+                    const box = document.getElementById('logBox');
+                    box.textContent = (data.lines || []).join('\\n');
+                    box.scrollTop = box.scrollHeight;
+                } catch(err) {
+                    console.error(err);
+                    document.getElementById('logBox').textContent = 'ERRORE LETTURA LOG: ' + err;
+                }
+            }
+
+            function reloadAll() {
+                reloadHealth();
+                reloadLogs();
+            }
+
+            // auto-load quando entri nella pagina
+            document.addEventListener('DOMContentLoaded', reloadAll);
+        </script>
+</div>
