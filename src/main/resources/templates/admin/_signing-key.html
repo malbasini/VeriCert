@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="it" th:fragment="content(tenant, signingKey)">
-<head th:replace="fragments/base :: headFragment(
-        'Chiave di firma tenant',
-        'Gestione chiave di firma digitale del tenant',
-        '/admin',
-        'noindex,nofollow')">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiave di firma tenant</title>
 </head>
 
 <body class="bg-light">
-<header th:replace="fragments/base :: navFragment"></header>
 
 <main class="container py-4">
 
@@ -29,10 +27,10 @@
                     <dd class="col-sm-9 mono" th:text="${signingKey.kid}"></dd>
 
                     <dt class="col-sm-3">Valida da</dt>
-                    <dd class="col-sm-9" th:text="${signingKey.notBeforeTs}"></dd>
+                    <dd class="col-sm-9" th:text="${#temporals.format(signingKey.notBeforeTs, 'dd/MM/yyyy')}"></dd>
 
                     <dt class="col-sm-3">Valida fino</dt>
-                    <dd class="col-sm-9" th:text="${signingKey.notAfterTs}"></dd>
+                    <dd class="col-sm-9" th:text="${#temporals.format(signingKey.notAfterTs, 'dd/MM/yyyy')}"></dd>
 
                     <dt class="col-sm-3">Stato</dt>
                     <dd class="col-sm-9" th:text="${signingKey.status}"></dd>

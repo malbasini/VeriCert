@@ -21,7 +21,7 @@ public class AdminSigningKeyController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/tenant/generate")
+    @PostMapping("/{tenant}/generate")
     public ResponseEntity<?> generateForTenant(@RequestBody GenerateTenantKeyRequest req) throws Exception {
         var sk = tenantSigningKeyService.ensureTenantKey(req.tenantId(), req.tenantSlug());
         return ResponseEntity.ok(new KeySummary(sk.getKid(), sk.getStatus(), sk.getNotBeforeTs(), sk.getNotAfterTs()));
@@ -30,7 +30,7 @@ public class AdminSigningKeyController {
     public record KeySummary(String kid, String status, Object notBefore, Object notAfter) {}
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/tenant/rotate")
+    @PostMapping("/rotate")
     public ResponseEntity<?> rotateForTenant(@RequestBody GenerateTenantKeyRequest req) throws Exception {
         var sk = tenantSigningKeyService.rotateTenantKey(req.tenantId(), req.tenantSlug());
         return ResponseEntity.ok(new KeySummary(sk.getKid(), sk.getStatus(), sk.getNotBeforeTs(), sk.getNotAfterTs()));

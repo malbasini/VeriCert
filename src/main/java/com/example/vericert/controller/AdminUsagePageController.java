@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin/usage-meter")
+@RequestMapping("/admin/usage")
 @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
 public class AdminUsagePageController {
 
@@ -24,7 +24,7 @@ public class AdminUsagePageController {
     }
 
     @GetMapping("/detail/{tenantId}")
-    public String usageDetail(@PathVariable("tenantId") Long tenantId, Model model)
+    public String usageDetail(@PathVariable Long tenantId, Model model)
     {
         // ultimi 7 giorni, incluso oggi
         List<DailyUsageDTO> history7days = usageMeterService.getUsageHistoryForTenant(tenantId, 7);
