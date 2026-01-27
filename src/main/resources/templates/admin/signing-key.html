@@ -1,73 +1,26 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="it">
-<head th:replace="fragments/base :: headFragment(
-        'Chiave di firma tenant',
-        'Gestione chiave di firma digitale del tenant',
-        '/admin',
-        'noindex,nofollow')">
-</head>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
 
-<body class="bg-light">
-<header th:replace="fragments/base :: navFragment"></header>
+<body th:replace="~{admin :: layout(
+        pageTitle='Signing Key',
+        active=${'signing'},
+        actionsFrag=~{::actionsFrag},
+        contentFrag=~{::contentFrag}
+    )}">
+<div th:fragment="actionsFrag">
+    <!-- ad esempio un bottone "Torna alla lista" -->
+</div>
 
-<main class="container py-4">
+<div th:fragment="contentFrag">
+    <div th:replace="~{admin/_signing-key :: content(
+        tenant=${tenant},
+        signingKey=${signingKey}
+    )}"></div>
+</div>
 
-    <h1 class="h4 mb-3">
-        Chiave di firma digitale – <span th:text="${tenant.name}">Tenant</span>
-    </h1>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-
-            <th:block th:if="${signingKey != null}">
-                <div class="mb-3">
-                    <span class="badge bg-success">ATTIVA</span>
-                </div>
-
-                <dl class="row small">
-                    <dt class="col-sm-3">KID</dt>
-                    <dd class="col-sm-9 mono" th:text="${signingKey.kid}"></dd>
-
-                    <dt class="col-sm-3">Valida da</dt>
-                    <dd class="col-sm-9" th:text="${signingKey.notBeforeTs}"></dd>
-
-                    <dt class="col-sm-3">Valida fino</dt>
-                    <dd class="col-sm-9" th:text="${signingKey.notAfterTs}"></dd>
-
-                    <dt class="col-sm-3">Stato</dt>
-                    <dd class="col-sm-9" th:text="${signingKey.status}"></dd>
-                </dl>
-
-                <form th:action="@{|/admin/signing-keys/${tenant.id}/rotate|}"
-                      method="post"
-                      onsubmit="return confirm('Ruotare la chiave? I nuovi certificati useranno la nuova firma.')">
-                    <button class="btn btn-warning">
-                        🔄 Ruota chiave
-                    </button>
-                </form>
-            </th:block>
-
-            <th:block th:if="${signingKey == null}">
-                <div class="alert alert-warning">
-                    Nessuna chiave di firma configurata per questo tenant.
-                </div>
-
-                <form th:action="@{|/admin/signing-keys/${tenant.id}/generate|}"
-                      method="post">
-                    <button class="btn btn-primary">
-                        🔐 Genera chiave di firma
-                    </button>
-                </form>
-            </th:block>
-
-        </div>
-    </div>
-
-    <div class="text-muted small mt-3">
-        Le chiavi ruotate non invalidano i certificati già emessi.
-        Ogni certificato mantiene il riferimento alla chiave con cui è stato firmato.
-    </div>
-
-</main>
 </body>
 </html>
+
+
+

@@ -6,6 +6,8 @@ import com.example.vericert.repo.SigningKeyRepository;
 import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.TenantSigningKeyRepository;
 import com.example.vericert.service.TenantSigningKeyService;
+import com.example.vericert.util.AuthUtil;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +36,10 @@ public class AdminSigningKeyViewController {
         this.tenantSigningKeyService = tenantSigningKeyService;
     }
 
-    @GetMapping("/{tenantId}")
-    public String view(@PathVariable Long tenantId, Model model) {
-
+    @GetMapping()
+    @PreAuthorize("hasRole('ADMIN')")
+    public String view(Model model) {
+        Long tenantId = AuthUtil.currentTenantId();
         Tenant tenant = tenantRepo.getById(tenantId);
 
         var tskOpt = tenantSigningKeyRepo.findByTenantId(tenantId);
@@ -53,6 +56,7 @@ public class AdminSigningKeyViewController {
     }
 
     @PostMapping("/{tenantId}/generate")
+    @PreAuthorize("hasRole('ADMIN')")
     public String generate(@PathVariable Long tenantId) throws Exception {
         Tenant tenant = tenantRepo.getById(tenantId);
         tenantSigningKeyService.ensureTenantKey(tenantId, tenant.getName());
@@ -60,6 +64,7 @@ public class AdminSigningKeyViewController {
     }
 
     @PostMapping("/{tenantId}/rotate")
+    @PreAuthorize("hasRole('ADMIN')")
     public String rotate(@PathVariable Long tenantId) throws Exception {
         Tenant tenant = tenantRepo.getById(tenantId);
         tenantSigningKeyService.rotateTenantKey(tenantId, tenant.getName());
