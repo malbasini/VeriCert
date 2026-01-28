@@ -28,7 +28,9 @@ public class AdminGetPdfFile {
         byte[] bytes = Files.readAllBytes(p);
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
-                .header("Content-Disposition", "inline; filename=\"" + file + "\"")
+                .header("Content-Disposition", "attachment; filename=\"" + file + ".pdf\"")
+                .header("Cache-Control", "no-cache, no-store, must-revalidate")
+                .header("Accept-Ranges", "bytes")
                 .contentLength(bytes.length)
                 .body(bytes);
     }

@@ -40,7 +40,7 @@ public class AdminSigningKeyViewController {
     @PreAuthorize("hasRole('ADMIN')")
     public String view(Model model) {
         Long tenantId = AuthUtil.currentTenantId();
-        Tenant tenant = tenantRepo.getById(tenantId);
+        Tenant tenant = tenantRepo.findById(tenantId).get();
 
         var tskOpt = tenantSigningKeyRepo.findByTenantId(tenantId);
         SigningKeyEntity signingKey = null;

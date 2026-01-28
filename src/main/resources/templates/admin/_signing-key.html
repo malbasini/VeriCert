@@ -35,32 +35,43 @@
                     <dt class="col-sm-3">Stato</dt>
                     <dd class="col-sm-9" th:text="${signingKey.status}"></dd>
                 </dl>
+                <div class="row g-3">
+                 <div class="col-md-2">
+                    <form th:action="@{|/admin/signing-keys/${tenant.id}/rotate|}"
+                          method="post"
+                          onsubmit="return confirm('Ruotare la chiave? I nuovi certificati useranno la nuova firma.')">
+                        <button class="btn btn-warning">
+                            🔄 Ruota chiave
+                        </button>
+                    </form>
+                 </div>
+                 <div class="col-md-4">
+                    <th:block th:if="${signingKey.getCertPem() != null}">
+                        <form th:action="@{|/admin/certificate/download|}" method="get">
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-award me-2"></i>&nbsp;Download certificato
+                            </button>
+                        </form>
+                    </th:block>
+                    </div>
+                    <div class="col-md-3">
+                        <th:block th:if="${signingKey == null}">
+                            <div class="alert alert-warning">
+                                Nessuna chiave di firma configurata per questo tenant.
+                            </div>
 
-                <form th:action="@{|/admin/signing-keys/${tenant.id}/rotate|}"
-                      method="post"
-                      onsubmit="return confirm('Ruotare la chiave? I nuovi certificati useranno la nuova firma.')">
-                    <button class="btn btn-warning">
-                        🔄 Ruota chiave
-                    </button>
-                </form>
-            </th:block>
-
-            <th:block th:if="${signingKey == null}">
-                <div class="alert alert-warning">
-                    Nessuna chiave di firma configurata per questo tenant.
+                            <form th:action="@{|/admin/signing-keys/${tenant.id}/generate|}"
+                                  method="post">
+                                <button class="btn btn-primary">
+                                    🔐 Genera chiave di firma
+                                </button>
+                            </form>
+                        </th:block>
+                    </div>
                 </div>
-
-                <form th:action="@{|/admin/signing-keys/${tenant.id}/generate|}"
-                      method="post">
-                    <button class="btn btn-primary">
-                        🔐 Genera chiave di firma
-                    </button>
-                </form>
             </th:block>
-
-        </div>
-    </div>
-
+          </div>
+         </div>
     <div class="text-muted small mt-3">
         Le chiavi ruotate non invalidano i certificati già emessi.
         Ogni certificato mantiene il riferimento alla chiave con cui è stato firmato.
