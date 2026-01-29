@@ -48,6 +48,12 @@ public class LegalController {
         model.addAttribute("description", "Scopri come funziona Vercert: crea, gestisci e verifica certificati digitali con QR code in modo sicuro per aziende in Italia.");
         return "public/come-funziona";
     }
+    @GetMapping("/firma-digitale")
+    public String firmaDigitale(Model model) {
+        model.addAttribute("title", "Firma digitale Vercert | Certificati digitali verificabili per aziende");
+        model.addAttribute("description", "Firma digitale Ververt: crea, gestisci e verifica certificati digitali con QR code in modo sicuro per aziende in Italia.");
+        return "public/firma-digitale";
+    }
 
 
 

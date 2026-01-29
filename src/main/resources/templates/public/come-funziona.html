@@ -110,7 +110,48 @@
             per emissione e verifica. Questo riduce la gestione manuale e aumenta la standardizzazione dei controlli.
         </p>
     </section>
-
+    <section class="mb-5">
+        <h2 class="fw-semibold">Template HTML e form dinamici</h2>
+        <p class="mt-3">
+            Gli attestati Vercert non sono documenti statici.
+            Ogni certificato viene generato a partire da un <strong>template HTML</strong>
+            altamente personalizzabile.
+        </p>
+        <ul>
+            <li>Layout grafico completamente configurabile.</li>
+            <li>Contenuto separato dalla logica di emissione.</li>
+            <li>Form di compilazione generato dinamicamente da definizione JSON.</li>
+        </ul>
+        <p class="mb-0">
+            Questo approccio consente di adattare rapidamente gli attestati
+            a contesti diversi (formazione, HR, compliance, qualità).
+        </p>
+    </section>
+    <section class="mb-5">
+        <h2 class="fw-semibold">Emissione e firma digitale</h2>
+        <p class="mt-3">
+            Al termine della compilazione del form, Vercert genera il PDF e applica una
+            <strong>firma digitale PAdES</strong>.
+        </p>
+        <ul>
+            <li>Il PDF firmato garantisce integrità e non ripudiabilità.</li>
+            <li>Ogni modifica successiva invalida automaticamente la firma.</li>
+            <li>La firma è associata al tenant emittente.</li>
+        </ul>
+    </section>
+    <section class="mb-5">
+        <h2 class="fw-semibold">Verifica pubblica e trust</h2>
+        <p class="mt-3">
+            La verifica pubblica consente a chiunque di controllare
+            l’autenticità del certificato tramite QR code o link.
+        </p>
+        <ul>
+            <li>Controllo dello stato lato server (valido / revocato / scaduto).</li>
+            <li>Verifica dell’integrità del PDF.</li>
+            <li>Possibilità di rendere attendibile il certificato in Adobe
+                importando il certificato del tenant.</li>
+        </ul>
+    </section>
 </main>
 <div th:replace="fragments/footer :: footerFragment"></div>
 </body>
