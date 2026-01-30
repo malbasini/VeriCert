@@ -83,7 +83,7 @@ public class PublicVerificationController {
 
             } catch (PlanLimitExceededException e) {
                 if (e.getType() == PlanViolationType.API_QUOTA_EXCEEDED) {
-                    return ResponseEntity.status(429).body(Map.of("message", "Hai raggiunto il limite di chiamate per il tuo piano."));
+                    return ResponseEntity.status(429).body(Map.of("message", "Hai raggiunto il limite di chiamate API per il tuo piano."));
                 }
             }
 
