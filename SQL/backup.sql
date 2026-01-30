@@ -82,6 +82,7 @@ CREATE TABLE `certificate` (
 
 LOCK TABLES `certificate` WRITE;
 /*!40000 ALTER TABLE `certificate` DISABLE KEYS */;
+truncate table `certificate`;
 /*!40000 ALTER TABLE `certificate` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -241,6 +242,7 @@ CREATE TABLE `membership` (
 
 LOCK TABLES `membership` WRITE;
 /*!40000 ALTER TABLE `membership` DISABLE KEYS */;
+truncate table `membership`;
 /*!40000 ALTER TABLE `membership` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -285,6 +287,7 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
+truncate table `payments`;
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -310,6 +313,7 @@ CREATE TABLE `persistent_logins` (
 
 LOCK TABLES `persistent_logins` WRITE;
 /*!40000 ALTER TABLE `persistent_logins` DISABLE KEYS */;
+truncate table `persistent_logins`;
 /*!40000 ALTER TABLE `persistent_logins` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -348,7 +352,7 @@ CREATE TABLE `plan_definitions` (
 
 LOCK TABLES `plan_definitions` WRITE;
 /*!40000 ALTER TABLE `plan_definitions` DISABLE KEYS */;
-INSERT INTO `plan_definitions` VALUES (1,'FREE','FREE',5,100,100,'Supporto community',0,0,'0','0','0','0','0','0','2025-11-15 00:31:46'),(2,'PRO','PRO',100,50000,5000,'Supporto email',50,792,'price_1Ski4eIX50JfMIoYSFVTlRRk','price_1Sff2WIX50JfMIoYoo9jYBj3','P-95E1655116985253PNFJKFAQ','P-712880856H8572933NFKU4AI','22%','20%','2025-11-15 01:10:08'),(3,'BUSINESS','BUSINESS',500,200000,25000,'Supporto email',2990,2392,'price_1SWu7PIX50JfMIoYKsSqKdbU','price_1SWu8kIX50JfMIoYF7KjQD0b','P-5N7019469X090525ENFKU5AY',' P-7BR4749672596041SNFKU55A','22%','20%','2025-11-15 01:15:25'),(4,'ENTERPRISE','ENTERPRISE',5000,1000000,200000,'Supporto prioritario',9990,7992,'price_1SWuGuIX50JfMIoY774Nflhw','price_1SWuJbIX50JfMIoYEqqcxria','P-80V91018RA589712LNFKVA6A','P-9E712471SG4650119NFKVBJI','22%','20%','2025-11-15 01:20:30');
+INSERT INTO `plan_definitions` VALUES (1,'FREE','FREE',5,100,100,'Supporto community',0,0,'0','0','0','0','0','0','2025-11-15 00:31:46'),(2,'PRO','PRO',100,50000,5000,'Supporto email',990,792,'price_1Ski4eIX50JfMIoYSFVTlRRk','price_1Sff2WIX50JfMIoYoo9jYBj3','P-95E1655116985253PNFJKFAQ','P-712880856H8572933NFKU4AI','22%','20%','2025-11-15 01:10:08'),(3,'BUSINESS','BUSINESS',500,200000,25000,'Supporto email',2990,2392,'price_1SWu7PIX50JfMIoYKsSqKdbU','price_1SWu8kIX50JfMIoYF7KjQD0b','P-5N7019469X090525ENFKU5AY',' P-7BR4749672596041SNFKU55A','22%','20%','2025-11-15 01:15:25'),(4,'ENTERPRISE','ENTERPRISE',5000,1000000,200000,'Supporto prioritario',9990,7992,'price_1SWuGuIX50JfMIoY774Nflhw','price_1SWuJbIX50JfMIoYEqqcxria','P-80V91018RA589712LNFKVA6A','P-9E712471SG4650119NFKVBJI','22%','20%','2025-11-15 01:20:30');
 /*!40000 ALTER TABLE `plan_definitions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -376,6 +380,7 @@ CREATE TABLE `processed_webhook_event` (
 
 LOCK TABLES `processed_webhook_event` WRITE;
 /*!40000 ALTER TABLE `processed_webhook_event` DISABLE KEYS */;
+truncate table `processed_webhook_event`;
 /*!40000 ALTER TABLE `processed_webhook_event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -406,6 +411,7 @@ CREATE TABLE `signing_key` (
 
 LOCK TABLES `signing_key` WRITE;
 /*!40000 ALTER TABLE `signing_key` DISABLE KEYS */;
+truncate table `signing_key`;
 /*!40000 ALTER TABLE `signing_key` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -467,6 +473,7 @@ CREATE TABLE `tenant` (
 
 LOCK TABLES `tenant` WRITE;
 /*!40000 ALTER TABLE `tenant` DISABLE KEYS */;
+truncate table `tenant`;
 /*!40000 ALTER TABLE `tenant` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -505,6 +512,7 @@ CREATE TABLE `tenant_profile` (
 
 LOCK TABLES `tenant_profile` WRITE;
 /*!40000 ALTER TABLE `tenant_profile` DISABLE KEYS */;
+truncate table `tenant_profile`;
 /*!40000 ALTER TABLE `tenant_profile` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -545,7 +553,7 @@ CREATE TABLE `tenant_settings` (
 
 LOCK TABLES `tenant_settings` WRITE;
 /*!40000 ALTER TABLE `tenant_settings` DISABLE KEYS */;
-INSERT INTO `tenant_settings` VALUES (1,'malbasini@gmail.com','{\"profile\": {\"website\": \"https://www.acme.it\", \"displayName\": \"ACME Training S.r.l.\", \"contactEmail\": \"info@acme.it\"}, \"branding\": {\"logoUrl\": \"https://app.vercert.org/files/1/logo.png\", \"issuerName\": \"Dott. Mario Rossi\", \"issuerRole\": \"Direttore Formazione\", \"primaryColor\": \"#0d6efd\", \"defaultTemplateId\": 4, \"signatureImageUrl\": \"https://app.vercert.org/files/1/signature.png\"}}','FREE','MONTHLY','2026-01-28 23:34:48','2026-02-27 23:34:48',5,100,100.00,'EMAIL',NULL,NULL,NULL,NULL,'ACTIVE','2026-01-28 23:36:17',_binary '\0');
+truncate table `tenant_settings`;
 /*!40000 ALTER TABLE `tenant_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -572,7 +580,8 @@ CREATE TABLE `tenant_signing_key` (
 --
 
 LOCK TABLES `tenant_signing_key` WRITE;
-/*!40000 ALTER TABLE `tenant_signing_key` DISABLE KEYS */
+/*!40000 ALTER TABLE `tenant_signing_key` DISABLE KEYS */;
+truncate table `tenant_signing_key`;
 /*!40000 ALTER TABLE `tenant_signing_key` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -601,6 +610,7 @@ CREATE TABLE `usage_meter` (
 
 LOCK TABLES `usage_meter` WRITE;
 /*!40000 ALTER TABLE `usage_meter` DISABLE KEYS */;
+truncate table `usage_meter`;
 /*!40000 ALTER TABLE `usage_meter` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -630,6 +640,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
+truncate table `user`;
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -662,6 +673,7 @@ CREATE TABLE `verification_token` (
 
 LOCK TABLES `verification_token` WRITE;
 /*!40000 ALTER TABLE `verification_token` DISABLE KEYS */;
+truncate table `verification_token`;
 /*!40000 ALTER TABLE `verification_token` ENABLE KEYS */;
 UNLOCK TABLES;
 
