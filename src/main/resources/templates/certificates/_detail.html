@@ -1,0 +1,168 @@
+<!-- Dettaglio certificato (semplice, read-only) -->
+<div th:fragment="content(certificate,variablesUserJson,variablesDataJson, pageTitle, active,currentTenant,templateName)">
+<div class="container py-3">
+    <div class="btn-group" role="group" aria-label="Azioni">
+        <a class="btn btn-outline-secondary me-3 rounded"
+           th:href="@{/admin/certificates}">
+            <i class="bi bi-arrow-left me-1"></i> Torna alla lista
+        </a>
+        <a class="btn btn-outline-secondary rounded"
+           th:href="@{'/admin/certificates/' + ${certificate.id} + '/revoke'}">
+            <i class="bi bi-x-octagon me-1"></i> Revoca certificato
+        </a>
+    </div>
+
+    <br>
+    <hr>
+    <h5 class="mb-3">Dati del certificato</h5>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <!-- Header: stato + seriale -->
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+          <span class="badge"
+                th:classappend="${certificate.status.name()=='REVOKED'} ? ' text-bg-danger' : ' text-bg-success'"
+                th:text="${certificate.status}">ISSUED</span>
+                    <span class="text-muted">Seriale:</span>
+                    <span class="fw-semibold" th:text="${certificate.serial}">ABC123</span>
+                </div>
+                <small class="text-muted">
+                    Tenant: <span th:text="${currentTenant}">demo</span>
+                </small>
+            </div>
+
+            <hr/>
+
+            <!-- Metadati principali (solo lettura) -->
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input class="form-control" readonly th:value="${certificate.ownerName}">
+                        <label>Intestatario</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input class="form-control" readonly th:value="${certificate.ownerEmail}">
+                        <label>Email intestatario</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input class="form-control" readonly th:value="${templateName}">
+                        <label>Template</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input class="form-control" readonly
+                               th:value="${#temporals.format(certificate.issuedAt,'dd/MM/yyyy HH:mm')}">
+                        <label>Emesso il</label>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-floating">
+                        <input class="form-control" readonly th:value="${certificate.pdfUrl}">
+                        <label>PDF</label>
+                    </div>
+                    <div class="mt-1">
+                        <a class="btn btn-sm btn-outline-secondary" th:href="@{/files/{t}/{f}(t=${certificate.getTenantId()}, f=${certificate.serial + '.pdf'})}" target="_blank">
+                            Scarica PDF
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input class="form-control font-monospace" readonly th:value="${certificate.sha256}">
+                        <label>SHA-256</label>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        <input class="form-control font-monospace" readonly  th:value="${expiredAt}">
+                        <label>Data di scadenza</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr/>
+
+            <!-- Variabili utente (dinamiche, read-only) -->
+            <h5 class="mb-3">Variabili utente</h5>
+            <!-- blob JSON sicuro da leggere in JS -->
+            <script type="application/json" id="schema-json" th:utext="${variablesUserJson}"></script>
+            <script type="application/json" id="values-json" th:utext="${variablesDataJson}"></script>
+
+            <div id="varsForm" class="row g-3"></div>
+        </div>
+    </div>
+</div>
+    <script>
+        function readJson(id) {
+            try {
+                const el = document.getElementById(id);
+                return el ? JSON.parse(el.textContent) : {};
+            } catch(e) { console.error('JSON parse error for', id, e); return {}; }
+        }
+
+        const schema = readJson('schema-json');   // oggetto: { ownerName: {label:'...', type:'text', ...}, ... }
+        const values = readJson('values-json');   // oggetto: { ownerName:'Mario', hours: 12, ... }
+
+        buildForm(schema, values);
+
+        function buildForm(schema, values) {
+            const root = document.getElementById('varsForm');
+            root.innerHTML = '';
+            Object.entries(schema).forEach(([name, spec]) => {
+                const col = document.createElement('div');
+                col.className = 'col-12 col-md-6';
+
+                const group = document.createElement('div');
+                group.className = 'form-floating';
+
+                const inputType = (spec.type || 'text').toLowerCase();
+                let input;
+
+                if (inputType === 'boolean' || inputType === 'bool') {
+                    // per boolean meglio uno switch
+                    input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.className = 'form-check-input';
+                    input.checked = Boolean(values?.[name] ?? spec.default ?? false);
+                    input.disabled = true;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'form-check form-switch pt-3';
+                    const label = document.createElement('label');
+                    label.className = 'form-check-label';
+                    label.textContent = spec.label || name;
+                    wrapper.append(input, label);
+                    col.append(wrapper);
+                    root.append(col);
+                    return;
+                }
+
+                input = document.createElement('input');
+                input.className = 'form-control';
+                input.name = name;
+                input.readOnly = true;
+                input.disabled = true;
+                input.type = (['number','date','text'].includes(inputType) ? inputType : 'text');
+
+                const raw = (values?.[name] ?? spec.default ?? '');
+                input.value = (input.type === 'number' && raw === '') ? '' : raw;
+
+                const label = document.createElement('label');
+                label.textContent = spec.label || name;
+
+                group.append(input, label);
+                col.append(group);
+                root.append(col);
+            });
+        }
+    </script>
+</div>

@@ -1,0 +1,79 @@
+{
+  "lines": {
+    "min": 1,
+    "fields": {
+      "qty": {
+        "min": 1,
+        "step": 1,
+        "type": "number",
+        "label": "Q.tà",
+        "default": 1,
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "label": "Descrizione riga",
+        "required": true
+      },
+      "unitPriceMinor": {
+        "min": 0,
+        "step": 1,
+        "type": "number",
+        "label": "Prezzo unitario (cent)",
+        "default": 0,
+        "required": true
+      }
+    }
+  },
+  "header": {
+    "customerVat": {
+      "type": "string",
+      "label": "P.IVA",
+      "required": true
+    },
+    "customerCity": {
+      "type": "string",
+      "label": "Città",
+      "required": true
+    },
+    "customerName": {
+      "type": "string",
+      "label": "Ragione sociale",
+      "required": true
+    },
+    "customerEmail": {
+      "type": "string",
+      "label": "Email",
+      "required": true
+    },
+    "customerTaxCode": {
+      "type": "string",
+      "label": "Codice Fiscale",
+      "required": false
+    },
+    "customerProvince": {
+      "type": "string",
+      "label": "Provincia",
+      "required": true
+    },
+    "customerPostalCode": {
+      "type": "string",
+      "label": "CAP",
+      "required": true
+    },
+    "customerAddressLine1": {
+      "type": "string",
+      "label": "Indirizzo",
+      "required": true
+    }
+  },
+  "vatRate": {
+    "max": 100,
+    "min": 0,
+    "step": 1,
+    "type": "number",
+    "label": "Aliquota IVA (%)",
+    "default": 22,
+    "required": true
+  }
+}

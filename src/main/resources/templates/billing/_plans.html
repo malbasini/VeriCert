@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it" th:fragment="content(currentPlan, plans)">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Piani e fatturazione</title>
+    <!-- Bootstrap CSS già incluso nel layout principale; se hai layout, adatta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+
+    <!-- Titolo -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">Gestione piano</h1>
+            <p class="text-muted mb-0">
+                Scegli il piano più adatto e gestisci il rinnovo dell’abbonamento.
+            </p>
+            <br>
+            <br>
+            <div id="vatBadge" class="small" style="color:#000000;">
+                I prezzi mostrati sono <strong>IVA escusa</strong>.
+            </div>
+        </div>
+        <a th:href="@{/admin}" class="btn btn-outline-secondary btn-sm">
+            &larr; Torna alla dashboard
+        </a>
+    </div>
+
+    <!-- Banner stato piano corrente -->
+    <div th:if="${currentPlan != null}" class="mb-4">
+
+        <!-- Piano scaduto -->
+        <div th:if="${currentPlan.expired}"
+             class="alert alert-danger d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>Piano scaduto.</strong>
+                Il tuo piano
+                <span th:text="${currentPlan.planCode}">PRO</span>
+                è scaduto. Non puoi emettere nuovi documenti o usare le API
+                finché non rinnovi.
+            </div>
+            <a class="btn btn-light btn-sm" href="#plans-section">Rinnova ora</a>
+        </div>
+
+        <!-- Piano in scadenza -->
+        <div th:if="${!currentPlan.expired and currentPlan.expiringSoon}"
+             class="alert alert-warning d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <strong>Piano in scadenza.</strong>
+                Mancano
+                <span th:text="${currentPlan.daysLeft}">3</span>
+                giorni alla scadenza del tuo piano
+                <span th:text="${currentPlan.planCode}">PRO</span>
+                (<span th:text="${currentPlan.billingCycle}">MONTHLY</span>).
+            </div>
+            <a class="btn btn-outline-dark btn-sm" href="#plans-section">Gestisci piano</a>
+        </div>
+
+        <!-- Quasi a limite Cert / API -->
+        <div th:if="${!currentPlan.expired and (currentPlan.certsAlmostExceeded or currentPlan.apiAlmostExceeded)}"
+             class="alert alert-warning mb-0">
+            <div>
+                <strong>Attenzione ai limiti del piano.</strong>
+                <span th:if="${currentPlan.certLimit != null}">
+                    Documenti usati:
+                    <span th:text="${currentPlan.usedCerts}">0</span> /
+                    <span th:text="${currentPlan.certLimit}">100</span>.
+                </span>
+                <span th:if="${currentPlan.apiLimit != null}">
+                    &nbsp;API usate:
+                    <span th:text="${currentPlan.usedApi}">0</span> /
+                    <span th:text="${currentPlan.apiLimit}">1000</span>.
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card piano attuale (riassunto) -->
+    <div th:if="${currentPlan != null}" class="mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                <div class="mb-2 mb-md-0">
+                    <div class="text-uppercase text-muted small">Piano attuale</div>
+                    <div class="fw-semibold">
+                        <span th:text="${currentPlan.planCode}">PRO</span>
+                        <span class="text-muted">(
+                            <span th:text="${currentPlan.billingCycle}">MONTHLY</span>
+                            )</span>
+                    </div>
+                    <div class="small text-muted" th:if="${currentPlan.daysLeft < T(java.lang.Long).MAX_VALUE}">
+                        Rimanenti:
+                        <span th:text="${currentPlan.daysLeft}">10</span> giorni
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <a href="#plans-section" class="btn btn-primary btn-sm">
+                        Cambia piano
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sezione piani -->
+    <h2 id="plans-section" class="h4 mb-3">Piani disponibili</h2>
+
+    <div class="row g-4">
+
+        <!-- Card piano -->
+        <div class="col-12 col-md-6 col-xl-3" th:each="plan : ${plans}">
+            <div class="card h-100 shadow-sm"
+                 th:classappend="${currentPlan != null and plan.code == currentPlan.planCode} ? ' border-primary' : ''">
+
+                <div class="card-header text-center border-0">
+                    <div class="text-uppercase small text-muted" th:text="${plan.code}">PRO</div>
+                    <h3 class="h5 mb-0" th:text="${plan.name}">Piano Pro</h3>
+
+                    <!-- Badge "corrente" -->
+                    <span th:if="${currentPlan != null and plan.code == currentPlan.planCode}"
+                          class="badge bg-primary-subtle text-primary mt-2">
+                        Piano attuale
+                    </span>
+                    <span th:if="${currentPlan == null or plan.code != currentPlan.planCode}"
+                          class="badge bg-light text-secondary mt-2">
+                        Disponibile
+                    </span>
+                </div>
+
+                <div class="card-body d-flex flex-column">
+
+                    <!-- Prezzo -->
+                    <div class="mb-3 text-center">
+                        <div class="fw-semibold">
+                            <span th:text="${plan.priceMonthlyCents != null ? #numbers.formatDecimal(plan.priceMonthlyCents / 100.0, 1, 2) : '0.00'}">19.99</span>
+                            &euro;<span class="text-muted small"> /mese</span>
+                        </div>
+                        <div class="small text-muted">
+                            oppure
+                            <span th:text="${plan.priceAnnualCents != null ? #numbers.formatDecimal(plan.priceAnnualCents / 100.0, 1, 2) : '0.00'}">199.00</span>
+                            &euro;/anno
+                        </div>
+                    </div>
+
+                    <!-- Limiti -->
+                    <ul class="list-unstyled small mb-4 flex-grow-1">
+                        <li class="mb-1">
+                            ✅
+                            <strong th:text="${#numbers.formatInteger(plan.certsPerMonth,0,'POINT')}">100</strong>
+                            documenti/mese
+                        </li>
+                        <li class="mb-1">
+                            ✅
+                            <strong th:text="${#numbers.formatInteger(plan.apiCallsPerMonth,0,'POINT')}">1000</strong>
+                            API/mese
+                        </li>
+                        <li class="mb-1">
+                            ✅
+                            <strong th:text="${#numbers.formatInteger(plan.storageMb,0,'POINT')}">1024</strong>
+                            MB di storage
+                        </li>
+                    </ul>
+                            <form th:action="@{/billing/checkout}" method="post">
+                            <!-- Form checkout -->
+                            <div>
+                            <input type="hidden" name="planCode" th:value="${plan.code}"/>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">Ciclo di fatturazione</label>
+                                <label>
+                                    <select name="billingCycle" class="form-select form-select-sm">
+                                        <option value="MONTHLY" selected>Mensile</option>
+                                        <option value="ANNUAL">Annuale</option>
+                                    </select>
+                                </label>
+                                <div class="mb-2">
+                                <label class="form-label small mb-1">Provider di pagamento</label>
+                                    <label>
+                                        <select name="provider" class="form-select form-select-sm">
+                                            <option value="STRIPE">Stripe</option>
+                                            <option value="PAYPAL">PayPal</option>
+                                        </select>
+                                    </label>
+                                </div>
+                        <!-- Eventuale nota -->
+                        <p class="text-muted small mb-0">
+                            Nessun vincolo: puoi cambiare piano in qualsiasi momento.
+                        </p>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm mt-2">Rinnova ora</button>
+                    </div>
+                </div>
+               </form>
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
+</body>
+</html>

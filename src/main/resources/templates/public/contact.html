@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org"
+>
+<head>
+    <title>Contatti - VeriCert</title>
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/contact', 'index,follow')"></head>
+</head>
+
+<body>
+
+<!-- Header/Navbar/Toast/Flash presi da base.html -->
+<header th:replace="fragments/base :: navFragment"></header>
+
+<main class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+
+            <h1 class="mb-2">Contatti</h1>
+            <p class="text-muted">Scrivici per supporto o informazioni.</p>
+
+            <div class="alert alert-success" th:if="${contactSent}">
+                Messaggio inviato correttamente ✅
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+
+                    <form th:action="@{/contact}" th:object="${form}" method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" type="email" th:field="*{email}">
+                            <div class="text-danger small"
+                                 th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Oggetto</label>
+                            <input class="form-control" type="text" th:field="*{subject}">
+                            <div class="text-danger small"
+                                 th:if="${#fields.hasErrors('subject')}" th:errors="*{subject}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Messaggio</label>
+                            <textarea class="form-control" rows="6" th:field="*{message}"></textarea>
+                            <div class="text-danger small"
+                                 th:if="${#fields.hasErrors('message')}" th:errors="*{message}"></div>
+                        </div>
+
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-send me-1"></i> Invia
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>
