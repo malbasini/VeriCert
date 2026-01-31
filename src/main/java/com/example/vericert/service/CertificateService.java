@@ -169,7 +169,7 @@ public class CertificateService {
         t.setExpiresAt(Instant.ofEpochSecond(exp));
         t.setSha256Cached(sha);             // utile per verifiche veloci
         tokRepo.save(t);
-        usageMeterService.incrementDocumentsGenerated(tenantId,bytes); // aggiorna anche storage Mb se abbiamo messo il refresh dentro
+        usageMeterService.incrementDocumentsGenerated(tenantId,signedPdf.length); // aggiorna anche storage Mb se abbiamo messo il refresh dentro
         return c;
     }
     private String extractJti(String compactJws) {
