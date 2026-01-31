@@ -21,12 +21,6 @@ public class LegalController {
         return "public/privacy";
     }
 
-    @GetMapping("/cookie-policy")
-    public String cookiePolicy(Model model) {
-        model.addAttribute("title", "cookie-policy");
-        model.addAttribute("description", "cookie-policy");
-        return "public/cookie-policy";
-    }
 
     @GetMapping("/docs")
     public String docs(Model model) {

@@ -1,6 +1,9 @@
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
-Allow: /
+Disallow: /v/
+Disallow: /login
+Disallow: /signup
+Allow: /privacy
 
 Sitemap: https://vercert.org/sitemap.xml

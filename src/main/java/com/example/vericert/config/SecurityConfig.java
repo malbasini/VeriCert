@@ -55,8 +55,12 @@ public class SecurityConfig {
                                 )
                         )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/403", "/error/**","/css/**","/vendor/**", "/js/**", "/images/**","/pdf/**").permitAll() //
+                        .requestMatchers("/403", "/error/**","/css/**","/vendor/**", "/js/**", "/images/**").permitAll() //
                          .requestMatchers("/certificati","/revoke").permitAll()
+                        .requestMatchers(
+                                "/sitemap.xml",
+                                "/robots.txt"
+                        ).permitAll()
                         .requestMatchers("/api/paypal/webhook").permitAll()
                         .requestMatchers("/api/stripe/webhook").permitAll()
                         .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN","MANAGER","ISSUER","VIEWER")
@@ -64,7 +68,7 @@ public class SecurityConfig {
                         .requestMatchers("/templates/**","/certificates/**","/contact").authenticated()
                         .requestMatchers("/v/**","/vui/**","/signup","/login","/index","/files/**","/actuator/health").permitAll()
                         .requestMatchers("/checkout/**").permitAll()
-                        .requestMatchers("/privacy", "/cookie-policy","/docs","/faq","/come-funziona","/").permitAll()
+                        .requestMatchers("/privacy", "/firma-digitale","/docs","/faq","/come-funziona","/").permitAll()
                         .anyRequest().authenticated()
                 )
                         .formLogin(form -> form
