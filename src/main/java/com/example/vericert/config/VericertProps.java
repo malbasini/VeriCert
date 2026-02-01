@@ -18,6 +18,8 @@ public class VericertProps {
     private String storageLocalPath;
     @Value("${vericert.public-base-url-verify}")
     private String baseUrlVerify;
+    @Value("${vericert.support-email}")
+    private String supportEmail;
 
     public String getPublicBaseUrl() { return publicBaseUrl; }
 
@@ -45,5 +47,9 @@ public class VericertProps {
 
     public void setPublicBaseUrlVerify(String baseUrlVerify) {
         this.baseUrlVerify = baseUrlVerify;
+    }
+
+    public String getSupportEmail() {
+        return supportEmail;
     }
 }

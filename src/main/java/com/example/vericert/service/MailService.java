@@ -17,7 +17,7 @@ public class MailService {
     private final JavaMailSender mailSender;
     private final ObjectMapper om;
 
-    @Value("${brevo.template.purchaseSuccessId}")
+    @Value("${brevo.template.purchaseSuccess")
     private int templateId;
 
     @Value("${app.mail.enabled:false}")

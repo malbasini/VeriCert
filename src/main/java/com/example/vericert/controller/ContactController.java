@@ -1,5 +1,6 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.config.VericertProps;
 import com.example.vericert.dto.ContactForm;
 import com.example.vericert.service.MailService;
 import jakarta.validation.Valid;
@@ -25,9 +26,13 @@ import static com.example.vericert.controller.BillingController.formatEuroIT;
 public class ContactController {
 
     private final MailService mailService;
+    private final VericertProps props;
 
-    public ContactController(MailService mailService) {
+    public ContactController(MailService mailService,
+                             VericertProps props) {
         this.mailService = mailService;
+        this.props = props;
+
     }
 
     @GetMapping("/contact")
@@ -96,7 +101,7 @@ public class ContactController {
         vars.put("company_address", "…");
 
         mailService.sendPurchaseSuccess(
-                "malbasini@gmail.com",                      // email cliente
+                props.getSupportEmail(),                      // email cliente
                 "Conferma pagamento - " + vars.getOrDefault("plan_name","PRO"),
                 vars
         );

@@ -39,6 +39,7 @@ public class CertificateService {
     @Value("${vericert.storage.local-path}") String storagePath;
     @Value("${vericert.public-base-url:/files/certificates}") String publicBaseUrl;
     @Value("${vericert.public-base-url-verify}") String publicBaseUrlVerify;
+    @Value("${vericert.support-email}") String supportEmail;
 
 
     private final CertificateRepository certRepo;
