@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org"
+      th:fragment="layout(pageTitle, active, actionsFrag, contentFrag)">
+<head>
+    <meta charset="UTF-8">
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/admin', 'noindex,nofollow')"></head>
+    <title th:text="${pageTitle}">Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+</head>
+
+<body class="bg-light">
+<header th:replace="fragments/base :: navFragment"></header>
+<div class="container-fluid">
+    <div class="row">
+        <!-- SIDEBAR -->
+        <aside class="col-12 col-md-3 col-lg-2 bg-white border-end min-vh-100 py-3">
+            <div class="list-group list-group-flush">
+
+                <a th:href="@{/admin}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='dashboard' ? 'active'">
+                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
+                </a>
+
+                <a th:href="@{/admin/templates}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='templates' ? 'active'">
+                    <i class="bi bi-layout-text-window-reverse me-2"></i> Template
+                </a>
+
+                <a th:href="@{/admin/certificates}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='certificates' ? 'active'">
+                    <i class="bi bi-award me-2"></i> Certificati
+                </a>
+
+                <a th:href="@{/admin/users}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='users' ? 'active'">
+                    <i class="bi bi-people me-2"></i> Utenti & Ruoli
+                </a>
+
+                <a th:href="@{/admin/settings}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='settings' ? 'active'">
+                    <i class="bi bi-gear me-2"></i> Impostazioni
+                </a>
+
+                <a th:href="@{/admin/health}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='health' ? 'active'">
+                    <i class="bi bi-activity me-1"></i>&nbsp; Health & Log
+                </a>
+
+                <a th:href="@{/admin/usage_meter}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='usage' ? 'active'">
+                    <i class="bi bi-speedometer"></i>&nbsp; Usage Meter
+                </a>
+
+                <a th:href="@{/admin/signing-keys}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='signing' ? 'active'">
+                    <i class="bi bi-pen"></i>&nbsp; Firma digitale
+                </a>
+
+
+
+
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="col-12 col-md-9 col-lg-10 py-4">
+
+            <!-- Titolo + azioni -->
+            <div class="d-flex flex-wrap justify-content-between align-items-start mb-4">
+                <h1 class="h4 mb-1" th:text="${pageTitle}">Titolo</h1>
+
+                <!-- QUI: includo il frammento passato -->
+                <div th:if="${actionsFrag != null}"
+                     th:replace="${actionsFrag}"></div>
+            </div>
+
+            <!-- Contenuto principale -->
+            <div th:if="${contentFrag != null}"
+                 th:replace="${contentFrag}"></div>
+
+        </main>
+    </div>
+</div>
+</body>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</html>

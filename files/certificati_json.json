@@ -1,0 +1,32 @@
+{
+  "grade": {
+    "type": "string",
+    "label": "Esito",
+    "required": false
+  },
+  "hours": {
+    "type": "string",
+    "label": "Ore",
+    "required": true
+  },
+  "ownerName": {
+    "type": "string",
+    "label": "Intestatario",
+    "required": true
+  },
+  "courseCode": {
+    "type": "string",
+    "label": "Codice corso",
+    "required": true
+  },
+  "courseName": {
+    "type": "string",
+    "label": "Nome corso",
+    "required": true
+  },
+  "ownerEmail": {
+    "type": "string",
+    "label": "Email",
+    "required": true
+  }
+}

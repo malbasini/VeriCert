@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Vercert | Certificati digitali verificabili con QR code per aziende</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Vercert è una piattaforma per creare, gestire e verificare certificati digitali con QR code. Soluzione pensata per aziende e organizzazioni.">
+  <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/', 'index,follow')"></head>
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+<main class="container py-5">
+
+  <!-- HERO -->
+  <section class="text-center mb-5">
+    <h1 class="fw-bold">Certificati digitali verificabili con QR code per aziende</h1>
+    <p class="mt-3" style="max-width: 820px; margin: 0 auto;">
+      Vercert è una piattaforma web per <strong>creare, gestire e verificare certificati digitali</strong>
+      in modo rapido e affidabile. Ogni certificato include un <strong>QR code</strong> che consente
+      la <strong>verifica online</strong> dell’autenticità e dello stato (valido, revocato, scaduto).
+    </p>
+
+    <div class="d-flex flex-wrap gap-2 justify-content-center mt-4">
+      <a class="btn btn-outline-secondary" href="/come-funziona">Come funziona</a>
+    </div>
+  </section>
+
+  <!-- BENEFICI -->
+  <section class="row g-4 mb-5">
+    <div class="col-12 col-md-4">
+      <div class="p-4 border rounded-4 h-100">
+        <h2 class="h5 fw-semibold">Autenticità e fiducia</h2>
+        <p class="mb-0">
+          Riduci il rischio di falsificazioni: la verifica pubblica conferma che il certificato
+          è reale e che lo stato è aggiornato.
+        </p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="p-4 border rounded-4 h-100">
+        <h2 class="h5 fw-semibold">Verifica immediata</h2>
+        <p class="mb-0">
+          Scansione del QR code e controllo via browser, senza app e senza procedure manuali.
+        </p>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="p-4 border rounded-4 h-100">
+        <h2 class="h5 fw-semibold">Controllo aziendale</h2>
+        <p class="mb-0">
+          Gestisci emissione, storico e revoca dei certificati con un flusso pensato per l’uso professionale.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- COME FUNZIONA (SEO) -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Come funziona Vercert</h2>
+    <ol class="mt-3">
+      <li><strong>Crei</strong> un certificato digitale sulla piattaforma.</li>
+      <li>Vercert genera un <strong>QR code univoco</strong> associato al certificato.</li>
+      <li>L’utente <strong>scansiona</strong> il QR code e apre la pagina pubblica di verifica.</li>
+      <li>La piattaforma mostra l’<strong>esito di validità</strong> e le informazioni essenziali.</li>
+    </ol>
+    <p class="mt-2">
+      Approfondisci nella pagina <a href="/come-funziona">Come funziona</a>.
+    </p>
+  </section>
+
+  <!-- CASI D'USO -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">A chi serve</h2>
+    <p class="mt-3">
+      Vercert è indicato per aziende ed enti che rilasciano attestazioni e vogliono una verifica semplice e tracciabile:
+    </p>
+    <ul>
+      <li>certificati di formazione e attestati</li>
+      <li>certificazioni interne e compliance</li>
+      <li>badge digitali e documenti verificabili</li>
+      <li>partnership e programmi di accreditamento</li>
+    </ul>
+  </section>
+
+  <!-- PRIVACY -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Privacy e conformità</h2>
+    <p class="mt-3">
+      La verifica pubblica può essere configurata per mostrare <strong>solo i dati necessari</strong> alla validazione,
+      nel rispetto del <strong>GDPR</strong>. Per i dettagli consulta la <a href="/privacy">Privacy Policy</a>.
+    </p>
+  </section>
+
+  <!-- CTA FINALE -->
+  <section class="text-center">
+    <h2 class="fw-semibold">Pronto a usare certificati digitali verificabili?</h2>
+    <p class="mt-2" style="max-width: 760px; margin: 0 auto;">
+      Scegli un piano adatto ai tuoi volumi e attiva la piattaforma online. Puoi partire subito e scalare quando necessario.
+    </p>
+    <div class="d-flex flex-wrap gap-2 justify-content-center mt-3">
+      <a class="btn btn-outline-success" href="/faq">Leggi le FAQ</a>
+      <a class="btn btn-outline-secondary" href="/docs">Documentazione</a>
+    </div>
+  </section>
+
+  <!-- JSON-LD SoftwareApplication -->
+  <script type="application/ld+json">
+    {
+      "@context":"https://schema.org",
+      "@type":"SoftwareApplication",
+      "name":"Vercert",
+      "applicationCategory":"BusinessApplication",
+      "operatingSystem":"Web",
+      "description":"Piattaforma per creare, gestire e verificare certificati digitali con QR code per aziende.",
+      "url":"https://vercert.org/",
+      "offers":{
+        "@type":"AggregateOffer",
+        "priceCurrency":"EUR",
+        "offerCount":"4"
+      }
+    }
+  </script>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/faq', 'index,follow')"></head>
+  <meta name="description" content="Domande frequenti su Vercert: certificati digitali, QR code, verifica, sicurezza, privacy, piani e utilizzo aziendale.">
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+<main style="margin-left: 10%; margin-right: 10%; height: 100vh;">
+  <h1>FAQ – Domande frequenti su Vercert</h1>
+
+  <p>
+    Qui trovi le risposte alle domande più comuni su Vercert: creazione e verifica dei
+    certificati digitali verificabili tramite QR code, uso aziendale, revoca e privacy.
+  </p>
+
+  <h2>Certificati digitali e verifica</h2>
+
+  <details>
+    <summary>Cos’è un certificato digitale verificabile?</summary>
+    <p>È un documento digitale associato a un identificativo univoco e verificabile online, utile per confermare autenticità e stato.</p>
+  </details>
+
+  <details>
+    <summary>Come funziona la verifica con QR code?</summary>
+    <p>Scansionando il QR code si apre una pagina pubblica su vercert.org che mostra l’esito di verifica (valido / revocato / scaduto) e le info essenziali.</p>
+  </details>
+
+  <details>
+    <summary>Serve installare un’app per verificare un certificato?</summary>
+    <p>No. La verifica avviene via browser dopo la scansione del QR code.</p>
+  </details>
+
+  <details>
+    <summary>Un QR code può essere copiato o falsificato?</summary>
+    <p>Il QR può essere copiato come immagine, ma la verifica online controlla l’autenticità e lo stato del certificato.</p>
+  </details>
+
+  <h2>Gestione aziendale</h2>
+
+  <details>
+    <summary>Vercert è pensato per aziende?</summary>
+    <p>Sì. È progettato per emissione, gestione, controllo dello stato e storico verificabile in contesti professionali.</p>
+  </details>
+
+  <details>
+    <summary>È possibile revocare un certificato?</summary>
+    <p>Sì. Se un certificato non è più valido può essere revocato e lo stato risulterà aggiornato nella verifica pubblica.</p>
+  </details>
+
+  <h2>Privacy e conformità</h2>
+
+  <details>
+    <summary>La verifica pubblica espone dati personali?</summary>
+    <p>È consigliato mostrare solo le informazioni necessarie alla validazione e minimizzare i dati personali, in linea con il GDPR.</p>
+  </details>
+
+  <details>
+    <summary>Dove trovo la documentazione tecnica?</summary>
+    <p>Su <a href="/docs">/docs</a></p>
+  </details>
+
+  <!-- FAQPage JSON-LD (rich snippet) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Cos’è un certificato digitale verificabile?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "È un documento digitale associato a un identificativo univoco e verificabile online, utile per confermare autenticità e stato."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Come funziona la verifica con QR code?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Scansionando il QR code si apre una pagina pubblica su vercert.org che mostra l’esito di verifica (valido/revocato/scaduto) e le informazioni essenziali."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Serve installare un’app per verificare un certificato?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. La verifica avviene via browser dopo la scansione del QR code."
+          }
+        }
+      ]
+    }
+  </script>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

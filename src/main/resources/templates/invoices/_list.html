@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org" th:fragment="content(tenantId,q,page)">
+<head>
+  <meta charset="utf-8">
+  <title>Fatture</title>
+</head>
+<body class="bg-light">
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Fatture</h1>
+      <div class="text-muted small">Bozze ed emesse</div>
+    </div>
+    <a class="btn btn-dark" href="/invoices/new"><i class="fa-solid fa-plus"></i>Nuova fattura</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="input-group w-auto">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" id="q" class="form-control" placeholder="Cerca per cliente / numero / codice pubblico">
+        <button id="btnReload" class="btn btn-outline-success rounded-0"><i class="bi bi-bootstrap-reboot"></i>Aggiorna</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+          <tr>
+            <th>Numero</th>
+            <th>Cliente</th>
+            <th>Stato</th>
+            <th class="text-end">Totale</th>
+            <th>Emessa il</th>
+            <th class="text-end">Azioni</th>
+          </tr>
+          </thead>
+          <tbody id="rows">
+          <tr><td colspan="6" class="text-muted">Caricamento...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="empty" class="text-center text-muted py-4 d-none">
+        Nessuna fattura trovata.
+      </div>
+      <!-- Contenitore Paginazione -->
+      <nav aria-label="Page navigation" class="mt-3">
+        <ul id="pagination" class="pagination justify-content-left"></ul>
+      </nav>
+    </div>
+  </div>
+  <br>
+</div>
+<script>
+  const euro = (minor) => {
+    if (minor == null) return "-";
+    const v = (minor / 100).toFixed(2).replace(".", ",");
+    return v + " €";
+  };
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString("it-IT") : "-";
+
+  let currentPage = 1;
+  const pageSize = 10;
+  let allInvoices = [];
+
+  async function load() {
+    const tbody = document.getElementById("rows");
+    const empty = document.getElementById("empty");
+    const pagination = document.getElementById("pagination");
+
+    tbody.innerHTML = `<tr><td colspan="6" class="text-muted">Caricamento...</td></tr>`;
+    empty.classList.add("d-none");
+    pagination.innerHTML = "";
+
+    // Carichiamo i dati solo se non li abbiamo già (o se forzato dal reload)
+    if (allInvoices.length === 0) {
+      const res = await fetch("/api/invoices", { headers: { "Accept": "application/json" }});
+      allInvoices = await res.json() || [];
+    }
+    const q = (document.getElementById("q").value || "").toLowerCase().trim();
+    const filtered = allInvoices.filter(x => {
+    const hay = `${x.numberDisplay||""} ${x.publicCode||""} ${x.customerName||""} ${x.customerEmail||""}`.toLowerCase();
+    return !q || hay.includes(q);
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = "";
+      empty.classList.remove("d-none");
+      return;
+    }
+
+    // Calcolo Paginazione
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pagedItems = filtered.slice(start, end);
+
+    tbody.innerHTML = pagedItems.map(x => `
+    <tr>
+      <td>
+        <div class="fw-semibold">${x.numberDisplay || "-"}</div>
+        <div class="text-muted small">${x.publicCode || ""}</div>
+      </td>
+      <td>
+        <div>${x.customerName || "-"}</div>
+        <div class="text-muted small">${x.customerEmail || ""}</div>
+      </td>
+      <td><span class="badge ${x.status === "ISSUED" ? "text-bg-success" : "text-bg-secondary"}">${x.status}</span></td>
+      <td class="text-end fw-semibold">${euro(x.grossTotalMinor)}</td>
+      <td>${fmtDate(x.issuedAt)}</td>
+      <td class="text-end">
+        <a class="btn btn-md btn-outline-primary" href="/invoices/${x.id}"><i class="bi bi-check2-circle"></i>  Dettaglio</a>
+        ${x.status === "DRAFT"
+            ? `<a class="btn btn-md btn-outline-secondary" href="/invoices/${x.id}/edit"><i class="bi bi-pencil"></i>Modifica</a>`
+            : `<a class="btn btn-md btn-outline-secondary" href="/api/invoices/${x.id}/pdf" target="_blank"><i class="bi bi-file-pdf-fill"></i>PDF</a>`
+    }
+      </td>
+    </tr>
+  `).join("");
+
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const container = document.getElementById("pagination");
+    if (totalPages <= 1) return;
+    let html = "";
+    // Pulsante Precedente
+    html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                <button class="page-link" onclick="changePage(${currentPage - 1})">«</button>
+             </li>`;
+    // Numeri di pagina
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <button class="page-link" onclick="changePage(${i})">${i}</button>
+                 </li>`;
+    }
+    // Pulsante Successivo
+    html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                <button class="page-link" onclick="changePage(${currentPage + 1})">»</button>
+             </li>`;
+
+    container.innerHTML = html;
+  }
+  function changePage(p) {
+    currentPage = p;
+    load();
+  }
+  document.getElementById("btnReload").addEventListener("click", () => {
+    allInvoices = []; // Forza ricaricamento dati
+    currentPage = 1;
+    load();
+  });
+  document.getElementById("q").addEventListener("input", () => {
+    currentPage = 1; // Reset alla prima pagina quando cerchi
+    load();
+  });
+  load();
+</script>
+</body>
+</html>

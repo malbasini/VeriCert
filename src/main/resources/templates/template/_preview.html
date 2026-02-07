@@ -1,0 +1,380 @@
+<div th:fragment="content(tenant,template,pageTitle, active)">
+    <input type="hidden" id="tenant" name="tenant" th:value="${tenant}">
+    <input type="hidden" id="id" name="id" th:value="${template.getId()}">
+    <input type="hidden" id="variablesUserJson" name="variablesUserJson" th:value="${template.getUserVarSchema()}">
+    <div id="loading" class="text-center py-5 d-none">
+        <div class="spinner-border" role="status"></div>
+        <div class="mt-2 small text-body-secondary">Caricamento…</div>
+    </div>
+    <br>
+    <div class="btn-group" role="group" aria-label="Azioni">
+        <a class="btn btn-outline-secondary me-3 rounded"
+           th:href="@{/admin/templates}">
+            <i class="bi bi-arrow-left me-1"></i> Torna alla lista
+        </a>
+        <a class="btn btn-outline-secondary rounded"
+           th:href="@{/admin}">
+            <i class="bi bi-speedometer2 me-2"></i> Torna alla dashboard
+        </a>
+    </div>
+    <br>
+    <br>
+    <br>
+    <div class="dropdown">
+        <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Preview
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" onclick="preview()" data-bs-toggle="modal" data-bs-target="#previewModal" id="html" href="#">Preview HTML</a></li>
+            <li><a class="dropdown-item" id="pdf" onclick="doPreviewPdf()" href="#" data-bs-toggle="modal" data-bs-target="#previewModal">Preview PDF</a></li>
+        </ul>
+    </div>
+    <br>
+    <hr>
+    <div id="varsForm"></div>
+    <br>
+    <script>
+        function setLoading(b){ document.getElementById('loading').classList.toggle('d-none', !b); }
+    </script>
+    <!-- es. un <textarea id="variablesJson">{"ownerName":{"type":"string","required":true,"label":"Intestatario"}}</textarea> -->
+    <script>
+        let currentMode = null;     // 'html' | 'pdf'
+        let currentPdfUrl = null;
+        // URL.createObjectURL(blob) da revocare
+        const tenantEl = document.getElementById('tenant').value;
+        function clearIframe(ifr) {
+            ifr.removeAttribute('srcdoc');
+            ifr.removeAttribute('src');
+        }
+        function setIframeHtml(ifr, html) {
+            clearIframe(ifr);
+            ifr.srcdoc = html;
+        }
+        function setIframePdf(ifr, blob) {
+            // libera URL precedente
+            if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+            currentPdfUrl = URL.createObjectURL(blob);
+            clearIframe(ifr);
+            ifr.src = currentPdfUrl;
+        }
+        // Parsifica in sicurezza il JSON dello schema
+        function parseSchema(sel = '#variablesUserJson') {
+            try {
+                const el = document.querySelector(sel);
+                if (!el) return {};
+                try {
+                    const txt = (el.value ?? el.textContent ?? '').trim();
+                    return txt ? JSON.parse(txt) : {};
+                } catch (e) {
+                    console.error('Schema JSON non valido:', e);
+                    return {};
+                }
+            }
+            catch (e) {
+                console.error('Errore nel parsare lo schema:', e);
+                showToast(e.message,{ colorClass: 'bg-danger' });
+                return {};
+            }
+        }
+
+        let schema = parseSchema('#variablesUserJson'); // <-- ORA è un oggetto
+
+        function buildForm() {
+            try {
+                const root = document.getElementById('varsForm');
+                root.innerHTML = ''; // evita duplicati
+
+                // se per errore arriva un array, trasformalo in oggetto { field_i: spec }
+                if (Array.isArray(schema)) {
+                    schema = schema.reduce((acc, spec, i) => (acc['field_' + i] = spec, acc), {});
+                }
+
+                for (const [name, specRaw] of Object.entries(schema)) {
+                    const spec = specRaw || {};
+                    const type = String(spec.type || 'string').toLowerCase();
+
+                    const wrap = document.createElement('div');
+                    wrap.className = type === 'boolean' || type === 'bool' ? 'mb-3 form-check' : 'mb-3';
+
+                    const label = document.createElement('label');
+                    label.className = type === 'boolean' || type === 'bool' ? 'form-check-label' : 'form-label';
+                    label.htmlFor = `f_${name}`;
+                    label.textContent = spec.label || name;
+
+                    if (type === 'boolean' || type === 'bool') {
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.id = `f_${name}`;
+                        cb.name = name;
+                        cb.className = 'form-check-input';
+                        cb.required = !!spec.required;
+                        if (spec.default === true) cb.checked = true;
+                        wrap.append(cb, label); // checkbox prima, etichetta dopo (bootstrap)
+                        root.append(wrap);
+                        continue;
+                    }
+
+                    const input = document.createElement(
+                        type === 'date' ? 'input' :
+                            type === 'number' ? 'input' : 'input'
+                    );
+                    input.className = 'form-control';
+                    input.id = `f_${name}`;
+                    input.name = name;
+                    input.required = !!spec.required;
+                    input.type = (type === 'number') ? 'number' :
+                        (type === 'date') ? 'date' : 'text';
+
+                    if (spec.default != null) input.value = spec.default;
+
+                    wrap.append(label, input);
+                    root.append(wrap);
+                }
+            }
+            catch (e) {
+                console.error('Errore nel costruire il form:', e);
+                showToast(e.message,{ colorClass: 'bg-danger' });
+            }
+        }
+        function collect(rootSelector = '#varsForm', schema = null) {
+            try {
+                const root = document.querySelector(rootSelector);
+                if (!root) throw new Error(`Container ${rootSelector} non trovato`);
+
+                const data = Object.create(null);
+                const fields = root.querySelectorAll('input[name], select[name], textarea[name]');
+
+                for (const el of fields) {
+                    const name = el.name;
+                    if (!name) continue;
+
+                    const spec = schema?.[name] || {};
+                    const type = String(spec.type || el.type || 'text').toLowerCase();
+
+                    if (el.type === 'checkbox') {
+                        const group = root.querySelectorAll(`input[type="checkbox"][name="${CSS.escape(name)}"]`);
+                        if (group.length > 1) {
+                            data[name] ??= [];
+                            if (el.checked) data[name].push(el.value);
+                        } else {
+                            data[name] = !!el.checked;
+                        }
+                        continue;
+                    }
+
+                    if (el.type === 'radio') {
+                        if (data[name] !== undefined) continue;
+                        const checked = root.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+                        data[name] = checked ? checked.value : (spec.default ?? '');
+                        continue;
+                    }
+
+                    if (el.tagName === 'SELECT' && el.multiple) {
+                        const arr = [...el.selectedOptions].map(o => o.value);
+                        data[name] = arr.length ? arr : (spec.default ?? []);
+                        continue;
+                    }
+
+                    const raw = (el.value ?? '').trim();
+
+                    if (type === 'number' || el.type === 'number') {
+                        // vuoto -> default o null; non fare Number("")!
+                        if (raw === '') {
+                            data[name] = spec.default ?? null;       // <-- qui il fallback
+                        } else {
+                            const n = Number(raw);
+                            data[name] = Number.isNaN(n) ? (spec.default ?? null) : n;
+                        }
+                        continue;
+                    }
+
+                    // boolean da select/text? (raro) -> normalizza
+                    if (type === 'boolean' || type === 'bool') {
+                        data[name] = raw === '' ? (spec.default ?? false) : (raw === 'true' || raw === '1' || raw === 'on');
+                        continue;
+                    }
+
+                    // default testo
+                    data[name] = raw === '' ? (spec.default ?? '') : raw;
+                }
+
+                return data;
+            }
+            catch (e) {
+                console.error('Errore nel raccogliere i dati:', e);
+                showToast(e.message,{ colorClass: 'bg-danger' });
+                return {};
+            }
+        }
+        async function preview() {
+            try {
+                await hideModal();
+                setLoading(true);
+                const idEl = document.getElementById('id');
+                const id = idEl ? idEl.value : 1;
+                const vars = collect();
+                currentMode = 'html';
+                const resp = await fetch(`/api/templates/${id}/${tenantEl}/preview`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(vars),
+                });
+                const contentType = resp.headers.get('Content-Type') || '';
+                if (!resp.ok) {
+                    if (contentType.includes('application/json')) {
+                        const data = await resp.json();
+                        if (data?.errors !== undefined) {
+                            renderValidationErrors(data.errors);
+                        } else {
+                            showToast(data.message, {colorClass: 'bg-danger'});
+                        }
+                    } else {
+                        const text = await resp.text();
+                        showToast('Errore server: ' + text, {colorClass: 'bg-danger'});
+                    }
+                    return;
+                }
+                // se nel frattempo hai cliccato PDF, ignora questa risposta
+                if (currentMode !== 'html') return;
+                const iframe = document.getElementById('previewFrame');
+                const html = await resp.text();
+                document.getElementById('previewFrame').srcdoc = html;
+                currentMode = 'html';
+                iframe.removeAttribute('src');   // pulisci src
+                iframe.srcdoc = html;            // mostra HTML
+                if (resp.redirected || resp.status === 401) {
+                    setIframeHtml(iframe, `<p style="color:#b91c1c">Non autenticato. <a href="${resp.url}">Login</a></p>`);
+                    return;
+                }
+                if (!resp.ok) {
+                    setIframeHtml(iframe, `<pre style="color:#b91c1c">Errore ${resp.status}\n${html}</pre>`);
+                }
+            }
+            catch (e) {
+                console.error('Errore nella preview HTML:', e);
+                showToast(e.message,{ colorClass: 'bg-danger' });
+            }
+            finally {
+                setLoading(false);
+
+            }
+        }
+        async function doPreviewPdf() {
+            try {
+                setLoading(true);
+                const idEl = document.getElementById('id');
+                const id = idEl ? idEl.value : 1;
+                const vars = collect();
+                const iframe = document.getElementById('previewFrame');
+                currentMode = 'pdf';
+
+                const resp = await fetch(`/api/templates/${id}/${tenantEl}/preview.pdf`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(vars),
+                });
+                const contentType = resp.headers.get('Content-Type') || '';
+                const data = contentType.includes('application/json') ? await resp.json() : null;
+                if (!resp.ok) {
+                    renderValidationErrors(data?.errors)
+                    return;
+                }
+                const ct1 = resp.headers.get('content-type') || '';
+                if (!resp.ok || !ct1.includes('application/pdf')) {
+                    // mostralo come messaggio
+                    return;
+                }
+
+                if (currentMode !== 'pdf') return;
+                const ct = resp.headers.get('content-type') || '';
+                if (!resp.ok || !ct.includes('application/pdf')) {
+                    const msg = await resp.text();
+                    setIframeHtml(iframe, `<pre style="color:#b91c1c">Preview PDF fallita (${resp.status}).\n${msg}</pre>`);
+                    return;
+                }
+                const blob = await resp.blob();
+                setIframePdf(iframe, blob);
+                document.getElementById('previewFrame').srcdoc = URL.createObjectURL(blob);
+                // Controllino: deve essere PDF
+                const ct2 = resp.headers.get('Content-Type') || '';
+                if (!ct2.includes('application/pdf')) {
+                    const txt = await resp.text();
+                    console.error('Atteso PDF, ricevuto:', ct, txt);
+                    showToast('Errore anteprima PDF',{ colorClass: 'bg-danger' });
+                    return;
+                }
+                const url = URL.createObjectURL(blob);
+                // ⚠️ srcdoc ha precedenza su src: va rimosso
+                iframe.removeAttribute('srcdoc');
+                iframe.src = url;
+                // opzionale: libera l’URL blob quando l’iframe ha caricato
+                iframe.onload = () => URL.revokeObjectURL(url);
+            }
+            catch (e) {
+                console.error('Errore nella preview PDF:', e);
+                showToast(e.message,{ colorClass: 'bg-danger' });
+            }
+            finally {
+                setLoading(false);
+            }
+        }
+        // Costruisci il form UNA SOLA VOLTA
+        document.addEventListener('DOMContentLoaded', buildForm);
+        document.querySelector('form')?.addEventListener('submit', e => e.preventDefault());
+    </script>
+    <script>
+        function renderValidationErrors(errors) {
+            if (!errors || typeof errors !== 'object') {
+                showToast('Si è verificato un errore di validazione.');
+                return;
+            }
+
+            // Costruisci una UL con i messaggi
+            const items = Object.entries(errors).flatMap(([field, messages]) => {
+                const list = Array.isArray(messages) ? messages : [String(messages)];
+                return list.map(msg => `<li>${escapeHtml(field)}: ${escapeHtml(msg)}</li>`);
+            });
+            const html = `
+                        <div>
+                          <strong>Validazione fallita</strong>
+                          <ul class="mb-0 ps-3">
+                            ${items.join('')}
+                          </ul>
+                        </div>
+                      `;
+            showToast(html, { colorClass: 'bg-danger'});
+        }
+        // Piccola funzione per evitare injection nell’HTML del toast
+        function escapeHtml(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+    </script>
+    <script>
+        async function hideModal() {
+            const modal = bootstrap.Modal.getOrCreateInstance('#previewModal');
+            modal.hide();
+        }
+    </script>
+    <!-- Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Anteprima</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="previewFrame" style="width:100%;height:80vh;border:0"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

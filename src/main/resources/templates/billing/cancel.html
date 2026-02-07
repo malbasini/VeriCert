@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><title>Pagamento annullato</title>
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/billing/cancel', 'noindex,nofollow')"></head>
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+<div class="container">
+    <br>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        Pagamento annullato
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <br>
+    <a href="/">Home</a>
+</div>
+</body>
+</html>

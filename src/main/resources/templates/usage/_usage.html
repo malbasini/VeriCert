@@ -1,0 +1,93 @@
+<div th:fragment="content(pageTitle, active, topUsageToday)">
+    <div class="container-fluid px-0">
+        <section class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">Usage / Consumption (oggi)</h5>
+                    <small class="text-muted">Consumo risorse per tenant e stato rispetto ai limiti</small>
+                </div>
+                <div>
+                    <span class="badge bg-info text-dark">BETA</span>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th style="width: 80px;">Tenant</th>
+                            <th class="text-end">Documenti oggi</th>
+                            <th class="text-end">API calls oggi</th>
+                            <th class="text-end">Storage</th>
+                            <th class="text-end">Status</th>
+                            <th style="width: 100px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr th:if="${#lists.isEmpty(todayStatus)}">
+                            <td colspan="6" class="text-center text-muted py-4">
+                                Nessun consumo registrato oggi
+                            </td>
+                        </tr>
+
+                        <tr th:each="row : ${todayStatus}">
+                            <td>
+                                <span class="fw-semibold" th:text="${row.tenantId}">12</span>
+                            </td>
+
+                            <td class="text-end">
+                                <span th:text="${row.certsGeneratedToday}">0</span>
+                                <small class="text-muted d-block"
+                                       th:text="'/ limite mese: ' + (${row.maxCertsPerMonth} != null ? ${#numbers.formatInteger(row.maxCertsPerMonth,0,'POINT')} : '∞')">
+                                    / limite mese: ∞
+                                </small>
+                            </td>
+
+                            <td class="text-end">
+                                <span th:text="${row.apiCallsToday}">0</span>
+                                <small class="text-muted d-block"
+                                       th:text="'/ limite mese: ' + (${row.maxApiCallsPerDay} != null ? ${#numbers.formatInteger(row.maxApiCallsPerDay,0,'POINT')} : '∞')">
+                                    / limite mese: ∞
+                                </small>
+                            </td>
+
+                            <td class="text-end">
+                                <span th:text="${row.storageMbUsed}">0.00</span>
+                                <small class="text-muted d-block">
+                                <span th:if="${row.maxStorageMb != null}"
+                                      th:text="'/ ' + ${row.maxStorageMb} + ' MB'">/ 500.00 MB</span>
+                                    <span th:if="${row.maxStorageMb == null}">/ ∞</span>
+                                </small>
+                            </td>
+
+                            <td class="text-end">
+                                <!-- Badge stato storage -->
+                                <span class="badge"
+                                      th:classappend="${
+                                      row.storageStatus == 'CRITICAL' ? ' bg-danger' :
+                                      (row.storageStatus == 'WARN' ? ' bg-warning text-dark' :
+                                                                     ' bg-success')
+                                  }"
+                                      th:text="${row.storageStatus}">
+                                OK
+                            </span>
+                            </td>
+
+                            <td class="text-end">
+                                <a class="btn btn-outline-secondary btn-sm"
+                                   th:href="@{'/admin/usage/detail/' + ${row.tenantId}}">
+                                    Dettaglio
+                                </a>
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

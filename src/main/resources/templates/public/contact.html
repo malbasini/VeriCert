@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <head th:replace="fragments/base :: headFragment(
+        'Contatti | Vercert',
+        'Contatta il supporto Vercert per assistenza su certificati digitali, firma PAdES e verifica con QR code.',
+        '/contact',
+        'index,follow'
+  )"></head>
+    <title>Contatti | Vercert</title>
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+
+<main class="container py-5" style="max-width: 860px;">
+    <h1 class="fw-bold mb-2">Contatti</h1>
+    <p class="text-muted mb-4">
+        Invia una richiesta di assistenza: riceverai risposta all’indirizzo email indicato nel form.
+    </p>
+
+    <!-- Flash message -->
+    <div th:if="${flashMsg != null}"
+         class="alert"
+         th:classappend="${flashOk} ? ' alert-success' : ' alert-danger'"
+         th:text="${flashMsg}">
+    </div>
+
+    <form th:action="@{/contact}" th:object="${form}" method="post" class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <div class="mb-3">
+                <label class="form-label">Nome</label>
+                <input type="text" class="form-control" th:field="*{name}" placeholder="Mario Rossi">
+                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" th:field="*{email}" placeholder="mario@azienda.it">
+                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Oggetto (opzionale)</label>
+                <input type="text" class="form-control" th:field="*{subject}" placeholder="Es. Problema emissione attestato">
+                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('subject')}" th:errors="*{subject}"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Messaggio</label>
+                <textarea class="form-control" rows="6" th:field="*{message}"
+                          placeholder="Descrivi il problema, includi eventuale codice/seriale e cosa succede..."></textarea>
+                <div class="text-danger small mt-1" th:if="${#fields.hasErrors('message')}" th:errors="*{message}"></div>
+            </div>
+
+            <div class="d-flex gap-2 align-items-center">
+                <button class="btn btn-primary" type="submit">
+                    Invia
+                </button>
+                <div class="text-muted small">
+                    Il supporto risponde a <strong>support@vercert.org</strong>.
+                </div>
+            </div>
+
+        </div>
+    </form>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

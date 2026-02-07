@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it" th:fragment="content(tenant, signingKey)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiave di firma tenant</title>
+</head>
+
+<body class="bg-light">
+
+<main class="container py-4">
+
+    <h1 class="h4 mb-3">
+        Chiave di firma digitale – <span th:text="${tenant.name}">Tenant</span>
+    </h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <th:block th:if="${signingKey == null}">
+                <div class="alert alert-warning">
+                    Nessuna chiave di firma configurata per questo tenant.
+                </div>
+            </th:block>
+            <th:block th:if="${signingKey != null}">
+                <div class="mb-3">
+                    <span class="badge bg-success">ATTIVA</span>
+                </div>
+
+                <dl class="row small">
+                    <dt class="col-sm-3">KID</dt>
+                    <dd class="col-sm-9 mono" th:text="${signingKey.kid}"></dd>
+
+                    <dt class="col-sm-3">Valida da</dt>
+                    <dd class="col-sm-9" th:text="${#temporals.format(signingKey.notBeforeTs, 'dd/MM/yyyy')}"></dd>
+
+                    <dt class="col-sm-3">Valida fino</dt>
+                    <dd class="col-sm-9" th:text="${#temporals.format(signingKey.notAfterTs, 'dd/MM/yyyy')}"></dd>
+
+                    <dt class="col-sm-3">Stato</dt>
+                    <dd class="col-sm-9" th:text="${signingKey.status}"></dd>
+                </dl>
+                <div class="row g-3">
+                 <div class="col-md-2">
+                    <form th:action="@{|/admin/signing-keys/${tenant.id}/rotate|}"
+                          method="post"
+                          onsubmit="return confirm('Ruotare la chiave? I nuovi certificati useranno la nuova firma.')">
+                        <button class="btn btn-warning">
+                            🔄 Ruota chiave
+                        </button>
+                    </form>
+                 </div>
+                 <div class="col-md-4">
+                    <th:block th:if="${signingKey.getCertPem() != null}">
+                        <form th:action="@{|/admin/certificate/download|}" method="get">
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-award me-2"></i>&nbsp;Download certificato
+                            </button>
+                        </form>
+                    </th:block>
+                    </div>
+                    <div class="col-md-3">
+                        <th:block th:if="${signingKey == null}">
+                            <div class="alert alert-warning">
+                                Nessuna chiave di firma configurata per questo tenant.
+                            </div>
+
+                            <form th:action="@{|/admin/signing-keys/${tenant.id}/generate|}"
+                                  method="post">
+                                <button class="btn btn-primary">
+                                    🔐 Genera chiave di firma
+                                </button>
+                            </form>
+                        </th:block>
+                    </div>
+                </div>
+                <div class="text-muted small mt-3">
+                    Le chiavi ruotate non invalidano i certificati già emessi.
+                    Ogni certificato mantiene il riferimento alla chiave con cui è stato firmato.
+                </div>
+            </th:block>
+          </div>
+         </div>
+</main>
+</body>
+</html>
