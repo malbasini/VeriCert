@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Conferma pagamento</title>
+    <style>
+        body{margin:0;padding:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;color:#111827}
+        .wrap{max-width:640px;margin:0 auto;padding:24px}
+        .card{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.06);overflow:hidden}
+        .head{background:#548687;color:#fff;padding:20px 24px}
+        .head h1{margin:0;font-size:18px;line-height:1.3}
+        .head .sub{margin-top:8px;font-size:13px;opacity:.95}
+        .content{padding:22px 24px}
+        .muted{color:#6b7280;font-size:13px}
+        .title{margin:18px 0 8px;font-size:14px;font-weight:bold}
+        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+        table{width:100%;border-collapse:collapse}
+        td{padding:8px 0;vertical-align:top}
+        .right{text-align:right}
+        .hr{height:1px;background:#e5e7eb;margin:10px 0}
+        .total{font-size:16px;font-weight:bold}
+        .pill{display:inline-block;background:#eef2ff;color:#3730a3;padding:3px 10px;border-radius:999px;font-size:12px}
+        .foot{padding:16px 24px;font-size:12px;color:#6b7280}
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+</head>
+<body>
+<div class="wrap">
+    <div class="card">
+        <div class="head">
+            <h1>{{ params.action }} completato ✅ Grazie {{ params.customer_name | default:"" }}!</h1>
+            <div class="sub">
+                Data: <strong>{{ params.paid_at }}</strong>
+                &nbsp;•&nbsp;
+                Riferimento: <strong>{{ params.payment_ref }}</strong>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="muted">
+                Ti confermiamo l’avvenuto pagamento relativo al piano <strong>{{ params.plan_name }}</strong>.
+            </div>
+
+            <div class="title">Dettagli</div>
+            <div class="box">
+                <table>
+                    <tr>
+                        <td>
+                            <strong>{{ params.plan_name }}</strong>
+                            <div class="muted">
+                                Ciclo: {{ params.billing_cycle }}<br>
+                                Abbonamento: {{ params.subscription_id | default:"-" }}
+                            </div>
+                        </td>
+                        <td class="right">
+                            <span class="pill">{{ params.provider }}</span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="title">Riepilogo importi (IVA 22%)</div>
+            <div class="box">
+                <table>
+                    <tr>
+                        <td>Imponibile</td>
+                        <td class="right"><strong>{{ params.amount_net }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>IVA 22%</td>
+                        <td class="right"><strong>{{ params.vat_amount }}</strong></td>
+                    </tr>
+                    <tr><td colspan="2"><div class="hr"></div></td></tr>
+                    <tr>
+                        <td class="total">Totale</td>
+                        <td class="right total">{{ params.amount_total }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="muted" style="margin-top:14px">
+                Per assistenza: <strong>{{ params.support_email }}</strong>
+            </div>
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+                <tr>
+                    <td bgcolor="#525662" style="border-radius:0px; border:3px solid #000000;">
+                        <a href="{{ params.portal_url }}"
+                           style="display:inline-block; padding:14px 20px; font-size:16px; font-weight:700;
+                    color:#ffffff; border-radius:0px;
+                     letter-spacing:0.2px;">
+                            Vai al portale
+                        </a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="foot">
+            {{ params.company_name }} • Email inviata a {{ contact.EMAIL }}
+        </div>
+    </div>
+</div>
+</body>
+</html>

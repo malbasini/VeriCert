@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/docs', 'index,follow')"></head>
+    <title>Privacy Vercert | API e verifica certificati digitali con QR</title>
+    <meta name="description" content="Privacy Vercert: API e integrazione per creare e verificare certificati digitali con QR code in contesti aziendali.">
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+
+<main class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+      <h1 class="mb-3">Privacy Policy</h1>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+          <p class="text-muted">
+            Ultimo aggiornamento: <strong>25/12/2025</strong>
+          </p>
+
+          <h5 class="mt-4">Titolare del trattamento</h5>
+          <p>
+            Il Titolare del trattamento è <strong>Marco</strong> (persona fisica).
+            Per contatti: <strong>support@app.vercert.org</strong>.
+          </p>
+
+          <h5 class="mt-4">Dati trattati</h5>
+          <ul class="mb-0">
+            <li><strong>Dati di account e contatto</strong>: nome, email, credenziali (in forma cifrata/hashed).</li>
+            <li><strong>Dati tecnici</strong>: indirizzo IP, user-agent, log di sicurezza/diagnostica.</li>
+            <li><strong>Dati relativi ai certificati</strong>: informazioni inserite dall’utente e file PDF generati dal servizio.</li>
+          </ul>
+
+          <h5 class="mt-4">Finalità e base giuridica</h5>
+          <ul class="mb-0">
+            <li><strong>Erogazione del servizio</strong> (creazione/verifica/revoca certificati, gestione account): esecuzione del servizio richiesto.</li>
+            <li><strong>Sicurezza e prevenzione abusi</strong>: legittimo interesse del Titolare.</li>
+            <li><strong>Adempimenti di legge</strong>: obbligo legale quando applicabile.</li>
+          </ul>
+
+          <h5 class="mt-4">Conservazione</h5>
+          <p class="mb-0">
+            I certificati e i relativi PDF sono conservati finché l’utente decide di mantenerli nel servizio.
+            In caso di revoca, l’utente può scegliere di eliminare definitivamente il certificato e il file PDF.
+            I log tecnici sono conservati per il tempo strettamente necessario a sicurezza e diagnostica.
+          </p>
+
+          <h5 class="mt-4">Destinatari e fornitori</h5>
+          <p class="mb-0">
+            Il servizio può utilizzare fornitori tecnici (hosting/infrastruttura) che trattano dati per conto del Titolare.
+            Inoltre viene utilizzato <strong>Google reCAPTCHA v2</strong> per la prevenzione di abusi/spam nei form
+            (quando presente): il suo utilizzo può comportare la raccolta di dati tecnici secondo le policy di Google.
+          </p>
+
+          <h5 class="mt-4">Trasferimenti extra-UE</h5>
+          <p class="mb-0">
+            Alcuni fornitori (es. Google) possono trattare dati anche al di fuori dell’UE secondo le proprie condizioni e garanzie.
+          </p>
+
+          <h5 class="mt-4">Diritti dell’interessato</h5>
+          <p class="mb-0">
+            L’utente può richiedere accesso, rettifica, cancellazione, limitazione, opposizione e portabilità nei limiti previsti dalla normativa.
+            Per esercitare i diritti: <strong>support@app.vercert.org</strong>.
+          </p>
+
+          <h5 class="mt-4">Modifiche</h5>
+          <p class="mb-0">
+            La presente informativa può essere aggiornata. La versione pubblicata su questa pagina è quella applicabile.
+          </p>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

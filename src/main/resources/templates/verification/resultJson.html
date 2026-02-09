@@ -1,0 +1,53 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>Verifica certificato</title>
+</head>
+<body>
+<!-- Inclusione dell'header -->
+<div th:replace="common/base :: headerFragment"></div>
+<div class="container mt-5">
+    <h3 class="mb-3">Verifica certificato</h3>
+    <div class="input-group mb-3">
+        <label class="input-group-text" for="codeSelect">Codice</label>
+        <select class="form-select" id="codeSelect">
+            <option value="">-- Seleziona un certificato --</option>
+        </select>
+        <button class="btn btn-primary" onclick="verifyCode()">Verifica</button>
+    </div>
+    <br>
+    <hr>
+    <div id="result" class="mt-3"></div>
+</div>
+
+<script>
+    const API_BASE = "http://172.20.10.5";
+    // Verifica certificato selezionato
+    async function verifyCode() {
+        alert("Verifica certificato selezionato");
+        const response = await fetch(`${API_BASE}/v/${code}`);
+        const resultDiv = document.getElementById("result");
+
+        if (response.ok) {
+            const data = await response.json();
+            resultDiv.innerHTML = `
+                <div class="alert alert-success">
+                    ✅ Certificato valido<br>
+                    <b>Proprietario:</b> ${data.ownerName}<br>
+                    <b>Email:</b> ${data.ownerEmail}<br>
+                    <b>Data emissione:</b> ${data.issueDate}
+                </div>
+            `;
+        } else if (response.status === 410) {
+            resultDiv.innerHTML = `<div class="alert alert-warning">⚠️ Certificato revocato</div>`;
+        } else {
+            resultDiv.innerHTML = `<div class="alert alert-danger">❌ Certificato non trovato</div>`;
+        }
+    }
+
+    // carica i codici al caricamento della pagina
+    loadCodes();
+</script>
+</body>
+</html>

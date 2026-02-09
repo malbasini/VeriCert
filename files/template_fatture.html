@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"></meta>
+    <title th:text="'Fattura ' + ${invoice.invoiceCode}">Fattura</title>
+    <style>
+        @page { size: A4; margin: 0; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; color: #1f2937; margin: 0; padding: 0; line-height: 1.4; }
+        .frame { padding: 15mm; background: #ffffff; }
+
+        /* Banda Superiore Estetica */
+        .security-band { background-color: #0a376e; color: #ffffff; padding: 20px 15mm; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Header Struttura */
+        .header-table { width: 100%; margin-bottom: 30px; border-bottom: 2px solid #f3f4f6; padding-bottom: 20px; }
+        .logo { max-height: 60px; }
+
+        /* Layout Fornitore/Cliente */
+        .address-table { width: 100%; margin-bottom: 40px; table-layout: fixed; }
+        .address-box { vertical-align: top; width: 50%; }
+        .box-content { padding: 10px; border-left: 3px solid #e5e7eb; margin-right: 20px; }
+        .box-content.client { border-left-color: #0a376e; background-color: #f9fafb; }
+        .address-line { display: block; margin-bottom: 2px; }
+        h1 { color: #0a376e; font-size: 24px; margin: 0 0 5px 0; }
+        .muted { color: #6b7280; font-size: 11px; }
+        .label { font-size: 10px; text-transform: uppercase; color: #9ca3af; font-weight: bold; margin-bottom: 5px; }
+
+        /* Tabella Prodotti */
+        table.items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table.items-table th { background-color: #f9fafb; border-bottom: 2px solid #0a376e; padding: 12px 8px; text-align: left; font-size: 11px; text-transform: uppercase; }
+        table.items-table td { padding: 12px 8px; border-bottom: 1px solid #f3f4f6; font-size: 12px; vertical-align: top; }
+
+        .right { text-align: right; }
+        .bold { font-weight: bold; }
+
+        /* Totali */
+        .totals-container { margin-top: 30px; }
+        .totals-table { width: 40%; margin-left: 60%; border-collapse: collapse; }
+        .totals-table td { padding: 8px; font-size: 12px; }
+        .totals-table .total-row { border-top: 2px solid #0a376e; font-size: 15px; font-weight: bold; color: #0a376e; }
+
+        /* QR Code Footer */
+        .footer-verification { margin-top: 50px; padding-top: 20px; border-top: 1px dashed #e5e7eb; }
+        .qr-container { width: 100%; }
+        .qr-image { width: 80px; height: 80px; float: left; margin-right: 15px; }
+        .verify-text { font-size: 10px; color: #6b7280; padding-top: 15px; }
+
+        /* Previene rotture brutte delle tabelle */
+        tr { page-break-inside: avoid; }
+    </style>
+</head>
+<body>
+<div class="security-band">
+
+    Documento digitale certificato • Originale verificabile online
+</div>
+
+<div class="frame">
+    <table class="header-table">
+        <tr>
+            <td>
+                <img th:src="${logoUrl}" alt="${logoUrl}"></img><br></br>
+            </td>
+            <td class="right">
+                <h1>FATTURA</h1>
+                <div class="muted">
+                    Numero: <span class="bold" th:text="${invoice.invoiceCode}">INV-2026-001</span><br></br>
+                    Data: <span class="bold" th:text="${#temporals.format(invoice.issuedAt, 'dd/MM/yyyy')}">01/01/2026</span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="address-table">
+        <tr>
+            <td class="address-box">
+                <div class="label">Mittente</div>
+                <div class="box-content">
+                    <div class="bold address-line" th:text="${supplier.companyName}">Mia Azienda Srl</div>
+                    <div class="muted">
+                        <span class="address-line" th:text="${supplier.addressLine1}">Via Roma 1</span>
+                        <span class="address-line" th:text="${supplier.postalCode}">00100</span> <span th:text="${supplier.city}">Roma</span> (<span th:text="${supplier.province}">RM</span>)
+                        P.IVA: <span class="bold address-line" th:text="${supplier.vatNumber}">IT01234567890</span>
+                    </div>
+                </div>
+            </td>
+            <td class="address-box">
+                <div class="label">Destinatario</div>
+                <div class="box-content client">
+                    <div class="bold address-line" th:text="${invoice.customerName}">Nome Cliente</div>
+                    <div class="muted">
+                        <span class="address-line" th:text="${invoice.customerAddressLine1}">Indirizzo Cliente</span>
+                        <span class="address-line" th:text="${invoice.customerPostalCode}">00100</span> <span th:text="${invoice.customerCity}">Città</span> (<span th:text="${invoice.customerProvince}">RM</span>)
+                        <span class="address-line" th:if="${invoice.customerVat}" th:text="'P.IVA/CF: ' + ${invoice.customerVat}">IT...</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items-table">
+        <thead>
+        <tr>
+            <th>Descrizione</th>
+            <th style="width: 70px;">Q.tà</th>
+            <th style="width: 100px;">Prezzo</th>
+            <th style="width: 120px;">Totale riga</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="l : ${lines}">
+            <td>
+                <div class="bold" th:text="${l.description}">Servizio professionale</div>
+            </td>
+            <td style="width: 73px;" th:text="${l.qty}">1</td>
+            <td style="width: 103px;" th:text="${#numbers.formatDecimal(l.unitPriceMinor/100.0, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+            <td style="width: 123px;" th:text="${#numbers.formatDecimal(l.grossMinor/100.0, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="totals-container">
+        <table class="totals-table">
+            <tr>
+                <td>Imponibile:</td>
+                <td class="right" th:text="${#numbers.formatDecimal(invoice.netTotalMinor/100.0, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+            </tr>
+            <tr>
+                <td>IVA (22%):</td>
+                <td class="right" th:text="${#numbers.formatDecimal(invoice.vatTotalMinor/100.0, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+            </tr>
+            <tr class="total-row">
+                <td>TOTALE:</td>
+                <td class="right" th:text="${#numbers.formatDecimal(invoice.grossTotalMinor/100.0, 1, 'POINT', 2, 'COMMA')} + ' €'">0,00 €</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="footer-verification">
+        <div class="qr-container">
+            <img th:src="'data:image/png;base64,' + ${qrBase64}" class="qr-image" alt="QR Code"></img>
+            <div class="verify-text">
+                <div class="bold" style="color:#0a376e">VERIFICA DOCUMENTO</div>
+                Inquadra il QR Code con il tuo smartphone per verificare l'autenticità di questa fattura sui nostri sistemi.<br></br>
+                URL di verifica: <span th:text="${verifyUrl}">https://...</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

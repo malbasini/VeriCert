@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org" th:fragment="content(tenant,template,pageTitle, active)">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${pageTitle}">Anteprima fattura</title>
+</head>
+<body>
+    <input type="hidden" id="tenant" name="tenant" th:value="${tenant}">
+    <input type="hidden" id="templateId" name="templateId" th:value="${template.getId()}">
+    <input type="hidden" id="variablesUserJson" th:value="${template.getUserVarSchema()}">
+    <div id="loading" class="text-center py-5 d-none">
+        <div class="spinner-border" role="status"></div>
+        <div class="mt-2 small text-body-secondary">Caricamento…</div>
+    </div>
+    <br>
+    <div class="btn-group" role="group" aria-label="Azioni">
+        <a class="btn btn-outline-secondary me-3 rounded"
+           th:href="@{/admin/templates}">
+            <i class="bi bi-arrow-left me-1"></i> Torna alla lista
+        </a>
+        <a class="btn btn-outline-secondary rounded"
+           th:href="@{/admin}">
+            <i class="bi bi-speedometer2 me-2"></i> Torna alla dashboard
+        </a>
+    </div>
+    <br>
+    <br>
+    <div class="dropdown">
+        <button class="btn btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Preview
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" id="btnHtml" onclick="previewHtml()" data-bs-toggle="modal" data-bs-target="#previewModal">Preview HTML</a></li>
+            <li><a class="dropdown-item" id="btnPdf" onclick="previewPdf()" data-bs-toggle="modal" data-bs-target="#previewModal">Preview PDF</a></li>
+        </ul>
+    </div>
+    <br>
+    <br>
+    <div class="row g-3">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="mb-3">Dati fattura</h5>
+                    <div id="dynForm"></div>
+                    <hr class="my-3">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function setLoading(b){ document.getElementById('loading').classList.toggle('d-none', !b); }
+    </script>
+    <script>
+            let currentMode = null;     // 'html' | 'pdf'
+            let currentPdfUrl = null;
+            function clearIframe(ifr) {
+                ifr.removeAttribute('srcdoc');
+                ifr.removeAttribute('src');
+            }
+            function setIframeHtml(ifr, html) {
+                clearIframe(ifr);
+                ifr.srcdoc = html;
+            }
+            function setIframePdf(ifr, blob) {
+                // libera URL precedente
+                if (currentPdfUrl) URL.revokeObjectURL(currentPdfUrl);
+                currentPdfUrl = URL.createObjectURL(blob);
+                clearIframe(ifr);
+                ifr.src = currentPdfUrl;
+            }
+            const dynForm = document.getElementById('dynForm');
+            const templateId = document.getElementById('templateId')?.value;
+            const schemaRaw  = document.getElementById('variablesUserJson')?.value || '';
+
+            function parseSchema(raw) {
+                try {
+                    if (!raw) return null;
+                    return JSON.parse(raw);
+                } catch (e) {
+                    console.error("Schema JSON invalido:", e);
+                    return null;
+                }
+            }
+
+            function el(tag, attrs = {}, children = []) {
+                const n = document.createElement(tag);
+                Object.entries(attrs).forEach(([k,v]) => {
+                    if (k === 'class') n.className = v;
+                    else if (k === 'html') n.innerHTML = v;
+                    else n.setAttribute(k, v);
+                });
+                children.forEach(c => n.appendChild(c));
+                return n;
+            }
+
+            function inputFor(fieldKey, def) {
+                const type = (def?.type || 'string').toLowerCase();
+                const label = def?.label || fieldKey;
+                const required = !!def?.required;
+                const placeholder = def?.placeholder || '';
+                const defVal = (def?.default ?? '');
+
+                let inputType = 'text';
+                if (type === 'email') inputType = 'email';
+                if (type === 'number') inputType = 'number';
+
+                const id = `f_${fieldKey}`;
+
+                const input = el('input', {
+                    class: 'form-control',
+                    id,
+                    name: fieldKey,
+                    type: inputType,
+                    placeholder
+                });
+
+                if (defVal !== '') input.value = defVal;
+                if (required) input.required = true;
+
+                // number constraints
+                if (type === 'number') {
+                    if (def?.min !== undefined) input.min = String(def.min);
+                    if (def?.max !== undefined) input.max = String(def.max);
+                    if (def?.step !== undefined) input.step = String(def.step);
+                }
+
+                const wrap = el('div', { class: 'mb-3' }, [
+                    el('label', { class: 'form-label', for: id, html: label + (required ? ' <span class="text-danger">*</span>' : '') }),
+                    input
+                ]);
+
+                return wrap;
+            }
+
+            function section(title, innerNodes) {
+                return el('div', { class: 'mb-4' }, [
+                    el('div', { class: 'fw-semibold mb-2', html: title }),
+                    ...innerNodes
+                ]);
+            }
+
+            function renderLines(linesDef) {
+                // linesDef: { min, fields: {description, qty, unitPriceMinor} }
+                const min = Math.max(1, Number(linesDef?.min ?? 1));
+                const fields = linesDef?.fields || {};
+
+                const container = el('div', { class: 'border rounded p-3 bg-light' });
+                const rowsWrap = el('div', { id: 'linesWrap', class: 'd-grid gap-2' });
+
+                function addRow(prefill = {}) {
+                    const idx = rowsWrap.children.length;
+                    const row = el('div', { class: 'border rounded p-3 bg-white' });
+
+                    const desc = el('input', { class:'form-control', placeholder: fields.description?.label || 'Descrizione', type:'text' });
+                    desc.value = prefill.description ?? '';
+                    desc.required = !!fields.description?.required;
+
+                    const qty = el('input', { class:'form-control', type:'number' });
+                    qty.min = String(fields.qty?.min ?? 1);
+                    qty.step = String(fields.qty?.step ?? 1);
+                    qty.value = String(prefill.qty ?? fields.qty?.default ?? 1);
+                    qty.required = !!fields.qty?.required;
+
+                    const unit = el('input', { class:'form-control', type:'number' });
+                    unit.min = String(fields.unitPriceMinor?.min ?? 0);
+                    unit.step = String(fields.unitPriceMinor?.step ?? 1);
+                    unit.value = String(prefill.unitPriceMinor ?? fields.unitPriceMinor?.default ?? 0);
+                    unit.required = !!fields.unitPriceMinor?.required;
+
+                    const delBtn = el('button', { class:'btn btn-danger', type:'button' , html:'<i class="bi bi-trash"></i>&nbsp; Rimuovi' });
+                    delBtn.addEventListener('click', () => {
+                        if (rowsWrap.children.length <= min) return;
+                        row.remove();
+                    });
+
+                    row.appendChild(el('div', { class:'row g-2 align-items-end' }, [
+                        el('div', { class:'col-12' }, [
+                            el('label', { class:'form-label', html: fields.description?.label || 'Descrizione' }),
+                            desc
+                        ]),
+                        el('div', { class:'col-4' }, [
+                            el('label', { class:'form-label', html: fields.qty?.label || 'Q.tà' }),
+                            qty
+                        ]),
+                        el('div', { class:'col-6' }, [
+                            el('label', { class:'form-label', html: fields.unitPriceMinor?.label || 'Prezzo (cent)' }),
+                            unit
+                        ]),
+                        el('div', { class:'col-2 d-grid' }, [ delBtn ])
+                    ]));
+
+                    // store refs
+                    row._refs = { desc, qty, unit };
+                    rowsWrap.appendChild(row);
+                }
+
+                const addBtn = el('button', { class:'btn btn-primary mt-2', type:'button', html:'<i class="fa-solid fa-plus"></i>&nbsp; Aggiungi riga' });
+                addBtn.addEventListener('click', () => addRow());
+
+                // init min rows
+                for (let i=0;i<min;i++) addRow();
+
+                container.appendChild(rowsWrap);
+                container.appendChild(addBtn);
+
+                return container;
+            }
+
+            function buildPayload(schema) {
+                // header fields
+                const header = {};
+                const headerDef = schema.header || {};
+                Object.keys(headerDef).forEach(k => {
+                    const inp = document.querySelector(`[name="${k}"]`);
+                    header[k] = inp ? inp.value : null;
+                });
+
+                // vat
+                const vatInp = document.querySelector(`[name="vatRate"]`);
+                const vatRate = vatInp ? Number(vatInp.value || 0) : Number(schema.vatRate?.default ?? 22);
+
+                // lines
+                const linesWrap = document.getElementById('linesWrap');
+                const lines = [];
+                if (linesWrap) {
+                    Array.from(linesWrap.children).forEach(row => {
+                        const r = row._refs;
+                        lines.push({
+                            description: r?.desc?.value ?? '',
+                            qty: Number(r?.qty?.value ?? 1),
+                            unitPriceMinor: Number(r?.unit?.value ?? 0)
+                        });
+                    });
+                }
+
+                return { templateId: Number(templateId), header, vatRate, lines };
+            }
+
+            function renderForm(schema) {
+                dynForm.innerHTML = '';
+                // guard
+                if (!schema || !schema.header || !schema.lines) {
+                    dynForm.appendChild(el('div', { class:'alert alert-danger', html:
+                            'Schema fattura non valido: mancano <code>header</code> e/o <code>lines</code>. Controlla <code>template.user_vars_schema</code>.'
+                    }));
+                    return;
+                }
+
+                // header fields
+                const headerNodes = Object.entries(schema.header).map(([k,def]) => inputFor(k, def));
+                dynForm.appendChild(section('Testata', headerNodes));
+
+                // vatRate
+                const vatDef = schema.vatRate || { type:'number', label:'Aliquota IVA (%)', required:true, default:22 };
+                const vatNode = inputFor('vatRate', vatDef);
+                dynForm.appendChild(section('IVA', [vatNode]));
+
+                // lines
+                const linesNode = renderLines(schema.lines);
+                dynForm.appendChild(section('Righe', [linesNode]));
+            }
+
+            async function previewHtml() {
+                try {
+                    const schema = parseSchema(schemaRaw);
+                    const payload = buildPayload(schema);
+                    const iframe = document.getElementById('previewFrame');
+                    currentMode = 'html';
+                    const res = await fetch('/api/invoices/templates/preview/html', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'text/html, application/json' // Diciamo che accettiamo entrambi
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const contentType = res.headers.get('Content-Type') || '';
+
+                    if (!res.ok) {
+                        if (contentType.includes('application/json')) {
+                            const data = await res.json();
+                            if (data?.errors !== undefined) {
+                                renderValidationErrors(data.errors);
+                            } else {
+                                showToast(data.message, {colorClass: 'bg-danger'});
+                            }
+                        } else {
+                            const text = await res.text();
+                            showToast('Errore server: ' + text, {colorClass: 'bg-danger'});
+                        }
+                        return;
+                    }
+
+                    if (currentMode !== 'html') return;
+                    const html = await res.text();
+                    document.getElementById('previewFrame').srcdoc = html;
+                    currentMode = 'html';
+                    iframe.removeAttribute('src');   // pulisci src
+                    iframe.srcdoc = html;// mostra HTML
+                    if (res.redirected || res.status === 401) {
+                        setIframeHtml(iframe, `<p style="color:#b91c1c">Non autenticato. <a href="${resp.url}">Login</a></p>`);
+                        return;
+                    }
+                    if (!res.ok) {
+                        setIframeHtml(iframe, `<pre style="color:#b91c1c">Errore ${res.status}\n${html}</pre>`);
+                    }
+                } catch (e) {
+                    const iframe = document.getElementById('previewFrame');
+                    setIframeHtml(iframe, `<pre style="color:#b91c1c">Errore ${e.message}</pre>`);
+                } finally {
+                    setLoading(false);
+                }
+            }
+            async function previewPdf() {
+                try {
+                    const iframe = document.getElementById('previewFrame');
+                    const schema = parseSchema(schemaRaw);
+                    const payload = buildPayload(schema);
+                    currentMode = 'pdf';
+                    const resp = await fetch('/api/invoices/templates/preview/pdf', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/pdf, application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const contentType = resp.headers.get('Content-Type') || '';
+
+                    if (!resp.ok) {
+                        if (contentType.includes('application/json')) {
+                            const data = await resp.json();
+                            if (data?.errors !== undefined) {
+                                renderValidationErrors(data.errors);
+                            } else {
+                                showToast(data.message, {colorClass: 'bg-danger'});
+                            }
+                        } else {
+                            showToast('Errore durante la generazione del PDF', {colorClass: 'bg-danger'});
+                        }
+                        return;
+                    }
+
+                    if (currentMode !== 'pdf') return;
+                    const ct = resp.headers.get('content-type') || '';
+                    if (!resp.ok || !ct.includes('application/pdf')) {
+                        const msg = await resp.text();
+                        setIframePdf(iframe, `<pre style="color:#b91c1c">Preview PDF fallita (${resp.status}).\n${msg}</pre>`);
+                        return;
+                    }
+                    const blob = await resp.blob();
+                    setIframePdf(iframe, blob);
+                    document.getElementById('previewFrame').srcdoc = URL.createObjectURL(blob);
+                    // Controllino: deve essere PDF
+                    const ct2 = resp.headers.get('Content-Type') || '';
+                    if (!ct2.includes('application/pdf')) {
+                        const txt = await resp.text();
+                        console.error('Atteso PDF, ricevuto:', ct, txt);
+                        showToast('Errore anteprima PDF', {colorClass: 'bg-danger'});
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    // ⚠️ srcdoc ha precedenza su src: va rimosso
+                    iframe.removeAttribute('srcdoc');
+                    iframe.src = url;
+                    // opzionale: libera l’URL blob quando l’iframe ha caricato
+                    iframe.onload = () => URL.revokeObjectURL(url);
+                }
+                catch (e) {
+                    const iframe = document.getElementById('previewFrame');
+                    setIframePdf(iframe, `<pre style="color:#b91c1c">Preview PDF fallita (${e.message})</pre>`);
+                } finally {
+                    setLoading(false);
+                }
+            }
+            // init
+            const schema = parseSchema(schemaRaw);
+            renderForm(schema);
+    </script>
+    <script>
+        function renderValidationErrors(errors) {
+            if (!errors || typeof errors !== 'object') {
+                showToast('Si è verificato un errore di validazione.');
+                return;
+            }
+
+            // Costruisci una UL con i messaggi
+            const items = Object.entries(errors).flatMap(([field, messages]) => {
+                const list = Array.isArray(messages) ? messages : [String(messages)];
+                return list.map(msg => `<li>${escapeHtml(field)}: ${escapeHtml(msg)}</li>`);
+            });
+            const html = `
+                        <div>
+                          <strong>Validazione fallita</strong>
+                          <ul class="mb-0 ps-3">
+                            ${items.join('')}
+                          </ul>
+                        </div>
+                      `;
+            showToast(html, { colorClass: 'bg-danger'});
+        }
+        // Piccola funzione per evitare injection nell’HTML del toast
+        function escapeHtml(s) {
+            return String(s)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+    </script>
+    <!-- Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Anteprima</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <iframe id="previewFrame" style="width:100%;height:80vh;border:0"></iframe>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

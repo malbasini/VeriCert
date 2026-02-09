@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Checkout</title>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+<h1>Acquista il certificato</h1>
+<input type="hidden" th:value="${tenantId}" id="tenantId">
+<button id="buy">Paga 9,90 €</button>
+<script th:inline="javascript">
+    const tenantId =document.getElementById('tenantId').value;
+    document.getElementById('buy').onclick = async () => {
+        const res = await fetch('/api/payments/stripe/checkout'
+            + `?tenantId=${tenantId}&amountMinor=990&currency=EUR&description=Certificato` , {method:'POST'});
+        const data = await res.json();
+        const stripe = Stripe(data.publishableKey);
+        const {error} = await stripe.redirectToCheckout({ sessionId: data.checkoutSessionId });
+        if (error) showToast(error.message,{ colorClass: 'bg-danger' });
+        else showToast("Pagamento avvenuto con successo",{ colorClass: 'bg-success' });
+    };
+</script>
+</body>
+</html>

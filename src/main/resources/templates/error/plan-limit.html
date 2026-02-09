@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Piano non valido</title>
+    <meta charset="UTF-8"/>
+</head>
+<body class="container py-4">
+<h2>Piano non disponibile</h2>
+<p th:text="${message}">Il tuo piano non consente questa operazione.</p>
+<a th:href="@{/}">Vai alla pagina di upgrade</a>
+</body>
+</html>

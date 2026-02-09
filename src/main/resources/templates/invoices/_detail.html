@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org" th:fragment="content(tenantId)">
+<head>
+  <meta charset="utf-8">
+  <title>Dettaglio fattura</title>
+</head>
+<body class="bg-light">
+
+<div class="container my-4" style="max-width: 980px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Dettaglio fattura</h1>
+      <div class="text-muted small">ID: <span th:text="${invoiceId}"></span></div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/invoices"><i class="bi bi-arrow-return-left"></i> Torna alla Lista</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between flex-wrap gap-2">
+        <div>
+          <div class="fw-semibold" id="num">-</div>
+          <div class="text-muted small" id="pub">-</div>
+        </div>
+        <div class="text-end">
+          <span id="status" class="badge text-bg-secondary">DRAFT</span>
+          <div class="text-muted small" id="issuedAt">-</div>
+        </div>
+      </div>
+      <hr>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <div class="text-muted small">Cliente</div>
+          <div class="fw-semibold" id="customerName">-</div>
+          <div class="text-muted small" id="customerEmail">-</div>
+        </div>
+        <br>
+        <div class="col-md-3">
+          <div class="text-muted small">P.IVA / CF</div>
+          <div id="customerVat">-</div>
+        </div>
+        <br>
+        <div class="col-md-6">
+          <div class="text-muted small">Indirizzo riga 1</div>
+          <div id="address1"></div>
+        </div>
+        <br>
+        <div class="col-md-6">
+          <div class="text-muted small">Indirizzo riga 2</div>
+          <div id="address2"></div>
+        </div>
+        <br>
+        <div class="col-md-3">
+          <div class="text-muted small">Città</div>
+          <div id="city"></div>
+        </div>
+        <br>
+        <div class="col-md-3">
+          <div class="text-muted small">Provincia</div>
+          <div id="province"></div>
+        </div>
+        <br>
+        <div class="col-md-3">
+          <div class="text-muted small">CAP</div>
+          <div id="postalCode"></div>
+        </div>
+        <br>
+        <div class="col-md-3">
+          <div class="text-muted small">Stato</div>
+          <div id="country"></div>
+        </div>
+        <br>
+        <div class="col-md-6">
+          <div class="text-muted small">PEC</div>
+          <div id="pec"></div>
+        </div>
+        <br>
+        <div class="col-md-12">
+          <div class="text-muted small">SDI</div>
+          <div id="sdi"></div>
+        </div>
+        <hr>
+        <div class="col-md-6 text-end" style="text-align: left !important;">
+          <div class="text-muted small">Totale</div>
+          <div class="fs-4 fw-semibold" id="gross">-</div>
+        </div>
+      </div>
+      <hr class="my-4">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+          <tr>
+            <th>Descrizione</th>
+            <th class="text-end">Qtà</th>
+            <th class="text-end">Prezzo</th>
+            <th class="text-end">Totale riga</th>
+          </tr>
+          </thead>
+          <tbody id="lines"></tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <div class="d-flex gap-2">
+          <a id="btnEdit" class="btn btn-outline-secondary d-none" th:href="@{/invoices/{id}/edit(id=${invoiceId})}">Modifica</a>
+          <button id="btnIssue" class="btn btn-success d-none" type="button">Emetti</button>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a id="btnPdf" class="btn btn-outline-primary d-none" target="_blank"><i class="bi bi-file-pdf-fill"></i>  Apri PDF</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  const invoiceId = [[${invoiceId}]];
+</script>
+
+<script>
+  const euro = (minor) => ((minor||0)/100).toFixed(2).replace(".", ",") + " €";
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString("it-IT") : "-";
+
+  async function load() {
+    const res = await fetch(`/api/invoices/${invoiceId}`, { headers: {"Accept":"application/json"}});
+    const data = await res.json();
+    if (!res.ok) {
+      showToast?.(`Errore: ${data.message || res.statusText}`, { colorClass: "bg-danger" });
+      return;
+    }
+
+    document.getElementById("num").textContent = data.numberDisplay || "-";
+    document.getElementById("pub").textContent = data.publicCode || "-";
+    document.getElementById("customerName").textContent = data.customerName || "-";
+    document.getElementById("customerEmail").textContent = data.customerEmail || "-";
+    document.getElementById("customerVat").textContent = data.customerVat || "-";
+    document.getElementById("gross").textContent = euro(data.grossTotalMinor);
+    document.getElementById("issuedAt").textContent = data.issuedAt ? ("Emessa: " + fmtDate(data.issuedAt)) : "";
+    document.getElementById("address1").textContent = data.customerAddressLine1 || "",
+    document.getElementById("address2").textContent = data.customerAddressLine2 || "",
+    document.getElementById("city").textContent = data.customerCity || "",
+    document.getElementById("province").textContent = data.customerProvince || "",
+    document.getElementById("postalCode").textContent = data.customerPostalCode || "",
+    document.getElementById("country").textContent = data.customerCountry || "",
+    document.getElementById("pec").textContent = data.customerPec || "",
+    document.getElementById("sdi").textContent = data.customerSdi || ""
+
+
+    const statusEl = document.getElementById("status");
+    statusEl.textContent = data.status;
+    statusEl.className = "badge " + (data.status === "ISSUED" ? "text-bg-success" : "text-bg-secondary");
+
+    const tbody = document.getElementById("lines");
+    tbody.innerHTML = (data.lines || []).map(l => `
+    <tr>
+      <td>${l.description || ""}</td>
+      <td class="text-end">${l.qty || 1}</td>
+      <td class="text-end">${euro(l.unitPriceMinor || 0)}</td>
+      <td class="text-end fw-semibold">${euro(l.grossMinor || 0)}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="4" class="text-muted">Nessuna riga</td></tr>`;
+
+    const btnEdit = document.getElementById("btnEdit");
+    const btnIssue = document.getElementById("btnIssue");
+    const btnPdf = document.getElementById("btnPdf");
+
+    if (data.status === "DRAFT") {
+      btnEdit.classList.remove("d-none");
+      btnIssue.classList.remove("d-none");
+      btnPdf.classList.add("d-none");
+    } else {
+      btnEdit.classList.add("d-none");
+      btnIssue.classList.add("d-none");
+      btnPdf.classList.remove("d-none");
+      btnPdf.href = `/api/invoices/${invoiceId}/pdf`;
+    }
+
+    btnIssue.onclick = async () => {
+      const r = await fetch(`/api/invoices/${invoiceId}/issue`, { method: "POST", headers: {"Accept":"application/json"}});
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        showToast?.(`Errore emissione: ${d.message || r.statusText}`, { colorClass: "bg-danger" });
+        return;
+      }
+      showToast?.("Fattura emessa ✅", { colorClass: "bg-success" });
+      await load();
+    };
+  }
+  load();
+</script>
+</body>
+</html>

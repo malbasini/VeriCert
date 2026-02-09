@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirect Stripe</title>
+</head>
+<body>
+<div class="container">
+        <input type="hidden" id="tenantId" name="tenantId" th:value="${tenantId}"/>
+        <input type="hidden" id="amountMinor" name="amountMinor" th:value="${990}"/>
+        <br>
+        <hr>
+</div>
+</body>
+<button id="paypal-btn" class="btn btn-outline-primary">Paga con PayPal</button>
+<script>
+        document.getElementById('paypal-btn').onclick = async () => {
+        const tenantId = document.getElementById('tenantId').value;
+        const amount = document.getElementById('amountMinor').value;
+        const body = new URLSearchParams({
+            tenantId: tenantId,
+            amountMinor: amount,
+            currency: 'EUR',
+            description: 'Certificato VeriCert'
+        });
+        const res = await fetch('/api/payments/paypal/order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body
+        });
+        const data = await res.json();
+        window.location.href = data.approveUrl; // vai su PayPal
+    };
+</script>
+</html>

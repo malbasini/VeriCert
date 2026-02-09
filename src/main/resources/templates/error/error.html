@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title}">Errore</title>
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/error', 'noindex,nofollow')"></head>
+</head>
+<body class="bg-light">
+<header th:replace="fragments/base :: navFragment"></header>
+<div class="container py-5">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title" th:text="${title}">Errore</h4>
+            <p class="text-muted">Codice: <span th:text="${status}">500</span></p>
+            <p th:text="${message}">Si è verificato un errore.</p>
+            <a href="/" class="btn btn-primary">Torna alla Home</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

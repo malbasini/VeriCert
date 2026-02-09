@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{admin :: layout(
+        pageTitle=${pageTitle},
+        active=${'usage'},
+        actionsFrag=~{::actionsFrag},
+        contentFrag=~{::contentFrag}
+    )}">
+
+<div th:fragment="actionsFrag">
+  <!-- ad esempio un bottone "Torna alla lista" -->
+</div>
+
+<div th:fragment="contentFrag">
+  <div th:replace="~{usage/_usage_detail :: content(
+        pageTitle=${pageTitle},
+        active=${active},
+        tenantId=${tenantId},
+        history7days=${history7days}
+    )}"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<div th:fragment="content(page, q)">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="input-group w-auto">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input id="q" type="search" class="form-control me-2 rounded-0" placeholder="Cerca per nome…" th:value="${q}">
+            <button class="btn btn-outline-secondary rounded" onclick="location.href='?q='+encodeURIComponent(document.getElementById('q').value)">Cerca</button>
+        </div>
+        <a class="btn btn-primary" th:href="@{/admin/templates/new}">
+            <i class="bi bi-plus-lg"></i> Nuovo template
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Nome</th>
+                <th>Aggiornato</th>
+                <th>Versione</th>
+                <th>Attivo</th>
+                <th class="text-end">Azioni</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${page.content}">
+                <td th:text="${t.id}">1</td>
+                <td>
+                    <span class="fw-semibold" th:text="${t.name}">Template A</span><br>
+                </td>
+                <td th:text="${#temporals.format(t.updatedAt, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${t.version}">1.0</td>
+                <td>
+                    <input type="checkbox" disabled th:checked="${t.active}">
+                </td>
+                <td class="text-end">
+                    <div class="btn-group">
+                        <a class="btn btn-outline-secondary btn-sm me-2 rounded" th:href="@{|/admin/templates/${t.id}/edit|}">
+                            <i class="bi bi-pencil"></i> Modifica
+                        </a>
+                        <a class="btn btn-outline-primary btn-sm me-2 rounded" th:href="@{|/admin/templates/${t.id}/preview|}">
+                            <i class="bi bi-eye"></i> Preview
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${page.empty}">
+                <td colspan="5" class="text-center text-muted py-4">Nessun template trovato.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!-- paginazione -->
+    <nav th:if="${page.totalPages > 1}">
+        <ul class="pagination">
+            <li class="page-item" th:classappend="${page.first} ? ' disabled'">
+                <a class="page-link" th:href="@{|?q=${q}&page=${page.number-1}|}">«</a>
+            </li>
+            <li class="page-item" th:each="n : ${#numbers.sequence(0, page.totalPages-1)}"
+                th:classappend="${n==page.number} ? ' active'">
+                <a class="page-link" th:text="${n+1}" th:href="@{|?q=${q}&page=${n}|}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${page.last} ? ' disabled'">
+                <a class="page-link" th:href="@{|?q=${q}&page=${page.number+1}|}">»</a>
+            </li>
+        </ul>
+    </nav>
+    <!-- Modal Preview -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-eye"></i> Anteprima template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabHtml" type="button" role="tab">HTML</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPdf" type="button" role="tab">PDF</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabHtml" role="tabpanel">
+                            <iframe id="prevHtml" style="width:100%;height:70vh;border:1px solid #ddd;"></iframe>
+                        </div>
+                        <div class="tab-pane fade" id="tabPdf" role="tabpanel">
+                            <iframe id="prevPdf" style="width:100%;height:70vh;border:1px solid #ddd;"></iframe>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const modalEl = document.getElementById('deleteTemplateModal');
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+        modalEl.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget; // bottone che ha aperto la modale
+            const templateId = trigger.getAttribute('data-template-id');
+            // salva l'id sul bottone di conferma (o sulla modale)
+            confirmBtn.dataset.templateId = templateId;
+        });
+
+        confirmBtn.addEventListener('click', async () => {
+            const id = confirmBtn.dataset.templateId;
+            if (!id) return;
+            const resp = await fetch(`/api/admin/templates/${encodeURIComponent(id)}/delete`, { method: 'DELETE' });
+            const data = await resp.json();
+            if (resp.ok) {
+                // chiudi modale e aggiorna pagina/lista
+                hideModal()
+                sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Template eliminato con successo", cls: "bg-success" }));
+                location.reload();
+            } else {
+                // gestisci errore
+                sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.message + ` Status HTTP ${resp.status}`, cls: "bg-danger" }));
+            }
+
+            function hideModal() {
+                const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                instance.hide();
+            }
+        });
+
+    </script>
+
+    <script>
+        // all'avvio pagina (es. in uno script al fondo pagina):
+        const flash = sessionStorage.getItem("flashMsg");
+        if (flash) {
+            const { text, cls } = JSON.parse(flash);
+            showToast(text, { colorClass: cls });
+            sessionStorage.removeItem("flashMsg");
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</div>

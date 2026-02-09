@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="it" >
+<div th:fragment="content(pageTitle, active, tenantId,history7days)">
+
+<div class="container-fluid px-0">
+    <div class="btn-group mb-3" role="group" aria-label="Azioni">
+        <a class="btn btn-outline-secondary me-3 rounded"
+           th:href="@{/admin/settings}">
+            <i class="bi bi-arrow-left me-1"></i> Torna alle impostazioni
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">
+                Consumo risorse - Tenant
+                <span class="fw-semibold" th:text="${tenantId}">12</span>
+            </h5>
+            <small class="text-muted">
+                Ultimi 7 giorni (incluso oggi)
+            </small>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0 align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Giorno</th>
+                        <th class="text-end">Documenti generati</th>
+                        <th class="text-end">API calls</th>
+                        <th class="text-end">Storage (MB)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    <tr th:if="${#lists.isEmpty(history7days)}">
+                        <td colspan="4" class="text-center text-muted py-4">
+                            Nessun dato registrato
+                        </td>
+                    </tr>
+
+                    <tr th:each="row : ${history7days}">
+                        <td>
+                            <span th:text="${row.day}">2025-10-29</span>
+                        </td>
+                        <td class="text-end">
+                            <span th:text="${row.certsGenerated}">0</span>
+                        </td>
+                        <td class="text-end">
+                            <span th:text="${row.apiCalls}">0</span>
+                        </td>
+                        <td class="text-end">
+                            <span th:text="${row.pdfStorageMb}">0.00</span>
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+</html>

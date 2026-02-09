@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Pagamento in elaborazione</title>
+  <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/paypal/pending', 'noindex,nofollow')"></head>
+  <meta http-equiv="refresh" content="10" th:if="${autoRefresh}"/>
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+<div class="container py-5" style="max-width: 880px;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+
+      <div class="d-flex align-items-start gap-3">
+        <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center"
+             style="width:44px;height:44px;">
+          <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+
+        <div class="flex-grow-1">
+          <h1 class="h4 mb-2">Pagamento in elaborazione</h1>
+
+          <p class="text-muted mb-3">
+            Abbiamo ricevuto la richiesta, ma la conferma può richiedere qualche minuto (soprattutto con PayPal).
+            Non chiudere la pagina: se vuoi, puoi attendere o aggiornare.
+          </p>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6" th:if="${provider}">
+              <div class="border rounded p-3">
+                <div class="small text-muted">Provider</div>
+                <div class="fw-semibold" th:text="${provider}">PAYPAL</div>
+              </div>
+            </div>
+            <div class="col-md-6" th:if="${subscriptionId}">
+              <div class="border rounded p-3">
+                <div class="small text-muted">Subscription ID</div>
+                <div class="fw-semibold font-monospace" th:text="${subscriptionId}">I-XXXXX</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info mb-3" role="alert">
+            <i class="fa-solid fa-circle-info me-2"></i>
+            Stato: <strong>PENDING</strong> — stiamo aspettando la conferma finale.
+          </div>
+
+          <div class="d-flex flex-wrap gap-2">
+
+            <a class="btn btn-outline-secondary" th:href="@{/index}">
+              <i class="fa-solid fa-house me-2"></i>Home
+            </a>
+
+            <a class="btn btn-outline-dark" th:href="@{/contact}">
+              <i class="fa-solid fa-life-ring me-2"></i>Supporto
+            </a>
+          </div>
+
+          <hr class="my-4"/>
+
+          <div class="small text-muted">
+            Se resta “pending” a lungo: spesso è un problema di (firma/timeout) oppure di rete.
+            In questi casi puoi comunque verificare lo stato reale chiamando PayPal e, se risulta <strong>ACTIVE</strong>,
+            attivare il piano dal tuo backend.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

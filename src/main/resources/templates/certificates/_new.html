@@ -1,0 +1,269 @@
+<html lang="it"><div th:fragment="content(template,variablesUserJson,pageTitle, active)">
+<!--suppress HtmlDeprecatedAttribute -->
+    <body onload="buildForm()">
+    <div class="container mt-5">
+    <hr>
+        <br>
+        <div class="btn-group" role="group" aria-label="Azioni">
+            <a class="btn btn-outline-secondary me-3 rounded"
+               th:href="@{/admin/certificates}">
+                <i class="bi bi-arrow-left me-1"></i> Torna alla lista
+            </a>
+            <a class="btn btn-outline-secondary rounded"
+               th:href="@{/admin}">
+                <i class="bi bi-speedometer2 me-2"></i> Torna alla dashboard
+            </a>
+        </div>
+        <br>
+        <br>
+        <br>
+    <div id="result" class="mt-3"></div>
+    <br>
+    <input type="hidden" id="variablesUserJson" name="variablesUserJson" th:value="${variablesUserJson}">
+    <h3>Dati del certificato</h3>
+    <div class="input-group mb-3">
+        <span class="input-group-text" id="inputGroup-sizing-sm6">Intestatario</span>
+        <input type="text" id="name" class="form-control" name="name" placeholder="Intestatario" aria-label="Small" aria-describedby="inputGroup-sizing-sm6">
+        <span class="input-group-text" id="inputGroup-sizing-sm1">Email</span>
+        <input type="text" id="email" class="form-control" placeholder="Email" name="email" aria-label="Small" aria-describedby="inputGroup-sizing-sm1">
+    </div>
+    <hr>
+    <h3>Variabili utente</h3>
+    <br>
+    <div id="varsForm"></div>
+    <br>
+    <div class="input-group mb-3">
+         <div class="row">
+                <div class="col-md-4"></div>
+                <div class="col-md4">
+                    <div class="g-recaptcha" th:attr="data-sitekey=${@captchaSettings.getSite()}"></div>
+                </div>
+                <div class="col-md-4"></div>
+        </div>
+    </div>
+    <br>
+    <div class="input-group mb-3">
+        <button id="btn1" class="btn btn-outline-primary" onclick="createCertificate()">Crea certificato</button>
+    </div>
+</div>
+<script>
+    // Parsifica in sicurezza il JSON dello schema
+    function parseSchema(sel = '#variablesUserJson') {
+        try {
+            const el = document.querySelector(sel);
+            if (!el) return {};
+            try {
+                const txt = (el.value ?? el.textContent ?? '').trim();
+                return txt ? JSON.parse(txt) : {};
+            } catch (e) {
+                console.error('Schema JSON non valido:', e);
+                return {};
+            }
+        } catch (e) {
+            console.error('Errore nel parsare lo schema:', e);
+            showToast(e.message,{ colorClass: 'bg-danger' });
+            return {};
+        }
+    }
+
+    let schema = parseSchema('#variablesUserJson'); // <-- ORA è un oggetto
+</script>
+<script>
+
+    function buildForm() {
+        try {
+            const root = document.getElementById('varsForm');
+            root.innerHTML = ''; // evita duplicati
+
+            // se per errore arriva un array, trasformalo in oggetto { field_i: spec }
+            if (Array.isArray(schema)) {
+                schema = schema.reduce((acc, spec, i) => (acc['field_' + i] = spec, acc), {});
+            }
+
+            for (const [name, specRaw] of Object.entries(schema)) {
+                const spec = specRaw || {};
+                const type = String(spec.type || 'string').toLowerCase();
+
+                const wrap = document.createElement('div');
+                wrap.className = type === 'boolean' || type === 'bool' ? 'mb-3 form-check' : 'mb-3';
+
+                const label = document.createElement('label');
+                label.className = type === 'boolean' || type === 'bool' ? 'form-check-label' : 'form-label';
+                label.htmlFor = `f_${name}`;
+                label.textContent = spec.label || name;
+
+                if (type === 'boolean' || type === 'bool') {
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.id = `f_${name}`;
+                    cb.name = name;
+                    cb.className = 'form-check-input';
+                    cb.required = !!spec.required;
+                    if (spec.default === true) cb.checked = true;
+                    wrap.append(cb, label); // checkbox prima, etichetta dopo (bootstrap)
+                    root.append(wrap);
+                    continue;
+                }
+
+                const input = document.createElement(
+                    type === 'date' ? 'input' :
+                        type === 'number' ? 'input' : 'input'
+                );
+                input.className = 'form-control';
+                input.id = `f_${name}`;
+                input.name = name;
+                input.required = !!spec.required;
+                input.type = (type === 'number') ? 'number' :
+                    (type === 'date') ? 'date' : 'text';
+
+                if (spec.default != null) input.value = spec.default;
+
+                wrap.append(label, input);
+                root.append(wrap);
+            }
+        } catch (e) {
+            console.error('Errore nel costruire il form:', e);
+            showToast(e.message,{ colorClass: 'bg-danger' });
+        }
+    }
+    </script>
+    <script>
+    function collect(rootSelector = '#varsForm', schema = null) {
+        try {
+            const root = document.querySelector(rootSelector);
+            if (!root) throw new Error(`Container ${rootSelector} non trovato`);
+
+            const data = Object.create(null);
+            const fields = root.querySelectorAll('input[name], select[name], textarea[name]');
+
+            for (const el of fields) {
+                const name = el.name;
+                if (!name) continue;
+
+                const spec = schema?.[name] || {};
+                const type = String(spec.type || el.type || 'text').toLowerCase();
+
+                if (el.type === 'checkbox') {
+                    const group = root.querySelectorAll(`input[type="checkbox"][name="${CSS.escape(name)}"]`);
+                    if (group.length > 1) {
+                        data[name] ??= [];
+                        if (el.checked) data[name].push(el.value);
+                    } else {
+                        data[name] = !!el.checked;
+                    }
+                    continue;
+                }
+
+                if (el.type === 'radio') {
+                    if (data[name] !== undefined) continue;
+                    const checked = root.querySelector(`input[type="radio"][name="${CSS.escape(name)}"]:checked`);
+                    data[name] = checked ? checked.value : (spec.default ?? '');
+                    continue;
+                }
+
+                if (el.tagName === 'SELECT' && el.multiple) {
+                    const arr = [...el.selectedOptions].map(o => o.value);
+                    data[name] = arr.length ? arr : (spec.default ?? []);
+                    continue;
+                }
+
+                const raw = (el.value ?? '').trim();
+
+                if (type === 'number' || el.type === 'number') {
+                    // vuoto -> default o null; non fare Number("")!
+                    if (raw === '') {
+                        data[name] = spec.default ?? null;       // <-- qui il fallback
+                    } else {
+                        const n = Number(raw);
+                        data[name] = Number.isNaN(n) ? (spec.default ?? null) : n;
+                    }
+                    continue;
+                }
+
+                // boolean da select/text? (raro) -> normalizza
+                if (type === 'boolean' || type === 'bool') {
+                    data[name] = raw === '' ? (spec.default ?? false) : (raw === 'true' || raw === '1' || raw === 'on');
+                    continue;
+                }
+
+                // default testo
+                data[name] = raw === '' ? (spec.default ?? '') : raw;
+            }
+
+            return data;
+        } catch (e) {
+            console.error('Errore nel raccogliere i dati:', e);
+            showToast(e.message,{ colorClass: 'bg-danger' });
+            return {};
+        }
+    }
+</script>
+<script>
+        async function createCertificate() {
+            try {
+                const vars = collect();
+                const name = document.getElementById('name').value;
+                const email = document.getElementById('email').value;
+                if (!name || !email) {
+                    showToast('Inserisci nome e email', {colorClass: 'bg-danger'});
+                    return;
+                }
+                const captcha = document.querySelector('textarea[name="g-recaptcha-response"]')?.value || ''
+                const url = `/api/certificates/new/${encodeURIComponent(name)}/${encodeURIComponent(email)}?recaptcha=${encodeURIComponent(captcha)}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(vars)
+                });
+                const contentType = res.headers.get('Content-Type') || '';
+                const data = contentType.includes('application/json') ? await res.json() : null;
+                if (!res.ok) {
+                    if (data?.errors !== undefined) {
+                        renderValidationErrors(data?.errors);
+                    } else {
+                        showToast(data?.message, {colorClass: 'bg-danger'});
+                    }
+                    return;
+                }
+                showToast("Certificato creato con successo", {colorClass: 'bg-success'});
+            } catch (e) {
+                console.error('Errore nella creazione del certificato:', e.message);
+                showToast(e.message, {colorClass: 'bg-danger'});
+            }
+
+            function renderValidationErrors(errors) {
+                if (!errors || typeof errors !== 'object') {
+                    showToast('Si è verificato un errore di validazione.');
+                }
+                // Costruisci una UL con i messaggi
+                const items = Object.entries(errors).flatMap(([field, messages]) => {
+                    const list = Array.isArray(messages) ? messages : [String(messages)];
+                    return list.map(msg => `<li>${escapeHtml(field)}: ${escapeHtml(msg)}</li>`);
+                });
+                const html = `
+                        <div>
+                          <strong>Validazione fallita</strong>
+                          <ul class="mb-0 ps-3">
+                            ${items.join('')}
+                          </ul>
+                        </div>
+                      `;
+                showToast(html, {colorClass: 'bg-danger'});
+            }
+
+            // Piccola funzione per evitare injection nell’HTML del toast
+            function escapeHtml(s) {
+                return String(s)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#39;');
+            }
+        }
+    </script>
+</body>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+</html>

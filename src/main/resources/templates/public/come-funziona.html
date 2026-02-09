@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/come-funziona', 'index,follow')"></head>
+    <title>Documentazione Vercert | API e verifica certificati digitali con QR</title>
+    <meta name="description" content="Scopri come funziona Vercert: emissione di certificati digitali, QR code univoci, verifica dello stato, revoca e integrazione nei processi aziendali.">
+    <link rel="canonical" href="https://vercert.org/come-funziona">
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+<main class="container py-5">
+
+    <section class="mb-5">
+        <h1 class="fw-bold">Come funziona Vercert</h1>
+        <p class="mt-3">
+            Vercert è una piattaforma web per aziende che consente di <strong>emettere</strong>, <strong>gestire</strong> e
+            <strong>verificare</strong> certificati digitali tramite <strong>QR code</strong> e identificativi univoci.
+            Il sistema è progettato per garantire <strong>autenticità</strong>, <strong>tracciabilità</strong> e
+            <strong>controllo dello stato</strong> del certificato nel tempo.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="fw-semibold">Architettura logica</h2>
+        <p class="mt-3">
+            Il modello operativo di Vercert si basa su tre componenti principali:
+        </p>
+        <ul>
+            <li><strong>Emissione</strong>: generazione del certificato e dei metadati associati.</li>
+            <li><strong>Identificazione</strong>: associazione di un <strong>codice univoco</strong> e di un <strong>QR code</strong> al certificato.</li>
+            <li><strong>Verifica</strong>: risoluzione del codice e controllo dello <strong>stato</strong> (valido / revocato / scaduto) su endpoint pubblico.</li>
+        </ul>
+        <p class="mb-0">
+            L’elemento chiave non è il QR in sé, ma la <strong>verifica server-side</strong> basata sul codice/identificativo.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="fw-semibold">1) Emissione del certificato</h2>
+        <p class="mt-3">
+            Durante l’emissione, la piattaforma crea un certificato digitale contenente i dati funzionali (es. intestazione,
+            periodo, attributi del certificato) e registra i metadati necessari al controllo successivo:
+        </p>
+        <ul>
+            <li><strong>ID/codice univoco</strong> del certificato</li>
+            <li><strong>ente/tenant emittente</strong> e contesto di emissione</li>
+            <li><strong>timestamp</strong> e versione/seriale (se previsto)</li>
+            <li><strong>stato</strong> iniziale (tipicamente “valido”)</li>
+        </ul>
+    </section>
+    <section class="mb-5">
+        <h2 class="fw-semibold">2) Generazione QR code e distribuzione</h2>
+        <p class="mt-3">
+            A ogni certificato viene associato un QR code che veicola il <strong>codice di verifica</strong>
+            (o un link che lo contiene). Il QR può essere incluso in PDF, attestati digitali, badge, o comunicazioni aziendali.
+        </p>
+        <p class="mb-0">
+            Per robustezza e sicurezza, la logica consigliata è: <strong>QR → codice → verifica lato server</strong>.
+            In questo modo, copie del QR non compromettono l’affidabilità, perché la validità dipende dallo stato registrato dal sistema.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="fw-semibold">3) Verifica e risoluzione del codice</h2>
+        <p class="mt-3">
+            La verifica avviene tramite una pagina/endpoint pubblico che riceve un <strong>codice</strong>
+            (tipicamente passato come parametro o ricavato da scansione QR) e restituisce l’esito:
+        </p>
+        <ul>
+            <li>esistenza del certificato</li>
+            <li><strong>stato corrente</strong> (valido / revocato / scaduto)</li>
+            <li>informazioni essenziali per confermare l’identità del certificato (minimizzando i dati esposti)</li>
+        </ul>
+        <p class="mb-0">
+            Questa parte è pensata per essere usata <strong>dinamicamente</strong> e non come pagina “navigabile” tradizionale.
+        </p>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="fw-semibold">Revoca e gestione del ciclo di vita</h2>
+        <p class="mt-3">
+            In contesto aziendale è fondamentale poter gestire l’intero ciclo di vita del certificato.
+            Vercert consente di aggiornare lo stato (ad es. revoca) mantenendo lo storico e garantendo che la verifica
+            esponga sempre lo stato attuale.
+        </p>
+        <ul>
+            <li><strong>Revoca</strong> per annullamento/sostituzione/errore</li>
+            <li><strong>Scadenza</strong> per certificazioni a validità temporale</li>
+            <li><strong>Audit</strong> e tracciabilità operativa (se abilitati)</li>
+        </ul>
+    </section>
+
+    <section class="mb-5">
+        <h2 class="fw-semibold">Sicurezza e privacy</h2>
+        <p class="mt-3">
+            La verifica pubblica deve mostrare <strong>solo le informazioni necessarie</strong> alla validazione.
+            Per impostazione consigliata:
+        </p>
+        <ul>
+            <li>minimizzazione dei dati personali esposti</li>
+            <li>controllo accessi forte sulle funzioni di gestione/emissione</li>
+            <li>protezione da enumerazione (rate limiting / codici non predicibili)</li>
+        </ul>
+    </section>
+
+    <section class="mb-0">
+        <h2 class="fw-semibold">Integrazione nei processi aziendali</h2>
+        <p class="mt-3">
+            Vercert può essere inserito in workflow esistenti (formazione, compliance, HR, quality) tramite API o automazioni
+            per emissione e verifica. Questo riduce la gestione manuale e aumenta la standardizzazione dei controlli.
+        </p>
+    </section>
+    <section class="mb-5">
+        <h2 class="fw-semibold">Template HTML e form dinamici</h2>
+        <p class="mt-3">
+            Gli attestati Vercert non sono documenti statici.
+            Ogni certificato viene generato a partire da un <strong>template HTML</strong>
+            altamente personalizzabile.
+        </p>
+        <ul>
+            <li>Layout grafico completamente configurabile.</li>
+            <li>Contenuto separato dalla logica di emissione.</li>
+            <li>Form di compilazione generato dinamicamente da definizione JSON.</li>
+        </ul>
+        <p class="mb-0">
+            Questo approccio consente di adattare rapidamente gli attestati
+            a contesti diversi (formazione, HR, compliance, qualità).
+        </p>
+    </section>
+    <section class="mb-5">
+        <h2 class="fw-semibold">Emissione e firma digitale</h2>
+        <p class="mt-3">
+            Al termine della compilazione del form, Vercert genera il PDF e applica una
+            <strong>firma digitale PAdES</strong>.
+        </p>
+        <ul>
+            <li>Il PDF firmato garantisce integrità e non ripudiabilità.</li>
+            <li>Ogni modifica successiva invalida automaticamente la firma.</li>
+            <li>La firma è associata al tenant emittente.</li>
+        </ul>
+    </section>
+    <section class="mb-5">
+        <h2 class="fw-semibold">Verifica pubblica e trust</h2>
+        <p class="mt-3">
+            La verifica pubblica consente a chiunque di controllare
+            l’autenticità del certificato tramite QR code o link.
+        </p>
+        <ul>
+            <li>Controllo dello stato lato server (valido / revocato / scaduto).</li>
+            <li>Verifica dell’integrità del PDF.</li>
+            <li>Possibilità di rendere attendibile il certificato in Adobe
+                importando il certificato del tenant.</li>
+        </ul>
+    </section>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

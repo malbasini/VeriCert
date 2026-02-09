@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <head th:replace="fragments/base :: headFragment(${title}, ${description}, '/docs', 'index,follow')"></head>
+  <title>Documentazione Vercert | API e verifica certificati digitali con QR</title>
+  <meta name="description" content="Documentazione tecnica Vercert: API e integrazione per creare e verificare certificati digitali con QR code in contesti aziendali.">
+  <link rel="canonical" href="https://vercert.org/docs">
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+
+<main class="container py-4">
+  <section class="container my-4">
+    <h1>Documentazione Vercert</h1>
+    <p>
+      Questa sezione contiene la <strong>documentazione tecnica di Vercert</strong>,
+      la piattaforma per la <strong>creazione e verifica di certificati digitali</strong>
+      tramite <strong>QR code</strong>.
+    </p>
+
+    <p>
+      La documentazione è pensata per sviluppatori e aziende che vogliono
+      <strong>integrare la verifica dei certificati digitali</strong>
+      nei propri sistemi, applicazioni o processi aziendali.
+    </p>
+  </section>
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-9">
+
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+          <p class="text-muted mb-0">
+            Guida rapida per usare VeriCert: template, certificati, verifica e revoca.
+          </p>
+        </div>
+        <a class="btn btn-outline-secondary btn-lg" th:href="@{/}">
+          <i class="bi bi-house me-1"></i> Home
+        </a>
+      </div>
+
+      <!-- Indice -->
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <div class="fw-semibold mb-2">Indice</div>
+          <div class="d-flex flex-wrap gap-3 small">
+            <a class="text-decoration-none" href="#getting-started">Getting started</a>
+            <a class="text-decoration-none" href="#roles">Ruoli e permessi</a>
+            <a class="text-decoration-none" href="#templates">Template</a>
+            <a class="text-decoration-none" href="#certificates">Certificati</a>
+            <a class="text-decoration-none" href="#verify">Verifica</a>
+            <a class="text-decoration-none" href="#revoke">Revoca ed eliminazione</a>
+            <a class="text-decoration-none" href="#plans">Piani e limiti</a>
+            <a class="text-decoration-none" href="#security">Sicurezza</a>
+            <a class="text-decoration-none" href="#faq">FAQ</a>
+          </div>
+        </div>
+      </div>
+      <div class="card shadow-sm border-0 mb-4" id="getting-started">
+        <div class="card-body">
+          <h3 class="mb-2">Getting started</h3>
+          <ol class="mb-0">
+            <li>Registrati sulla piattaforma: il primo utente creato diventa <strong>ADMIN del tenant</strong>.</li>
+            <li>Accedi alla sezione di amministrazione per configurare template, ruoli e impostazioni.</li>
+            <li>Crea uno o più <strong>template di attestato</strong>.</li>
+            <li>Emetti certificati compilando il form dinamico associato al template.</li>
+            <li>Distribuisci il PDF firmato e il <strong>QR code di verifica</strong>.</li>
+          </ol>
+        </div>
+      </div>
+      <div class="card shadow-sm border-0 mb-4" id="roles">
+        <div class="card-body">
+          <h3 class="mb-2">Ruoli e permessi</h3>
+          <p class="mb-2">
+            Vercert è una piattaforma <strong>multi-tenant</strong> basata su ruoli applicativi.
+            Ogni utente appartiene a un tenant e opera secondo i permessi assegnati.
+          </p>
+          <ul class="mb-0">
+            <li><strong>ADMIN</strong>: pieno controllo del tenant (utenti, template, certificati, impostazioni).</li>
+            <li><strong>MANAGER</strong>: gestione operativa (template e certificati), esclusa la gestione utenti.</li>
+            <li><strong>ISSUER</strong>: può emettere certificati utilizzando i template disponibili.</li>
+            <li><strong>VIEWER</strong>: accesso in sola lettura ai certificati e allo stato.</li>
+          </ul>
+          <p class="mt-2 mb-0">
+            Il <strong>primo utente che si registra</strong> per un tenant viene automaticamente assegnato al ruolo <strong>ADMIN</strong>.
+            Gli utenti successivi sono creati con ruolo <strong>VIEWER</strong> e possono essere promossi dall’ADMIN.
+          </p>
+        </div>
+      </div>
+      <div class="card shadow-sm border-0 mb-4" id="templates">
+        <div class="card-body">
+          <h3 class="mb-2">Template</h3>
+          <p class="mb-2">
+            I template definiscono <strong>struttura, layout e contenuto</strong> degli attestati.
+            Ogni template è basato su un <strong>HTML personalizzabile</strong> e su una definizione JSON dei campi.
+          </p>
+          <ul class="mb-0">
+            <li>Layout HTML completamente personalizzabile (branding, stili, contenuti).</li>
+            <li>Form di emissione generato dinamicamente da un <strong>file JSON</strong>.</li>
+            <li>Supporto a campi testuali, date, selezioni e attributi custom.</li>
+            <li>Template attivabili/disattivabili senza perdere lo storico.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card shadow-sm border-0 mb-4" id="certificates">
+        <div class="card-body">
+          <h3 class="mb-2">Certificati digitali</h3>
+          <p class="mb-2">
+            Ogni certificato viene generato come <strong>PDF firmato digitalmente</strong>
+            utilizzando l’algoritmo <strong>PAdES</strong>.
+          </p>
+          <ul class="mb-0">
+            <li>Firma digitale applicata al PDF al momento dell’emissione.</li>
+            <li>Qualsiasi modifica successiva rende il documento <strong>non valido</strong>.</li>
+            <li>Associazione univoca tra PDF, QR code e codice di verifica.</li>
+            <li>Conservazione dei PDF fino a revoca o cancellazione.</li>
+          </ul>
+        </div>
+      </div>
+
+
+      <div class="card shadow-sm border-0 mb-4" id="verify">
+        <div class="card-body">
+          <h3 class="mb-2">Verifica</h3>
+          <p class="mb-2">
+            La verifica consente di controllare l’autenticità del certificato tramite link/QR.
+          </p>
+          <ul class="mb-0">
+            <li>Usa il link di verifica presente nel certificato o associato al QR.</li>
+            <li>La pagina di verifica mostra stato (valido/revocato/scaduto) e dettagli essenziali.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="revoke">
+        <div class="card-body">
+          <h3 class="mb-2">Revoca ed eliminazione</h3>
+          <p class="mb-2">
+            La revoca marca il certificato come non valido. L’eliminazione rimuove definitivamente
+            i dati e il PDF, se richiesta dall’utente.
+          </p>
+          <ul class="mb-0">
+            <li><strong>Revoca</strong>: il certificato risulta non valido in verifica.</li>
+            <li><strong>Elimina</strong>: cancella record e file PDF (azione a discrezione dell’utente).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="plans">
+        <div class="card-body">
+          <h3 class="mb-2">Piani e limiti</h3>
+          <p class="mb-2">
+            Il piano determina eventuali limiti (es. numero certificati / chiamate API).
+          </p>
+          <ul class="mb-0">
+            <li>In prossimità dei limiti, l’app può mostrare avvisi nella dashboard.</li>
+            <li>In scadenza o scaduto, alcune funzionalità possono essere bloccate.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card shadow-sm border-0 mb-4" id="security">
+        <div class="card-body">
+          <h3 class="mb-2">Sicurezza e firma digitale</h3>
+          <ul class="mb-0">
+            <li>Firma PAdES con certificato dedicato al tenant.</li>
+            <li>Il certificato di firma può essere scaricato dall’area amministrativa.</li>
+            <li>L’amministratore può importare il certificato in Adobe Reader/Acrobat
+              per renderlo <strong>attendibile</strong> nel proprio ambiente.</li>
+            <li>Verifica server-side sempre disponibile come fonte di verità.</li>
+          </ul>
+        </div>
+      </div>
+
+
+      <div class="card shadow-sm border-0" id="faq">
+        <div class="card-body">
+          <h3 class="mb-2">FAQ</h3>
+
+          <div class="mb-3">
+            <div class="fw-semibold">Posso eliminare un certificato revocato?</div>
+            <div class="text-muted">
+              Sì. La revoca cambia lo stato, mentre l’eliminazione rimuove definitivamente dati e PDF.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <div class="fw-semibold">Serve un banner cookie?</div>
+            <div class="text-muted">
+              Se vengono usati solo cookie tecnici, non è richiesto consenso, ma l’informativa è disponibile.
+            </div>
+          </div>
+
+          <div>
+            <div class="fw-semibold">Come contatto il supporto?</div>
+            <div class="text-muted">
+              Vai su <a th:href="@{/contact}">Contatti</a> e invia un messaggio.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <section class="container my-5">
+    <h2>Utilizzo aziendale</h2>
+    <p>
+      Se stai valutando Vercert per un utilizzo aziendale o per volumi elevati,
+      consulta i <a href="/pricing">piani disponibili</a>
+      o leggi le <a href="/faq">domande frequenti</a>.
+    </p>
+  </section>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

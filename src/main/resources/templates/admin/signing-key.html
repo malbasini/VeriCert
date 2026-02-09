@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body th:replace="~{admin :: layout(
+        pageTitle='Signing Key',
+        active=${'signing'},
+        actionsFrag=~{::actionsFrag},
+        contentFrag=~{::contentFrag}
+    )}">
+<div th:fragment="actionsFrag">
+    <!-- ad esempio un bottone "Torna alla lista" -->
+</div>
+
+<div th:fragment="contentFrag">
+    <div th:replace="~{admin/_signing-key :: content(
+        tenant=${tenant},
+        signingKey=${signingKey}
+    )}"></div>
+</div>
+
+</body>
+</html>
+
+
+

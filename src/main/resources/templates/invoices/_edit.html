@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org" th:fragment="content(tenantId)">
+<head>
+  <meta charset="utf-8">
+  <title>Modifica fattura</title>
+</head>
+<body class="bg-light">
+
+<div class="container my-4" style="max-width: 980px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Modifica fattura</h1>
+      <div class="text-muted small">ID: <span th:text="${invoiceId}"></span></div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/invoices"><i class="bi bi-arrow-return-left"></i> Torna alla Lista</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div id="warnIssued" class="alert alert-warning d-none">
+        Questa fattura è già emessa: non può essere modificata.
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Cliente</label>
+          <input id="customerName" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">P.IVA / CF</label>
+          <input id="customerVat" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Email</label>
+          <input id="customerEmail" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">IVA (%)</label>
+          <input id="vatRate" type="number" class="form-control" value="22">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label">Descrizione</label>
+          <input id="description" class="form-control">
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Indirizzo riga 1</label>
+          <input id="address1" class="form-control">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label">Indirizzo riga 2</label>
+          <input id="address2" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Città</label>
+          <input id="city" class="form-control">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Provincia</label>
+          <input id="province" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">CAP</label>
+          <input id="postalCode" class="form-control">
+        </div>
+        <div class="col-md-5">
+          <label class="form-label">Stato</label>
+          <input id="country" class="form-control">
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">PEC</label>
+          <input id="pec" class="form-control">
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">SDI</label>
+          <input id="sdi" class="form-control">
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Righe</h2>
+        <button id="addLine" class="btn btn-sm btn-outline-primary" type="button"><i class="fa-solid fa-plus"></i> Aggiungi riga</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+          <tr>
+            <th>Descrizione</th>
+            <th style="width:120px;">Qtà</th>
+            <th style="width:160px;">Prezzo (cent)</th>
+            <th class="text-end" style="width:160px;">Tot riga</th>
+            <th style="width:60px;"></th>
+          </tr>
+          </thead>
+          <tbody id="lines"></tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <a class="btn btn-outline-secondary" th:href="@{/invoices/{id}(id=${invoiceId})}"><i class="bi bi-arrow-counterclockwise"></i>Annulla</a>
+        <button id="save" class="btn btn-primary" type="button"><i class="bi bi-save"></i>Salva modifiche</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+  const invoiceId = [[${invoiceId}]];
+</script>
+
+<script>
+  const linesEl = document.getElementById("lines");
+  const euro = (minor) => ((minor||0)/100).toFixed(2).replace(".", ",") + " €";
+
+  function row(desc="", qty=1, unit=0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+    <td><input class="form-control desc"></td>
+    <td><input class="form-control qty" type="number" min="1"></td>
+    <td><input class="form-control unit" type="number" min="0"></td>
+    <td class="text-end fw-semibold total">0,00 €</td>
+    <td class="text-end"><button class="btn btn-sm btn-outline-danger del" type="button">X</button></td>
+  `;
+    tr.querySelector(".desc").value = desc;
+    tr.querySelector(".qty").value = qty;
+    tr.querySelector(".unit").value = unit;
+
+    tr.querySelector(".del").addEventListener("click", () => { tr.remove(); computeTotals(); });
+    tr.querySelectorAll("input").forEach(i => i.addEventListener("input", computeTotals));
+    linesEl.appendChild(tr);
+  }
+
+  function computeTotals() {
+    const vatRate = parseInt(document.getElementById("vatRate").value || "22", 10);
+    [...linesEl.querySelectorAll("tr")].forEach(r => {
+      const qty = parseInt(r.querySelector(".qty").value || "1", 10);
+      const unit = parseInt(r.querySelector(".unit").value || "0", 10);
+      const net = unit * qty;
+      const vat = Math.floor((net * vatRate + 50) / 100);
+      r.querySelector(".total").textContent = euro(net + vat);
+    });
+  }
+
+  function collectLines() {
+    return [...linesEl.querySelectorAll("tr")].map(r => ({
+      description: r.querySelector(".desc").value || "",
+      qty: parseInt(r.querySelector(".qty").value || "1", 10),
+      unitPriceMinor: parseInt(r.querySelector(".unit").value || "0", 10)
+    })).filter(x => x.description.trim().length > 0);
+  }
+
+  async function load() {
+    const res = await fetch(`/api/invoices/${invoiceId}`, { headers: {"Accept":"application/json"}});
+    const data = await res.json();
+    if (!res.ok) {
+      showToast?.(`Errore: ${data.message || res.statusText}`, { colorClass: "bg-danger" });
+      return;
+    }
+
+    if (data.status !== "DRAFT") {
+      document.getElementById("warnIssued").classList.remove("d-none");
+      document.getElementById("save").disabled = true;
+      document.getElementById("addLine").disabled = true;
+    }
+
+    document.getElementById("customerName").value = data.customerName || "";
+    document.getElementById("customerVat").value = data.customerVat || "";
+    document.getElementById("customerEmail").value = data.customerEmail || "";
+    document.getElementById("vatRate").value = data.vatRate ?? 22;
+    document.getElementById("description").value = data.description || "";
+    document.getElementById("address1").value = data.customerAddressLine1 || "",
+    document.getElementById("address2").value = data.customerAddressLine2 || "",
+    document.getElementById("city").value = data.customerCity || "",
+    document.getElementById("province").value = data.customerProvince || "",
+    document.getElementById("postalCode").value = data.customerPostalCode || "",
+    document.getElementById("country").value = data.customerCountry || "",
+    document.getElementById("pec").value = data.customerPec || "",
+    document.getElementById("sdi").value = data.customerSdi || "",
+    linesEl.innerHTML = "";
+    (data.lines || []).forEach(l => row(l.description || "", l.qty || 1, l.unitPriceMinor || 0));
+    if (!(data.lines||[]).length) row();
+    computeTotals();
+  }
+
+  document.getElementById("addLine").addEventListener("click", () => { row(); computeTotals(); });
+
+  document.getElementById("save").addEventListener("click", async () => {
+    const body = {
+      customerName: document.getElementById("customerName").value || null,
+      customerVat: document.getElementById("customerVat").value || null,
+      customerEmail: document.getElementById("customerEmail").value || null,
+      vatRate: parseInt(document.getElementById("vatRate").value || "22", 10),
+      description: document.getElementById("description").value || null,
+      customerAddressLine1: document.getElementById("address1").value || '',
+      customerAddressLine2: document.getElementById("address2").value || '',
+      customerCity: document.getElementById("city").value || '',
+      customerProvince: document.getElementById("province").value || '',
+      customerPostalCode: document.getElementById("postalCode").value || '',
+      customerCountry: document.getElementById("country").value || '',
+      customerPec: document.getElementById("pec").value || '',
+      customerSdi: document.getElementById("sdi").value || '',
+      lines: collectLines()
+    };
+
+    const res = await fetch(`/api/invoices/${invoiceId}`, {
+      method: "PUT",
+      headers: {"Content-Type":"application/json", "Accept":"application/json"},
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      if(data?.errors !== undefined)
+      {
+        renderValidationErrors(data?.errors);
+        return;
+      }
+      else {
+        showToast?.(`Errore: ${data.message || res.statusText}`, {colorClass: "bg-danger"});
+        return;
+      }
+    }
+
+    function renderValidationErrors(errors) {
+      if (!errors || typeof errors !== 'object') {
+        showToast('Si è verificato un errore di validazione.');
+      }
+      // Costruisci una UL con i messaggi
+      const items = Object.entries(errors).flatMap(([field, messages]) => {
+        const list = Array.isArray(messages) ? messages : [String(messages)];
+        return list.map(msg => `<li>${escapeHtml(field)}: ${escapeHtml(msg)}</li>`);
+      });
+      const html = `
+                        <div>
+                          <strong>Validazione fallita</strong>
+                          <ul class="mb-0 ps-3">
+                            ${items.join('')}
+                          </ul>
+                        </div>
+                      `;
+      showToast(html, {colorClass: 'bg-danger', autohide: false});
+    }
+    // Piccola funzione per evitare injection nell’HTML del toast
+    function escapeHtml(s) {
+      return String(s)
+              .replaceAll('&', '&amp;')
+              .replaceAll('<', '&lt;')
+              .replaceAll('>', '&gt;')
+              .replaceAll('"', '&quot;')
+              .replaceAll("'", '&#39;');
+    }
+    window.location.href = `/invoices/${invoiceId}`;
+  });
+
+  load();
+</script>
+</body>
+</html>

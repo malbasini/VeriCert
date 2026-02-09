@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="it"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <head th:replace="fragments/base :: headFragment(
+            'Trust e firma digitale | Vercert',
+            'Approfondimento tecnico su firma digitale PAdES, trust del certificato e verifica di autenticità dei PDF in Vercert.',
+            '/firma-digitale',
+            'index,follow'
+    )"></head>
+</head>
+<body>
+<header th:replace="fragments/base :: navFragment"></header>
+
+<main class="container py-5">
+
+  <!-- INTRO -->
+  <section class="mb-5">
+    <h1 class="fw-bold">Trust e firma digitale</h1>
+    <p class="mt-3">
+      Questa pagina spiega come Vercert gestisce la <strong>firma digitale dei PDF</strong>,
+      il concetto di <strong>trust</strong> e il comportamento dei principali lettori (come Adobe Acrobat).
+    </p>
+    <p class="mb-0">
+      L’obiettivo è fornire <strong>trasparenza tecnica</strong> e chiarire come verificare
+      correttamente l’autenticità degli attestati.
+    </p>
+  </section>
+
+  <!-- FIRMA DIGITALE -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Firma digitale dei certificati</h2>
+    <p class="mt-3">
+      Ogni attestato emesso tramite Vercert viene generato come <strong>PDF firmato digitalmente</strong>
+      utilizzando lo standard <strong>PAdES (PDF Advanced Electronic Signatures)</strong>.
+    </p>
+    <ul>
+      <li>La firma è applicata al momento dell’emissione.</li>
+      <li>Qualsiasi modifica successiva invalida automaticamente il documento.</li>
+      <li>L’integrità del contenuto è garantita crittograficamente.</li>
+    </ul>
+    <p class="mb-0">
+      La firma PAdES è uno standard riconosciuto e supportato dai principali software di lettura PDF.
+    </p>
+  </section>
+
+  <!-- CERTIFICATO DI FIRMA -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Certificato di firma per tenant</h2>
+    <p class="mt-3">
+      Vercert utilizza un <strong>certificato di firma dedicato per ciascun tenant</strong>.
+      Il certificato identifica l’organizzazione emittente ed è utilizzato esclusivamente
+      per firmare gli attestati prodotti dal tenant.
+    </p>
+    <ul>
+      <li>Isolamento tra tenant.</li>
+      <li>Tracciabilità dell’emittente.</li>
+      <li>Controllo completo sul ciclo di vita del certificato.</li>
+    </ul>
+    <p class="mb-0">
+      Il certificato può essere scaricato dall’area di amministrazione del tenant.
+    </p>
+  </section>
+
+  <!-- TRUST ADOBE -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Trust nei lettori PDF (Adobe)</h2>
+    <p class="mt-3">
+      I lettori PDF come Adobe Acrobat distinguono tra:
+    </p>
+    <ul>
+      <li><strong>Integrità del documento</strong> (firma valida o non valida)</li>
+      <li><strong>Attendibilità del certificato</strong> (trust del firmatario)</li>
+    </ul>
+    <p class="mt-2">
+      Quando il certificato non è presente tra quelli già considerati attendibili dal sistema,
+      Adobe può mostrare un avviso del tipo:
+    </p>
+    <blockquote class="blockquote ps-3 border-start">
+      <p class="mb-0">“Firma valida, ma firmatario non attendibile”</p>
+    </blockquote>
+    <p class="mt-2 mb-0">
+      Questo <strong>non indica un problema di integrità</strong> del documento,
+      ma solo che il certificato non è ancora stato marcato come attendibile localmente.
+    </p>
+  </section>
+
+  <!-- IMPORT CERTIFICATO -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Rendere il certificato attendibile in Adobe</h2>
+    <p class="mt-3">
+      Per eliminare gli avvisi nei lettori PDF, l’amministratore del tenant può:
+    </p>
+    <ol>
+      <li>Scaricare il certificato di firma del tenant dall’area di amministrazione.</li>
+      <li>Importarlo in Adobe Acrobat / Reader come certificato attendibile.</li>
+      <li>Marcarlo come attendibile per la firma dei documenti.</li>
+    </ol>
+    <p class="mb-0">
+      Questa operazione va effettuata una sola volta per ambiente
+      (azienda, reparto, workstation).
+    </p>
+  </section>
+
+  <!-- VERIFICA SERVER -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Verifica server-side come fonte di verità</h2>
+    <p class="mt-3">
+      Oltre alla verifica locale del PDF, Vercert fornisce una
+      <strong>verifica server-side</strong> tramite QR code o link pubblico.
+    </p>
+    <ul>
+      <li>Controllo dello stato attuale (valido, revocato, scaduto).</li>
+      <li>Verifica dell’integrità del documento.</li>
+      <li>Fonte di verità sempre aggiornata.</li>
+    </ul>
+    <p class="mb-0">
+      Anche in presenza di copie del PDF o del QR code,
+      la validità dipende sempre dallo stato registrato sul server.
+    </p>
+  </section>
+  <!-- POSIZIONAMENTO -->
+  <section class="mb-0">
+    <h2 class="fw-semibold">Posizionamento e utilizzo</h2>
+    <p class="mt-3">
+      Il modello adottato da Vercert è particolarmente adatto a:
+    </p>
+    <ul>
+      <li>certificazioni aziendali</li>
+      <li>attestati di formazione</li>
+      <li>documenti di compliance e qualità</li>
+      <li>workflow HR e interni</li>
+    </ul>
+    <p class="mb-0">
+      La piattaforma privilegia <strong>controllo, trasparenza e verificabilità</strong>,
+      lasciando all’organizzazione la gestione del trust nel proprio contesto operativo.
+    </p>
+  </section>
+</main>
+<div th:replace="fragments/footer :: footerFragment"></div>
+</body>
+</html>

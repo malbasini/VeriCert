@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<head>
+  <meta charset="utf-8">
+  <title>Nuova fattura</title>
+</head>
+<body class="bg-light">
+<div class="container my-4" style="max-width: 980px;">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-0">Nuova fattura</h1>
+      <div class="text-muted small">Crea una bozza</div>
+    </div>
+    <a class="btn btn-outline-secondary" href="/admin"><i class="bi bi-arrow-return-left"></i>Torna alla dashboard</a>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Cliente</label>
+          <input id="customerName" class="form-control" placeholder="Mario Rossi / Azienda Srl">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">P.IVA / CF</label>
+          <input id="customerVat" class="form-control" placeholder="IT...">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Email</label>
+          <input id="customerEmail" class="form-control" placeholder="cliente@email.it">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">IVA (%)</label>
+          <input id="vatRate" type="number" class="form-control" value="22">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label">Descrizione</label>
+          <input id="description" class="form-control" placeholder="Es. Abbonamento PRO mensile">
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Indirizzo riga 1</label>
+          <input id="address1" class="form-control" placeholder="Indirizzo riga 1">
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">Indirizzo riga 2</label>
+          <input id="address2" class="form-control" placeholder="Indirizzo riga 2">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Città</label>
+          <input id="city" class="form-control" placeholder="Città">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Provincia</label>
+          <input id="province" class="form-control" placeholder="Provincia">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">CAP</label>
+          <input id="postalCode" class="form-control" placeholder="CAP">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Stato</label>
+          <input id="country" class="form-control" placeholder="Stato">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">PEC</label>
+          <input id="pec" class="form-control" placeholder="PEC">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">SDI</label>
+          <input id="sdi" class="form-control" placeholder="SDI">
+        </div>
+      </div>
+
+      <hr class="my-4">
+
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h5 mb-0">Righe</h2>
+        <button id="addLine" class="btn btn-sm btn-outline-primary" type="button"><i class="fa-solid fa-plus"></i>Aggiungi riga</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+          <tr>
+            <th>Descrizione</th>
+            <th style="width:120px;">Qtà</th>
+            <th style="width:160px;">Prezzo (cent)</th>
+            <th class="text-end" style="width:160px;">Tot riga</th>
+            <th style="width:60px;"></th>
+          </tr>
+          </thead>
+          <tbody id="lines"></tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-end">
+        <div class="text-end">
+          <div class="text-muted small">Totale lordo stimato</div>
+          <div class="fs-4 fw-semibold" id="grossPreview">0,00 €</div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <a class="btn btn-outline-secondary" href="/invoices"><i class="bi bi-arrow-return-left"></i> Torna alla Lista</a>
+        <button id="save" class="btn btn-primary" type="button"> <i class="bi bi-save"></i> Salva bozza</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const linesEl = document.getElementById("lines");
+  const euro = (minor) => ((minor||0)/100).toFixed(2).replace(".", ",") + " €";
+
+  function newRow(desc="", qty=1, unit=0) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+    <td><input class="form-control desc" value="${desc.replaceAll('"','&quot;')}"></td>
+    <td><input class="form-control qty" type="number" min="1" value="${qty}"></td>
+    <td><input class="form-control unit" type="number" min="0" value="${unit}"></td>
+    <td class="text-end fw-semibold total">0,00 €</td>
+    <td class="text-end"><button class="btn btn-sm btn-outline-danger del" type="button">X</button></td>
+  `;
+    tr.querySelector(".del").addEventListener("click", () => { tr.remove(); computePreview(); });
+    tr.querySelectorAll("input").forEach(i => i.addEventListener("input", computePreview));
+    linesEl.appendChild(tr);
+  }
+
+  function collectLines() {
+    const rows = [...linesEl.querySelectorAll("tr")];
+    return rows.map(r => ({
+      description: r.querySelector(".desc").value || "",
+      qty: parseInt(r.querySelector(".qty").value || "1", 10),
+      unitPriceMinor: parseInt(r.querySelector(".unit").value || "0", 10)
+    })).filter(x => x.description.trim().length > 0);
+  }
+
+  function computePreview() {
+    const vatRate = parseInt(document.getElementById("vatRate").value || "22", 10);
+    let gross = 0;
+
+    [...linesEl.querySelectorAll("tr")].forEach(r => {
+      const qty = parseInt(r.querySelector(".qty").value || "1", 10);
+      const unit = parseInt(r.querySelector(".unit").value || "0", 10);
+      const net = unit * qty;
+      const vat = Math.floor((net * vatRate + 50) / 100);
+      const lineGross = net + vat;
+      r.querySelector(".total").textContent = euro(lineGross);
+      gross += lineGross;
+    });
+
+    document.getElementById("grossPreview").textContent = euro(gross);
+  }
+
+  document.getElementById("addLine").addEventListener("click", () => { newRow(); computePreview(); });
+
+  document.getElementById("save").addEventListener("click", async () => {
+    const body = {
+      customerName: document.getElementById("customerName").value || null,
+      customerVat: document.getElementById("customerVat").value || null,
+      customerEmail: document.getElementById("customerEmail").value || null,
+      vatRate: parseInt(document.getElementById("vatRate").value || "22", 10),
+      description: document.getElementById("description").value || null,
+      customerAddressLine1: document.getElementById("address1").value || '',
+      customerAddressLine2: document.getElementById("address2").value || '',
+      customerCity: document.getElementById("city").value || '',
+      customerProvince: document.getElementById("province").value || '',
+      customerPostalCode: document.getElementById("postalCode").value || '',
+      customerCountry: document.getElementById("country").value || '',
+      customerPec: document.getElementById("pec").value || '',
+      customerSdi: document.getElementById("sdi").value || '',
+      lines: collectLines()
+    };
+    const res = await fetch("/api/invoices", {
+      method: "POST",
+      headers: {"Content-Type":"application/json", "Accept":"application/json"},
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+          if (data?.errors !== undefined) {
+            renderValidationErrors(data?.errors);
+            return;
+          } else {
+            showToast?.(`Errore: ${data.message || res.statusText}`, {colorClass: "bg-danger"});
+            return;
+          }
+     }
+     else
+         window.location.href = `/invoices/${data.id}`;
+
+
+     function renderValidationErrors(errors) {
+      if (!errors || typeof errors !== 'object') {
+        showToast('Si è verificato un errore di validazione.');
+      }
+        // Costruisci una UL con i messaggi
+        const items = Object.entries(errors).flatMap(([field, messages]) => {
+        const list = Array.isArray(messages) ? messages : [String(messages)];
+        return list.map(msg => `<li>${escapeHtml(field)}: ${escapeHtml(msg)}</li>`);
+      });
+      const html = `
+                        <div>
+                          <strong>Validazione fallita</strong>
+                          <ul class="mb-0 ps-3">
+                            ${items.join('')}
+                          </ul>
+                        </div>
+                      `;
+      showToast(html, {colorClass: 'bg-danger', autohide: false});
+    }
+
+    // Piccola funzione per evitare injection nell’HTML del toast
+    function escapeHtml(s) {
+      return String(s)
+              .replaceAll('&', '&amp;')
+              .replaceAll('<', '&lt;')
+              .replaceAll('>', '&gt;')
+              .replaceAll('"', '&quot;')
+              .replaceAll("'", '&#39;');
+    }
+  });
+
+  newRow("Abbonamento", 1, 50);
+  computePreview();
+</script>
+<script>
+  // all'avvio pagina (es. in uno script al fondo pagina):
+  const flash = sessionStorage.getItem("flashMsg");
+  if (flash) {
+    const { text, cls } = JSON.parse(flash);
+    showToast(text, { colorClass: cls });
+    sessionStorage.removeItem("flashMsg");
+  }
+</script>
+</body>
+</html>
