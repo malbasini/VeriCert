@@ -103,6 +103,15 @@ public class Invoice {
     @Column(name="pdf_sha256",columnDefinition="VARCHAR(255)")
     private String pdfSha256;
 
+    @Column(name="pdf_url",columnDefinition="VARCHAR(255)")
+    private String pdfUrl;
+
+    @Column(name="serial",columnDefinition="VARCHAR(64)")
+    private String serial;
+
+    @Column(name="signing_kid",columnDefinition="VARCHAR(255)")
+    private String kid;
+
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InvoiceLine> lines = new ArrayList<>();
 
@@ -404,5 +413,29 @@ public class Invoice {
 
     public void setCustomerSdi(String customerSdi) {
         this.customerSdi = customerSdi;
+    }
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
+
+    public String getSerial() {
+        return serial;
+    }
+
+    public void setSerial(String serial) {
+        this.serial = serial;
+    }
+
+    public String getKid() {
+        return kid;
+    }
+
+    public void setKid(String kid) {
+        this.kid = kid;
     }
 }

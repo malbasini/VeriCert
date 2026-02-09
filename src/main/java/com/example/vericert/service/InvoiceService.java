@@ -1,26 +1,25 @@
 package com.example.vericert.service;
 
 import com.example.vericert.config.VericertProps;
-import com.example.vericert.domain.Invoice;
-import com.example.vericert.domain.InvoiceLine;
-import com.example.vericert.domain.Template;
-import com.example.vericert.domain.TenantProfile;
+import com.example.vericert.domain.*;
 import com.example.vericert.dto.InvoiceTotals;
 import com.example.vericert.dto.UpsertInvoiceReq;
 import com.example.vericert.enumerazioni.InvoiceStatus;
 import com.example.vericert.repo.*;
+import com.example.vericert.util.HashUtils;
 import com.example.vericert.util.PublicCodeGenerator;
 import com.example.vericert.util.QrUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
+
+import static com.example.vericert.util.PdfUtil.savePdf;
 
 
 @Service
@@ -40,6 +39,15 @@ public class InvoiceService {
     private final TenantProfileRepository tenantProfileRepo;
     private final org.thymeleaf.TemplateEngine templateEngine; // Cambio tipo qui// tua interfaccia (vedi sotto)
     private static final ZoneId ZONE = ZoneId.of("Europe/Rome");
+    private final TenantSigningKeyService tenantEnsureKeyService;
+    private final AesGcmCrypto crypto;
+    private final PdfSigningService pdfSigningService;
+
+
+
+
+
+
 
     public InvoiceService(InvoiceRepository invoiceRepo,
                           TenantProfileRepository tenantProfileRepo,
@@ -53,7 +61,10 @@ public class InvoiceService {
                           VericertProps props,
                           TenantSettingsService tenantSettingsService,
                           UsageMeterService usageMeterService,
-                          PlanEnforcementService planEnforcementService) {
+                          PlanEnforcementService planEnforcementService,
+                          TenantSigningKeyService tenantEnsureKeyService,
+                          AesGcmCrypto crypto,
+                          PdfSigningService pdfSigningService) {
 
         this.invoiceRepo = invoiceRepo;
         this.tenantProfileRepo = tenantProfileRepo;
@@ -68,6 +79,9 @@ public class InvoiceService {
         this.tenantSettingsService = tenantSettingsService;
         this.usageMeterService = usageMeterService;
         this.planEnforcementService = planEnforcementService;
+        this.tenantEnsureKeyService = tenantEnsureKeyService;
+        this.crypto = crypto;
+        this.pdfSigningService = pdfSigningService;
     }
 
     @Transactional
@@ -140,71 +154,86 @@ public class InvoiceService {
         throw new IllegalStateException("Impossibile generare public_code univoco");
     }
     @Transactional
-    public Invoice issue(Long tenantId, Long invoiceId) {
-        Invoice inv = invoiceRepo.findById(invoiceId).orElseThrow(() -> new IllegalStateException("Dati di fatturazione mancanti (Invoice)"));;
-        if (!tenantId.equals(inv.getTenantId())) throw new SecurityException("Forbidden");
-        if (!"DRAFT".equals(inv.getStatus().name())) throw new IllegalStateException("Fattura non modificabile");
+    public Invoice issue(Long tenantId, Long invoiceId) throws Exception {
+        try {
+            // 1) controllo piano
+            planEnforcementService.checkCanIssueDocuments(tenantId);
+            planEnforcementService.checkCanStorePdf(tenantId, BigDecimal.valueOf(0));
 
-        // 1) controllo piano
-        planEnforcementService.checkCanIssueDocuments(tenantId);
-        planEnforcementService.checkCanStorePdf(tenantId, BigDecimal.valueOf(0));
+            Invoice inv = invoiceRepo.findById(invoiceId).orElseThrow(() -> new IllegalStateException("Dati di fatturazione mancanti (Invoice)"));
+            ;
+            if (!tenantId.equals(inv.getTenantId())) throw new SecurityException("Forbidden");
+            if (!"DRAFT".equals(inv.getStatus().name())) throw new IllegalStateException("Fattura non modificabile");
 
-        TenantProfile supplier = tenantProfileRepo.findById(tenantId)
-                .orElseThrow(() -> new IllegalStateException("Dati di fatturazione mancanti (tenant_profile)"));
+            TenantProfile supplier = tenantProfileRepo.findById(tenantId)
+                    .orElseThrow(() -> new IllegalStateException("Dati di fatturazione mancanti (tenant_profile)"));
 
 
-        if (supplier.getCompanyName().isEmpty() || supplier.getVatNumber().isEmpty()) {
-            throw new IllegalStateException("Completa Ragione Sociale e P.IVA prima di emettere la fattura.");
+            if (supplier.getCompanyName().isEmpty() || supplier.getVatNumber().isEmpty()) {
+                throw new IllegalStateException("Completa Ragione Sociale e P.IVA prima di emettere la fattura.");
+            }
+
+            List<InvoiceLine> lines = lineRepo.findByInvoiceIdOrderBySortOrderAsc(invoiceId);
+            if (lines.isEmpty()) throw new IllegalStateException("La fattura non ha righe.");
+
+            // Totali
+            long net = 0, vat = 0, gross = 0;
+            for (InvoiceLine l : lines) {
+                net += l.getNetMinor();
+                vat += l.getVatMinor();
+                gross += l.getGrossMinor();
+            }
+            inv.setNetTotalMinor(net);
+            inv.setVatTotalMinor(vat);
+            inv.setGrossTotalMinor(gross);
+
+            // codice fattura + data
+            inv.setInvoiceCode(generateInvoiceCodeUnique()); // vedi nota sotto
+            inv.setIssuedAt(Instant.now());
+            inv.setStatus(InvoiceStatus.valueOf("ISSUED"));
+
+            Template tpl = templateRepo.findById(inv.getTemplateId())
+                    .orElseThrow(() -> new IllegalStateException("Template fattura non trovato"));
+
+            String verifyUrl = props.getBaseUrl() + "/vf/invoices/" + inv.getPublicCode();
+            byte[] qr = QrUtil.png(verifyUrl, 300);
+            String qrBase64 = Base64.getEncoder().encodeToString(qr);
+            Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenantId);
+            // MODEL Thymeleaf
+            Map<String, Object> model = new HashMap<>();
+            model.putAll(sysVars);
+            model.put("verifyUrl", verifyUrl);
+            model.put("qrBase64", qrBase64);
+            model.put("supplier", supplier);
+            model.put("invoice", inv);
+            model.put("lines", lines);
+            model.put("totals", new InvoiceTotals(net, vat, gross));
+            // Render HTML
+            String html = invoiceTemplateService.renderInvoiceHtml(tpl.getHtml(), model);
+            // Render PDF
+            byte[] pdf = pdfRenderService.render(html);
+            Tenant tenant = tpl.getTenant();
+            String serial = UUID.randomUUID().toString().replace("-", "").substring(0, 20).toUpperCase();
+            SigningKeyEntity sk = tenantEnsureKeyService.ensureTenantKey(tenant.getId(), tenant.getName());
+            String p12Password = crypto.decryptFromBase64(sk.getP12PasswordEnc());
+            byte[] signedPdf = pdfSigningService.signPdf(pdf, sk.getP12Blob(), p12Password);
+            String kid = sk.getKid();
+            String Url = savePdf(serial, signedPdf, tenant);
+            String pdfUrl = "/files/" + tenant.getId().toString() + "/" + "INV" + serial + ".pdf";
+            inv.setPdfUrl(pdfUrl);
+            inv.setKid(kid);
+            inv.setPdfBlob(signedPdf);
+            inv.setPdfSha256(sha256Hex(signedPdf));
+            //Controllo che la capienza in MB non venga superata.
+            long bytes = signedPdf.length;
+            BigDecimal mb = BigDecimal.valueOf(bytes / 1_000_000.0);
+            planEnforcementService.checkCanStorePdf(tenant.getId(), mb);
+            usageMeterService.incrementDocumentsGenerated(tenantId, signedPdf.length);
+            return invoiceRepo.save(inv);
         }
-
-        List<InvoiceLine> lines = lineRepo.findByInvoiceIdOrderBySortOrderAsc(invoiceId);
-        if (lines.isEmpty()) throw new IllegalStateException("La fattura non ha righe.");
-
-        // Totali
-        long net = 0, vat = 0, gross = 0;
-        for (InvoiceLine l : lines) {
-            net += l.getNetMinor();
-            vat += l.getVatMinor();
-            gross += l.getGrossMinor();
+        catch (Exception e) {
+            throw new Exception(e.getMessage());
         }
-        inv.setNetTotalMinor(net);
-        inv.setVatTotalMinor(vat);
-        inv.setGrossTotalMinor(gross);
-
-        // codice fattura + data
-        inv.setInvoiceCode(generateInvoiceCodeUnique()); // vedi nota sotto
-        inv.setIssuedAt(Instant.now());
-        inv.setStatus(InvoiceStatus.valueOf("ISSUED"));
-
-        Template tpl = templateRepo.findById(inv.getTemplateId())
-                .orElseThrow(() -> new IllegalStateException("Template fattura non trovato"));
-
-        String verifyUrl = props.getBaseUrl() + "/vf/invoices/" + inv.getPublicCode();
-        byte[] qr = QrUtil.png(verifyUrl, 300);
-        String qrBase64 = Base64.getEncoder().encodeToString(qr);
-        Map<String,Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenantId);
-        // MODEL Thymeleaf
-        Map<String, Object> model = new HashMap<>();
-        model.putAll(sysVars);
-        model.put("verifyUrl", verifyUrl);
-        model.put("qrBase64", qrBase64);
-        model.put("supplier", supplier);
-        model.put("invoice", inv);
-        model.put("lines", lines);
-        model.put("totals", new InvoiceTotals(net, vat, gross));
-
-        // Render HTML
-        String html = invoiceTemplateService.renderInvoiceHtml(tpl.getHtml(), model);
-
-        // Render PDF
-        byte[] pdf = pdfRenderService.render(html);
-        inv.setPdfBlob(pdf);
-        inv.setPdfSha256(sha256Hex(pdf));
-        byte[] bytes = inv.getPdfBlob();
-        usageMeterService.incrementDocumentsGenerated(tenantId,bytes.length);
-        return invoiceRepo.save(inv);
-        
-        
     }
 
     private String generateInvoiceCodeUnique() {
@@ -258,8 +287,6 @@ public class InvoiceService {
         inv.setVatTotalMinor(vat);
         inv.setGrossTotalMinor(gross);
     }
-
-
     private static String sha256Hex(byte[] data) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
