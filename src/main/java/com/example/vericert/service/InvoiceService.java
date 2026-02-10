@@ -6,24 +6,31 @@ import com.example.vericert.dto.InvoiceTotals;
 import com.example.vericert.dto.UpsertInvoiceReq;
 import com.example.vericert.enumerazioni.InvoiceStatus;
 import com.example.vericert.repo.*;
-import com.example.vericert.util.HashUtils;
 import com.example.vericert.util.PublicCodeGenerator;
 import com.example.vericert.util.QrUtil;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
 
-import static com.example.vericert.util.PdfUtil.savePdf;
-
-
 @Service
 public class InvoiceService {
+    @Value("${vericert.base-url}") String baseUrl;
+    @Value("${vericert.storage.local-path}") String storagePath;
+    @Value("${vericert.public-base-url:/files/certificates}") String publicBaseUrl;
+    @Value("${vericert.public-base-url-verify}") String publicBaseUrlVerify;
+
 
     private final PlanEnforcementService planEnforcementService;
     private final UsageMeterService usageMeterService;
@@ -42,12 +49,6 @@ public class InvoiceService {
     private final TenantSigningKeyService tenantEnsureKeyService;
     private final AesGcmCrypto crypto;
     private final PdfSigningService pdfSigningService;
-
-
-
-
-
-
 
     public InvoiceService(InvoiceRepository invoiceRepo,
                           TenantProfileRepository tenantProfileRepo,
@@ -115,27 +116,27 @@ public class InvoiceService {
         inv.setCustomerCity(req.customerCity());
         inv.setCustomerPec(req.customerPec());
         inv.setCustomerSdi(req.customerSdi());
-        for (var l : req.lines()) {
-            if (l == null) continue;
+        if (req.lines() != null) {
+            for (var l : req.lines()) {
 
-            if (l.description() == null || l.description().isBlank())
-                throw new IllegalArgumentException("Descrizione riga obbligatoria");
-            if (l.qty() == null || l.qty() <= 0)
-                throw new IllegalArgumentException("qty deve essere >= 1");
-            if (l.unitPriceMinor() == null || l.unitPriceMinor() < 0)
-                throw new IllegalArgumentException("unitPriceMinor non valido");
+                if (l == null) continue;
 
-            InvoiceLine line = new InvoiceLine();
-            line.setDescription(l.description().trim());
-            line.setQty(l.qty());
-            line.setUnitPriceMinor(l.unitPriceMinor());
-            // Imposta esplicitamente l'invoice sulla riga se addLine non lo fa già internamente
-            line.setInvoice(inv);
-            inv.getLines().add(line);
+                if (l.description() == null || l.description().isBlank())
+                    throw new IllegalArgumentException("Descrizione riga obbligatoria");
+                if (l.qty() == null || l.qty() <= 0)
+                    throw new IllegalArgumentException("qty deve essere >= 1");
+                if (l.unitPriceMinor() == null || l.unitPriceMinor() < 0)
+                    throw new IllegalArgumentException("unitPriceMinor non valido");
+
+                InvoiceLine line = new InvoiceLine();
+                line.setDescription(l.description());
+                line.setQty(l.qty() != null ? l.qty() : 1);
+                line.setUnitPriceMinor(l.unitPriceMinor() != null ? l.unitPriceMinor() : 0L);
+                inv.addLine(line);
+            }
         }
 
         computeTotals(inv);
-
         // public_code: rigenera finché non è univoco
         for (int i = 0; i < 10; i++) {
             inv.setPublicCode(PublicCodeGenerator.newInvoiceCode()); // INV-8F3K2P
@@ -189,13 +190,10 @@ public class InvoiceService {
 
             // codice fattura + data
             inv.setInvoiceCode(generateInvoiceCodeUnique()); // vedi nota sotto
-            inv.setIssuedAt(Instant.now());
-            inv.setStatus(InvoiceStatus.valueOf("ISSUED"));
-
             Template tpl = templateRepo.findById(inv.getTemplateId())
                     .orElseThrow(() -> new IllegalStateException("Template fattura non trovato"));
 
-            String verifyUrl = props.getBaseUrl() + "/vf/invoices/" + inv.getPublicCode();
+            String verifyUrl = props.getPublicBaseUrlVerify() + "/vf/invoices/" + inv.getPublicCode();
             byte[] qr = QrUtil.png(verifyUrl, 300);
             String qrBase64 = Base64.getEncoder().encodeToString(qr);
             Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenantId);
@@ -222,6 +220,7 @@ public class InvoiceService {
             String pdfUrl = "/files/" + tenant.getId().toString() + "/" + "INV" + serial + ".pdf";
             inv.setPdfUrl(pdfUrl);
             inv.setKid(kid);
+            inv.setSerial(serial);
             inv.setPdfBlob(signedPdf);
             inv.setPdfSha256(sha256Hex(signedPdf));
             //Controllo che la capienza in MB non venga superata.
@@ -229,6 +228,8 @@ public class InvoiceService {
             BigDecimal mb = BigDecimal.valueOf(bytes / 1_000_000.0);
             planEnforcementService.checkCanStorePdf(tenant.getId(), mb);
             usageMeterService.incrementDocumentsGenerated(tenantId, signedPdf.length);
+            inv.setIssuedAt(Instant.now());
+            inv.setStatus(InvoiceStatus.valueOf("ISSUED"));
             return invoiceRepo.save(inv);
         }
         catch (Exception e) {
@@ -242,6 +243,23 @@ public class InvoiceService {
             if (invoiceRepo.findByInvoiceCode(code).isEmpty()) return code;
         }
         throw new IllegalStateException("Impossibile generare invoice_code univoco");
+    }
+
+    public String savePdf(String serial, byte[] pdf, Tenant tenant) {
+        try {
+            Path baseDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());
+            Files.createDirectories(baseDir);
+            if (!Files.isWritable(baseDir)) {
+                throw new IOException("Storage directory is not writable: " + baseDir.toAbsolutePath());
+            }
+            Path p = baseDir.resolve(serial + ".pdf");
+            Files.write(p, pdf);
+            // Costruisci URL pubblico coerente
+            String publicUrl = publicBaseUrl.endsWith("/")
+                    ? publicBaseUrl + serial + ".pdf"
+                    : publicBaseUrl + "/" + serial + ".pdf";
+            return publicUrl;
+        } catch (IOException e) { throw new UncheckedIOException(e); }
     }
     @Transactional
     protected void computeTotals(Invoice inv) {
@@ -363,8 +381,8 @@ public class InvoiceService {
         inv.setTenantId(tenantId);
         inv.setStatus(InvoiceStatus.DRAFT);
 
-        // replace lines
-        inv.getLines().clear(); // orphanRemoval=true -> cancella righe vecchie
+        // replace lines//
+        inv.clearLines();
         if (req.lines() != null) {
             for (var l : req.lines()) {
 

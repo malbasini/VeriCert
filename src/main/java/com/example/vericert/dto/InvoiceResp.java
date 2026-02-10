@@ -29,6 +29,7 @@ public record InvoiceResp(
         Long vatTotalMinor,
         Long grossTotalMinor,
         Long templateId,
+        String serial,
         List<InvoiceLineResp> lines
 ) {
 }

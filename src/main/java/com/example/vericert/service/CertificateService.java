@@ -10,7 +10,6 @@ import com.example.vericert.repo.CertificateRepository;
 import com.example.vericert.repo.TemplateRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.util.HashUtils;
-import com.example.vericert.util.PdfUtil;
 import com.example.vericert.util.QrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
@@ -31,9 +29,8 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
-
 import static com.example.vericert.util.PdfUtil.htmlToPdf;
-import static com.example.vericert.util.PdfUtil.savePdf;
+
 
 @Service
 public class CertificateService {
@@ -179,6 +176,29 @@ public class CertificateService {
             throw new Exception(e.getMessage());
         }
     }
+
+    public String savePdf(String serial, byte[] pdf, Tenant tenant) {
+        try {
+            Path baseDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());
+            Files.createDirectories(baseDir);
+            if (!Files.isWritable(baseDir)) {
+                throw new IOException("Storage directory is not writable: " + baseDir.toAbsolutePath());
+            }
+            Path p = baseDir.resolve(serial + ".pdf");
+            Files.write(p, pdf);
+            // Costruisci URL pubblico coerente
+            String publicUrl = publicBaseUrl.endsWith("/")
+                    ? publicBaseUrl + serial + ".pdf"
+                    : publicBaseUrl + "/" + serial + ".pdf";
+            return publicUrl;
+        } catch (IOException e) { throw new UncheckedIOException(e); }
+    }
+
+
+
+
+
+
     private String extractJti(String compactJws) {
         try {
             var j = JWSObject.parse(compactJws);

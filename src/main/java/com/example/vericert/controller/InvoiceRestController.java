@@ -110,7 +110,7 @@ public class InvoiceRestController {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                 .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
-                        "inline; filename=\"" + filename + "\"")
+                        "attachment; filename=\"" + filename + "\"")
                 .body(inv.getPdfBlob());
     }
 
@@ -154,6 +154,7 @@ public class InvoiceRestController {
                 inv.getVatTotalMinor(),
                 inv.getGrossTotalMinor(),
                 inv.getTemplateId(),
+                inv.getSerial(),
                 lines
         );
     }

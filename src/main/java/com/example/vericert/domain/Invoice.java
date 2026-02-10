@@ -2,7 +2,6 @@ package com.example.vericert.domain;
 
 import com.example.vericert.enumerazioni.InvoiceStatus;
 import jakarta.persistence.*;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -134,22 +133,31 @@ public class Invoice {
     private boolean invoiceSave;
 
     @PrePersist
-    @PreUpdate
     void prePersist() {
         Instant now = Instant.now();
-        setCreatedAt(now);
-        setUpdatedAt(now);
-        if (issuedAt != null) {
-            // Converte l'Instant in una data leggibile per estrarre l'anno
-            // Puoi usare ZoneId.systemDefault() o specificare una zona (es. UTC)
-            this.issueYear = ZonedDateTime.ofInstant(issuedAt, ZoneId.systemDefault()).getYear();
-        }
+        this.createdAt = now;
+        this.updatedAt = now;
+        if (issuedAt != null) this.issueYear = ZonedDateTime.ofInstant(issuedAt, ZoneId.systemDefault()).getYear();
     }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = Instant.now();
+        if (issuedAt != null) this.issueYear = ZonedDateTime.ofInstant(issuedAt, ZoneId.systemDefault()).getYear();
+    }
+
     // helper
     public void addLine(InvoiceLine l) {
         l.setInvoice(this);
         getLines().add(l);
     }
+
+    public void clearLines() {
+        if (this.lines == null) return;
+        for (InvoiceLine l : this.lines) l.setInvoice(null);
+        this.lines.clear();
+    }
+
 
     public Long getId() {
         return id;

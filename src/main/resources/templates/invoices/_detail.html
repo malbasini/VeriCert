@@ -75,9 +75,13 @@
           <div id="pec"></div>
         </div>
         <br>
-        <div class="col-md-12">
+        <div class="col-md-6">
           <div class="text-muted small">SDI</div>
           <div id="sdi"></div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted small">Serial</div>
+          <div id="serial"></div>
         </div>
         <hr>
         <div class="col-md-6 text-end" style="text-align: left !important;">
@@ -107,7 +111,7 @@
         </div>
 
         <div class="d-flex gap-2">
-          <a id="btnPdf" class="btn btn-outline-primary d-none" target="_blank"><i class="bi bi-file-pdf-fill"></i>  Apri PDF</a>
+          <a id="btnPdf" class="btn btn-outline-primary d-none" target="_blank"><i class="bi bi-file-pdf-fill"></i>  Scarica PDF</a>
         </div>
       </div>
     </div>
@@ -145,6 +149,7 @@
     document.getElementById("country").textContent = data.customerCountry || "",
     document.getElementById("pec").textContent = data.customerPec || "",
     document.getElementById("sdi").textContent = data.customerSdi || ""
+    document.getElementById("serial").textContent = data.serial || ""
 
 
     const statusEl = document.getElementById("status");
