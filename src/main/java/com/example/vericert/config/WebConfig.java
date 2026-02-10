@@ -23,25 +23,16 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/resources/**").addResourceLocations("/resources/");
         registry.addResourceHandler("/static/**").addResourceLocations("classpath:/static/");
         // Configura il resource handler per i file caricati dagli utenti
-        String filesLocation = "file:files/";
-        if (!filesLocation.endsWith("/")) filesLocation += "/";
+        String storageLocation =
+                "file:" + Paths.get(rootDir, "storage").toAbsolutePath().normalize() + "/";
 
         registry.addResourceHandler("/files/**")
-                .addResourceLocations(filesLocation)
-                .setCacheControl(CacheControl.noCache())
-                .resourceChain(true);
-
-        String location = "file:" + Paths.get(rootDir, "storage").toAbsolutePath().normalize() + "/";
-        registry.addResourceHandler("/storage/**")
-                    .addResourceLocations(location);
+                .addResourceLocations(storageLocation)
+                .setCacheControl(CacheControl.noCache());
     }
 
     // Opzionale: Configura la mappatura della home senza controller
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("index");
     }
-
-    @Value("${vericert.storage.local-path}")   // es: /opt/vericert/storage/
-    private String storagePath;
-
 }
