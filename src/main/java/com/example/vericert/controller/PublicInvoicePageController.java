@@ -15,6 +15,6 @@ public class PublicInvoicePageController {
         model.addAttribute("publicCode", publicCode);
         model.addAttribute("title", "Verifica fatture");
         model.addAttribute("description", "Verifica fatture");
-        return "verification/invoice-verify";
+        return "verification/verifica-fatture";
     }
 }
