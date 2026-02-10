@@ -30,6 +30,7 @@ public record InvoiceResp(
         Long grossTotalMinor,
         Long templateId,
         String serial,
+        String path,
         List<InvoiceLineResp> lines
 ) {
 }

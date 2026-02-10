@@ -164,6 +164,7 @@ public class InvoiceRestController {
                 inv.getGrossTotalMinor(),
                 inv.getTemplateId(),
                 inv.getSerial(),
+                inv.getPdfUrl(),
                 lines
         );
     }

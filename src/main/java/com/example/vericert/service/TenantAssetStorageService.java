@@ -47,11 +47,11 @@ public class TenantAssetStorageService {
     }
 
     public String signaturePublicUrl(long tenantId) {
-        return props.getBaseUrl() + "/storage/" + tenantId + "/signature.png";
+        return props.getBaseUrl() + "/files/" + tenantId + "/signature.png";
     }
 
     public String logoPublicUrl(long tenantId) {
-        return props.getBaseUrl() + "/storage/" + tenantId + "/logo.png";
+        return props.getBaseUrl() + "/files/" + tenantId + "/logo.png";
     }
 
 }

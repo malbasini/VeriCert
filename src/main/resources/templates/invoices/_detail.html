@@ -75,13 +75,17 @@
           <div id="pec"></div>
         </div>
         <br>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <div class="text-muted small">SDI</div>
           <div id="sdi"></div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-3">
           <div class="text-muted small">Serial</div>
           <div id="serial"></div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted small">PDF Path</div>
+          <div id="path"></div>
         </div>
         <hr>
         <div class="col-md-6 text-end" style="text-align: left !important;">
@@ -150,6 +154,7 @@
     document.getElementById("pec").textContent = data.customerPec || "",
     document.getElementById("sdi").textContent = data.customerSdi || ""
     document.getElementById("serial").textContent = data.serial || ""
+    document.getElementById("path").textContent = data.path || ""
 
 
     const statusEl = document.getElementById("status");
