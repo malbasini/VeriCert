@@ -193,7 +193,7 @@ public class InvoiceService {
             Template tpl = templateRepo.findById(inv.getTemplateId())
                     .orElseThrow(() -> new IllegalStateException("Template fattura non trovato"));
 
-            String verifyUrl = props.getPublicBaseUrlVerify() + "/vf/invoices/" + inv.getPublicCode();
+            String verifyUrl = props.getBaseUrl() + "/vf/invoices/" + inv.getPublicCode();
             byte[] qr = QrUtil.png(verifyUrl, 300);
             String qrBase64 = Base64.getEncoder().encodeToString(qr);
             Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenantId);
@@ -217,7 +217,7 @@ public class InvoiceService {
             byte[] signedPdf = pdfSigningService.signPdf(pdf, sk.getP12Blob(), p12Password);
             String kid = sk.getKid();
             String Url = savePdf(serial, signedPdf, tenant);
-            String pdfUrl = "/files/" + tenant.getId().toString() + "/" + "INV" + serial + ".pdf";
+            String pdfUrl = "/files/" + tenant.getId().toString() + "/" + serial + ".pdf";
             inv.setPdfUrl(pdfUrl);
             inv.setKid(kid);
             inv.setSerial(serial);
