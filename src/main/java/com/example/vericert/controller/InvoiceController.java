@@ -1,5 +1,7 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.domain.Invoice;
+import com.example.vericert.enumerazioni.InvoiceStatus;
 import com.example.vericert.repo.InvoiceRepository;
 import com.example.vericert.util.AuthUtil;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,8 +42,12 @@ public class InvoiceController {
     @GetMapping("/{id}")
     public String detailPage(@PathVariable Long id, Model model) {
         model.addAttribute("invoiceId", id);
+        Invoice invoice = repo.findById(id).get();
         long tenantId = AuthUtil.currentTenantId();
+        String tenantName = AuthUtil.me().getTenantName();
         model.addAttribute("tenantId", tenantId);
+        model.addAttribute("invoice", invoice);
+        model.addAttribute("currentTenant", tenantName);
         return "invoices/detail";
     }
 

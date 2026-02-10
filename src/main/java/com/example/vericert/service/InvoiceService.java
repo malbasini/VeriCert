@@ -230,6 +230,7 @@ public class InvoiceService {
             usageMeterService.incrementDocumentsGenerated(tenantId, signedPdf.length);
             inv.setIssuedAt(Instant.now());
             inv.setStatus(InvoiceStatus.valueOf("ISSUED"));
+            inv.setNumberDisplay(inv.getIssueYear().toString() + "00000" +  inv.getNumberSeq());
             return invoiceRepo.save(inv);
         }
         catch (Exception e) {

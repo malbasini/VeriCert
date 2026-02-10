@@ -5,8 +5,8 @@ keys
 logs
 storage
 target
-src/resources/application.properties
-src/resources/application.yaml
-src/resources/application-dev.properties
-src/resources/application-prod.properties
+/src/main/resources/application.properties
+/src/main/resources/application.yaml
+/src/main/resources/application-dev.properties
+/src/main/resources/application-prod.properties
 myenv.env

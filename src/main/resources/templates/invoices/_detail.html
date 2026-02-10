@@ -18,75 +18,110 @@
   <div class="card">
     <div class="card-body">
       <div class="d-flex justify-content-between flex-wrap gap-2">
-        <div>
-          <div class="fw-semibold" id="num">-</div>
-          <div class="text-muted small" id="pub">-</div>
+        <span class="badge"
+              th:classappend="${invoice.getStatus().name() =='DRAFT'} ? ' text-bg-secondary' : ' text-bg-success'"
+              th:text="${invoice.getStatus()}">ISSUED</span>
+        <small class="text-muted">
+          Seriale: <span th:text="${invoice.serial}">ABC123</span>
+        </small>
+      </div>
+      <small class="text-muted">
+        Tenant: <span th:text="${currentTenant}">demo</span>
+      </small>
+      <hr/>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input class="form-control" readonly th:value="${invoice.numberDisplay}">
+            <label>Numero</label>
+          </div>
         </div>
-        <div class="text-end">
-          <span id="status" class="badge text-bg-secondary">DRAFT</span>
-          <div class="text-muted small" id="issuedAt">-</div>
+        <div class="col-md-6">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${#temporals.format(invoice.issuedAt,'dd/MM/yyyy HH:mm')}">
+            <label>Emessa il</label>
+          </div>
+        </div>
+        <hr>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerName}">
+            <label>Nome cliente</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerEmail}">
+            <label>Email cliente</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerVat}">
+            <label>P.IVA / CF</label>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerAddressLine1}">
+            <label>Indirizzo riga 1</label>
+          </div>
+        </div>
+        <div class="col-md-12">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerAddressLine2}">
+            <label>Indirizzo riga 2</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerCity}">
+            <label>Città</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerProvince}">
+            <label>Provincia</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerPostalCode}">
+            <label>CAP</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerCountry}">
+            <label>Stato</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerPec}">
+            <label>PEC</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly th:value="${invoice.publicCode}">
+            <label>Public code</label>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.pdfUrl}">
+            <label>PDF</label>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="form-floating">
+            <input class="form-control" readonly  th:value="${invoice.customerSdi}">
+            <label>SDI</label>
+          </div>
         </div>
       </div>
-      <hr>
-      <div class="row g-3">
-        <div class="col-md-3">
-          <div class="text-muted small">Cliente</div>
-          <div class="fw-semibold" id="customerName">-</div>
-          <div class="text-muted small" id="customerEmail">-</div>
-        </div>
-        <br>
-        <div class="col-md-3">
-          <div class="text-muted small">P.IVA / CF</div>
-          <div id="customerVat">-</div>
-        </div>
-        <br>
-        <div class="col-md-6">
-          <div class="text-muted small">Indirizzo riga 1</div>
-          <div id="address1"></div>
-        </div>
-        <br>
-        <div class="col-md-6">
-          <div class="text-muted small">Indirizzo riga 2</div>
-          <div id="address2"></div>
-        </div>
-        <br>
-        <div class="col-md-3">
-          <div class="text-muted small">Città</div>
-          <div id="city"></div>
-        </div>
-        <br>
-        <div class="col-md-3">
-          <div class="text-muted small">Provincia</div>
-          <div id="province"></div>
-        </div>
-        <br>
-        <div class="col-md-3">
-          <div class="text-muted small">CAP</div>
-          <div id="postalCode"></div>
-        </div>
-        <br>
-        <div class="col-md-3">
-          <div class="text-muted small">Stato</div>
-          <div id="country"></div>
-        </div>
-        <br>
-        <div class="col-md-6">
-          <div class="text-muted small">PEC</div>
-          <div id="pec"></div>
-        </div>
-        <br>
-        <div class="col-md-3">
-          <div class="text-muted small">SDI</div>
-          <div id="sdi"></div>
-        </div>
-        <div class="col-md-3">
-          <div class="text-muted small">Serial</div>
-          <div id="serial"></div>
-        </div>
-        <div class="col-md-6">
-          <div class="text-muted small">PDF Path</div>
-          <div id="path"></div>
-        </div>
         <hr>
         <div class="col-md-6 text-end" style="text-align: left !important;">
           <div class="text-muted small">Totale</div>
@@ -107,29 +142,22 @@
           <tbody id="lines"></tbody>
         </table>
       </div>
-
       <div class="d-flex justify-content-between mt-4">
         <div class="d-flex gap-2">
-          <a id="btnEdit" class="btn btn-outline-secondary d-none" th:href="@{/invoices/{id}/edit(id=${invoiceId})}">Modifica</a>
-          <button id="btnIssue" class="btn btn-success d-none" type="button">Emetti</button>
+          <a id="btnEdit" style="margin-bottom: 20px;margin-left: 20px;" class="btn btn-outline-secondary d-none" th:href="@{/invoices/{id}/edit(id=${invoiceId})}"><i class="bi bi-pen"></i>&nbsp;Modifica</a>
+          <button id="btnIssue" style="margin-bottom: 20px;" class="btn btn-success d-none" type="button"><i class="bi bi-receipt"></i>&nbsp;Emetti</button>
         </div>
-
         <div class="d-flex gap-2">
-          <a id="btnPdf" class="btn btn-outline-primary d-none" target="_blank"><i class="bi bi-file-pdf-fill"></i>  Scarica PDF</a>
+          <a id="btnPdf" style="margin-bottom: 20px;margin-right: 20px;" class="btn btn-outline-primary d-none" target="_blank"><i class="bi bi-file-pdf-fill"></i>&nbsp;Scarica PDF</a>
         </div>
       </div>
     </div>
   </div>
-</div>
-
 <script th:inline="javascript">
   const invoiceId = [[${invoiceId}]];
 </script>
-
 <script>
   const euro = (minor) => ((minor||0)/100).toFixed(2).replace(".", ",") + " €";
-  const fmtDate = (iso) => iso ? new Date(iso).toLocaleString("it-IT") : "-";
-
   async function load() {
     const res = await fetch(`/api/invoices/${invoiceId}`, { headers: {"Accept":"application/json"}});
     const data = await res.json();
@@ -137,30 +165,7 @@
       showToast?.(`Errore: ${data.message || res.statusText}`, { colorClass: "bg-danger" });
       return;
     }
-
-    document.getElementById("num").textContent = data.numberDisplay || "-";
-    document.getElementById("pub").textContent = data.publicCode || "-";
-    document.getElementById("customerName").textContent = data.customerName || "-";
-    document.getElementById("customerEmail").textContent = data.customerEmail || "-";
-    document.getElementById("customerVat").textContent = data.customerVat || "-";
     document.getElementById("gross").textContent = euro(data.grossTotalMinor);
-    document.getElementById("issuedAt").textContent = data.issuedAt ? ("Emessa: " + fmtDate(data.issuedAt)) : "";
-    document.getElementById("address1").textContent = data.customerAddressLine1 || "",
-    document.getElementById("address2").textContent = data.customerAddressLine2 || "",
-    document.getElementById("city").textContent = data.customerCity || "",
-    document.getElementById("province").textContent = data.customerProvince || "",
-    document.getElementById("postalCode").textContent = data.customerPostalCode || "",
-    document.getElementById("country").textContent = data.customerCountry || "",
-    document.getElementById("pec").textContent = data.customerPec || "",
-    document.getElementById("sdi").textContent = data.customerSdi || ""
-    document.getElementById("serial").textContent = data.serial || ""
-    document.getElementById("path").textContent = data.path || ""
-
-
-    const statusEl = document.getElementById("status");
-    statusEl.textContent = data.status;
-    statusEl.className = "badge " + (data.status === "ISSUED" ? "text-bg-success" : "text-bg-secondary");
-
     const tbody = document.getElementById("lines");
     tbody.innerHTML = (data.lines || []).map(l => `
     <tr>
@@ -194,7 +199,7 @@
         return;
       }
       showToast?.("Fattura emessa ✅", { colorClass: "bg-success" });
-      await load();
+      window.location.reload();
     };
   }
   load();
