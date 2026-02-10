@@ -5,6 +5,7 @@ import com.example.vericert.dto.InvoiceLineResp;
 import com.example.vericert.dto.InvoiceResp;
 import com.example.vericert.dto.UpsertInvoiceReq;
 import com.example.vericert.repo.InvoiceRepository;
+import com.example.vericert.service.CertificateStorageService;
 import com.example.vericert.service.CustomUserDetails;
 import com.example.vericert.service.InvoiceService;
 import jakarta.validation.Valid;
@@ -28,10 +29,14 @@ public class InvoiceRestController {
 
     private final InvoiceService invoiceService;
     private final InvoiceRepository invoiceRepo;
+    private final CertificateStorageService certStorage;
 
-    public InvoiceRestController(InvoiceService invoiceService, InvoiceRepository invoiceRepo) {
+    public InvoiceRestController(InvoiceService invoiceService,
+                                 InvoiceRepository invoiceRepo,
+                                 CertificateStorageService certStorage) {
         this.invoiceService = invoiceService;
         this.invoiceRepo = invoiceRepo;
+        this.certStorage = certStorage;
     }
 
     @GetMapping
@@ -103,15 +108,19 @@ public class InvoiceRestController {
         if (inv.getPdfBlob() == null || inv.getPdfBlob().length == 0) {
             return ResponseEntity.notFound().build();
         }
-
-        String filename = (inv.getNumberDisplay() != null ? inv.getNumberDisplay() : inv.getPublicCode());
-        filename = filename.replaceAll("[^a-zA-Z0-9._-]", "_") + ".pdf";
-
+        String filename = inv.getSerial() + ".pdf";
+        // 1) carica PDF firmato (originale)
+        byte[] signedPdf;
+        try {
+            signedPdf = certStorage.loadPdfBytes(tenantId, inv.getSerial());
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PDF)
                 .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + filename + "\"")
-                .body(inv.getPdfBlob());
+                .body(signedPdf);
     }
 
     private InvoiceResp toResp(Invoice inv) {
