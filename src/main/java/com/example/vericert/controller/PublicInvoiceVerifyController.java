@@ -86,7 +86,7 @@ public class PublicInvoiceVerifyController {
         // 1) carica PDF firmato (originale)
         byte[] signedPdf;
         try {
-            signedPdf = inv.getPdfBlob();
+            signedPdf = certStorage.loadPdfBytes(tenant.getId(), inv.getSerial());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Impossibile caricare il documento."));
         }
