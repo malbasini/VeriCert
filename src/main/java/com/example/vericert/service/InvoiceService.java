@@ -193,7 +193,7 @@ public class InvoiceService {
             Template tpl = templateRepo.findById(inv.getTemplateId())
                     .orElseThrow(() -> new IllegalStateException("Template fattura non trovato"));
 
-            String verifyUrl = props.getBaseUrl() + "/vf/invoices/" + inv.getPublicCode();
+            String verifyUrl = props.getPublicBaseUrlVerify() + "/vf/invoices/" + inv.getPublicCode();
             byte[] qr = QrUtil.png(verifyUrl, 300);
             String qrBase64 = Base64.getEncoder().encodeToString(qr);
             Map<String, Object> sysVars = tenantSettingsService.buildBaseSysVarsForTenant(tenantId);
