@@ -237,6 +237,10 @@ public class InvoiceService {
             throw new Exception(e.getMessage());
         }
     }
+    @Transactional
+    public void deleteInvoice(Long invoiceId) {
+        invoiceRepo.deleteById(invoiceId);
+    }
 
     private String generateInvoiceCodeUnique() {
         for (int i = 0; i < 10; i++) {

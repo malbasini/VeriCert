@@ -5,14 +5,20 @@
   <title>Dettaglio fattura</title>
 </head>
 <body class="bg-light">
-
 <div class="container my-4" style="max-width: 980px;">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h1 class="h3 mb-0">Dettaglio fattura</h1>
-      <div class="text-muted small">ID: <span th:text="${invoiceId}"></span></div>
+      <div class="text-muted small">ID: <span id="invoiceId" th:text="${invoiceId}"></span></div>
     </div>
+    <div class="d-flex gap-2">
     <a class="btn btn-outline-secondary" href="/invoices"><i class="bi bi-arrow-return-left"></i> Torna alla Lista</a>
+    <th:block th:if="${invoice.getStatus?.name()=='DRAFT'}">
+      <a class="js-del btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteInvoiceModal" th:data-invoice-id="${invoice.getId()}">
+        <i class="bi bi-trash"></i> Elimina
+      </a>
+    </th:block>
+  </div>
   </div>
   <br>
   <h2 style="text-align: center;">Dati testata fattura</h2>
@@ -157,6 +163,26 @@
         </div>
       </div>
     </div>
+        <div class="modal fade" id="deleteInvoiceModal" tabindex="-1" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content center">
+              <div class="modal-header">
+                <h5 class="modal-title">Conferma eliminazione</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+                Eliminando la bozza verranno rimosse le righe nel database. L'operazione è irreversibile. Continuare?
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Elimina</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
 <script th:inline="javascript">
   const invoiceId = [[${invoiceId}]];
@@ -208,6 +234,40 @@
     };
   }
   load();
+</script>
+<script>
+  const modalEl = document.getElementById('deleteInvoiceModal');
+  const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+  modalEl.addEventListener('show.bs.modal', (event) => {
+    const trigger = event.relatedTarget; // bottone che ha aperto la modale
+    const invoiceId = trigger.getAttribute('data-invoice-id');
+    // salva l'id sul bottone di conferma (o sulla modale)
+    confirmBtn.dataset.invoice = invoiceId;
+  });
+
+  confirmBtn.addEventListener('click', async () => {
+    const id = document.getElementById("invoiceId").textContent;
+    if (!id) return;
+    const resp = await fetch(`/api/invoices/${encodeURIComponent(id)}/delete`, { method: 'DELETE' });
+    const data = await resp.json();
+    if (resp.ok) {
+      // chiudi modale e aggiorna pagina/lista
+      hideModal()
+      sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Certificato eliminato con successo", cls: "bg-success" }));
+      location.href=`/invoices`;
+    } else {
+      // gestisci errore
+      sessionStorage.setItem("flashMsg", JSON.stringify({ text: data?.message + ` Status HTTP ${resp.status}`, cls: "bg-danger" }));
+      return;
+    }
+
+    function hideModal() {
+      const instance = bootstrap.Modal.getOrCreateInstance(modalEl);
+      instance.hide();
+    }
+  });
+
 </script>
 <script>
   // all'avvio pagina (es. in uno script al fondo pagina):

@@ -174,4 +174,15 @@ public class InvoiceRestController {
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
         return user.getTenantId();
     }
+    @DeleteMapping("/{id}/delete")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        try {
+            invoiceService.deleteInvoice(id);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+        return ResponseEntity.ok(Map.of("message", "Delete invoice successfully"));
+
+    }
+
 }
