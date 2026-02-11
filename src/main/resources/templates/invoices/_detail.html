@@ -14,7 +14,9 @@
     </div>
     <a class="btn btn-outline-secondary" href="/invoices"><i class="bi bi-arrow-return-left"></i> Torna alla Lista</a>
   </div>
-
+  <br>
+  <h2 style="text-align: center;">Dati testata fattura</h2>
+  <br>
   <div class="card">
     <div class="card-body">
       <div class="d-flex justify-content-between flex-wrap gap-2">
@@ -128,6 +130,9 @@
           <div class="fs-4 fw-semibold" id="gross">-</div>
         </div>
       </div>
+    <br>
+    <h2 style="text-align: center;">Dati righe fattura</h2>
+    <br>
       <hr class="my-4">
       <div class="table-responsive">
         <table class="table align-middle">
@@ -198,11 +203,20 @@
         showToast?.(`Errore emissione: ${d.message || r.statusText}`, { colorClass: "bg-danger" });
         return;
       }
-      showToast?.("Fattura emessa ✅", { colorClass: "bg-success" });
+      sessionStorage.setItem("flashMsg", JSON.stringify({ text: "Fattura emessa ✅", cls: "bg-success" }));
       window.location.reload();
     };
   }
   load();
+</script>
+<script>
+  // all'avvio pagina (es. in uno script al fondo pagina):
+  const flash = sessionStorage.getItem("flashMsg");
+  if (flash) {
+    const { text, cls } = JSON.parse(flash);
+    showToast(text, { colorClass: cls });
+    sessionStorage.removeItem("flashMsg");
+  }
 </script>
 </body>
 </html>
