@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.44, for Linux (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.40, for macos14 (arm64)
 --
--- Host: localhost    Database: vericert
+-- Host: localhost    Database: VeriCert2
 -- ------------------------------------------------------
--- Server version	8.0.44
+-- Server version	8.0.40
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -73,7 +73,7 @@ CREATE TABLE `certificate` (
   KEY `fk_certficate_tenant_idx` (`tenant_id`),
   KEY `idx_cert_signing_kid` (`signing_kid`),
   CONSTRAINT `fk_certficate_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -118,6 +118,7 @@ CREATE TABLE `invoice_customer` (
 
 LOCK TABLES `invoice_customer` WRITE;
 /*!40000 ALTER TABLE `invoice_customer` DISABLE KEYS */;
+truncate table `invoice_customer`;
 /*!40000 ALTER TABLE `invoice_customer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -142,7 +143,7 @@ CREATE TABLE `invoice_lines` (
   PRIMARY KEY (`id`),
   KEY `ix_invoice_lines_invoice_id` (`invoice_id`),
   CONSTRAINT `fk_invoice_lines_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -151,6 +152,7 @@ CREATE TABLE `invoice_lines` (
 
 LOCK TABLES `invoice_lines` WRITE;
 /*!40000 ALTER TABLE `invoice_lines` DISABLE KEYS */;
+truncate table `invoice_lines`;
 /*!40000 ALTER TABLE `invoice_lines` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -195,6 +197,9 @@ CREATE TABLE `invoices` (
   `description` varchar(1000) NOT NULL,
   `invoice_code` varchar(200) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
   `invoice_saved` tinyint(1) DEFAULT '0',
+  `serial` varchar(64) DEFAULT NULL,
+  `pdf_url` varchar(255) DEFAULT NULL,
+  `signing_kid` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_invoices_public_code` (`public_code`),
   UNIQUE KEY `uk_invoices_tenant_year_seq` (`tenant_id`,`issue_year`,`number_seq`),
@@ -202,7 +207,7 @@ CREATE TABLE `invoices` (
   KEY `ix_invoices_issued_at` (`issued_at`),
   KEY `ix_invoices_tenant_status` (`tenant_id`,`status`),
   CONSTRAINT `fk_invoices_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -211,6 +216,7 @@ CREATE TABLE `invoices` (
 
 LOCK TABLES `invoices` WRITE;
 /*!40000 ALTER TABLE `invoices` DISABLE KEYS */;
+truncate table `invoices`;
 /*!40000 ALTER TABLE `invoices` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -287,7 +293,6 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
-truncate table `payments`;
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -352,7 +357,7 @@ CREATE TABLE `plan_definitions` (
 
 LOCK TABLES `plan_definitions` WRITE;
 /*!40000 ALTER TABLE `plan_definitions` DISABLE KEYS */;
-INSERT INTO `plan_definitions` VALUES (1,'FREE','FREE',5,100,100,'Supporto community',0,0,'0','0','0','0','0','0','2025-11-15 00:31:46'),(2,'PRO','PRO',100,50000,5000,'Supporto email',990,792,'price_1Ski4eIX50JfMIoYSFVTlRRk','price_1Sff2WIX50JfMIoYoo9jYBj3','P-95E1655116985253PNFJKFAQ','P-712880856H8572933NFKU4AI','22%','20%','2025-11-15 01:10:08'),(3,'BUSINESS','BUSINESS',500,200000,25000,'Supporto email',2990,2392,'price_1SWu7PIX50JfMIoYKsSqKdbU','price_1SWu8kIX50JfMIoYF7KjQD0b','P-5N7019469X090525ENFKU5AY',' P-7BR4749672596041SNFKU55A','22%','20%','2025-11-15 01:15:25'),(4,'ENTERPRISE','ENTERPRISE',5000,1000000,200000,'Supporto prioritario',9990,7992,'price_1SWuGuIX50JfMIoY774Nflhw','price_1SWuJbIX50JfMIoYEqqcxria','P-80V91018RA589712LNFKVA6A','P-9E712471SG4650119NFKVBJI','22%','20%','2025-11-15 01:20:30');
+INSERT INTO `plan_definitions` VALUES (1,'FREE','FREE',5,100,100,'Supporto community',0,0,'0','0','0','0','0','0','2025-11-15 00:31:46'),(2,'PRO','PRO',100,50000,5000,'Supporto email',50,792,'price_1Ski4eIX50JfMIoYSFVTlRRk','price_1Sff2WIX50JfMIoYoo9jYBj3','P-95E1655116985253PNFJKFAQ','P-712880856H8572933NFKU4AI','22%','20%','2025-11-15 01:10:08'),(3,'BUSINESS','BUSINESS',500,200000,25000,'Supporto email',2990,2392,'price_1SWu7PIX50JfMIoYKsSqKdbU','price_1SWu8kIX50JfMIoYF7KjQD0b','P-5N7019469X090525ENFKU5AY',' P-7BR4749672596041SNFKU55A','22%','20%','2025-11-15 01:15:25'),(4,'ENTERPRISE','ENTERPRISE',5000,1000000,200000,'Supporto prioritario',9990,7992,'price_1SWuGuIX50JfMIoY774Nflhw','price_1SWuJbIX50JfMIoYEqqcxria','P-80V91018RA589712LNFKVA6A','P-9E712471SG4650119NFKVBJI','22%','20%','2025-11-15 01:20:30');
 /*!40000 ALTER TABLE `plan_definitions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -380,7 +385,6 @@ CREATE TABLE `processed_webhook_event` (
 
 LOCK TABLES `processed_webhook_event` WRITE;
 /*!40000 ALTER TABLE `processed_webhook_event` DISABLE KEYS */;
-truncate table `processed_webhook_event`;
 /*!40000 ALTER TABLE `processed_webhook_event` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -446,7 +450,7 @@ CREATE TABLE `template` (
 
 LOCK TABLES `template` WRITE;
 /*!40000 ALTER TABLE `template` DISABLE KEYS */;
-INSERT INTO `template` VALUES (1,0,'TEMPLATE ATTESTATI','1.0','<!DOCTYPE html>\n<html lang=\"it\" xmlns:th=\"http://www.thymeleaf.org\">\n<head>\n  <meta charset=\"UTF-8\"></meta>\n  <title th:text=\"\'Certificato \' + ${serial}\">Certificato</title>\n  <style>\n    /* --- Pagina / palette PRO --- */\n    @page { size: A4; margin: 10mm; }           /* prima 14mm */\n    .page { background:#f8fafc; }               /* ok */\n    .frame { margin: 4mm; padding: 7mm;\n      background:#fff; border:2px solid #0a376e; border-radius:8px;\n    }\n    /* spacing piÃ¹ âtightâ e prevedibile */\n    body { line-height: 1.22; }\n\n    /* header layout */\n    .header { margin-top: 2mm; margin-bottom: 4mm; }\n    .meta { margin-top: 2mm; }\n    .meta .issuer { margin-bottom: 2mm; }\n    .meta .issued { margin-top: 2mm; }\n\n    /* riduci spazi globali un poâ eccessivi */\n    .security-band { margin-bottom: 5mm; }      /* prima 8mm */\n    .title { margin: 6mm 0 4mm 0; }             /* prima 10mm 0 8mm 0 */\n    .card { padding: 6mm; margin-bottom: 6mm; } /* prima 8mm/8mm */\n    .kv { margin: 2mm 0; }                      /* prima 3mm */\n    .divider { margin: 4mm 0; }                 /* prima 6mm */\n    .sign { margin-top: 6mm; }                  /* prima 10mm */\n    .footer { margin-top: 8mm; padding-top: 3mm; } /* prima 12mm/4mm */\n    * { box-sizing: border-box; }\n    html, body { margin:0; padding:0; color:#0f172a; font-family: Arial, Helvetica, sans-serif; }\n    /* Sostituisci le variabili con classi o valori diretti */\n    .pro { background: #f8fafc; }\n    /* --- Cornice principale --- */\n    .page { background: #f8fafc; border: 1px solid #d1d5db; border-radius: 10px; }\n    .frame { margin: 8mm; padding: 10mm; background: #ffffff; border: 2px solid #0a376e; border-radius: 8px; }\n    /* --- Banda superiore di sicurezza --- */\n    .security-band {\n      background-color: #0a376e; /* Niente gradiente, usa il colore primario */\n      color: #ffffff; padding: 3mm 6mm; border-radius: 6px; margin-bottom: 8mm;\n    }\n    .brand-title {width:220px; display:inline-block; vertical-align: middle; color: #0a376e;font-weight: 800; font-size: 18pt; letter-spacing:.3px; }\n    .serial { display:inline-block; padding:2px 6px; border:1px solid #d1d5db; background:#f3f4f6; border-radius:6px;font-family: \"Courier New\", Courier, monospace; font-size:10pt; color: #0f172a; }\n    /* --- Titolo documento --- */\n    .title { text-align:center; margin: 10mm 0 8mm 0; }\n    .title h1 { margin:0; font-size: 24pt; color: #0f172a; }\n    .subtitle { margin-top: 2mm; color: #6b7280; font-size: 11pt; }\n    .badge { display:inline-block; margin-top: 4mm; padding: 3px 10px; border-radius: 999px;background: #0a376e; color: #ffffff; font-weight: 700; font-size: 10pt; border:1px solid #163c6a; }\n    /* --- Griglie semplici --- */\n    .row { width:100%; }\n    .col { display:inline-block; vertical-align: top; width: 48.5%; }\n    .spacer { height: 2mm; }\n    /* --- Card dati --- */\n    .card { border:1px solid #d1d5db; border-radius:10px; background:#ffffff; padding:8mm; margin-bottom:8mm; }\n    .kv { margin: 3mm 0; }\n    .kv label { display:block; font-size:9pt; color: #6b7280; margin-bottom: 1mm; letter-spacing: .2px; }\n    .kv .v { font-size:12.5pt; font-weight:700; color: #0f172a; }\n    /* --- Sezione verifica --- */\n    .verify { border:1px dashed #9aa3b2; background: #f3f4f6; border-radius:10px; padding:6mm; }\n    .verify-label { font-weight: 800; margin-bottom: 2mm; letter-spacing: .2px; }\n    .verify-url { word-break: break-all; color: #082a53; font-weight: 800; font-size: 10.5pt; margin: 2mm 0 3mm; }\n    .note { color: #6b7280; font-size: 9.5pt; }\n    /* --- Firme --- */\n    .sign { margin-top: 10mm; }\n    .sigbox { display:inline-block; width: 48.5%; vertical-align: top; text-align: center; }\n    .sigline { border-top:1px solid #0f172a; margin-top:18mm; padding-top:2mm; font-size:10pt; color:#374151; }\n    .siglabel { font-size:9pt; color: #6b7280; }\n    /* --- Footer --- */\n    .footer { margin-top: 12mm; border-top:1px solid #d1d5db; padding-top:4mm; color: #6b7280; font-size: 9pt;display: table; width:100%; }\n    .foot-left, .foot-right { display: table-cell; width:50%; vertical-align: middle; }\n    /* --- Divider --- */\n    .divider { height:1px; background: #b58b00; margin: 6mm 0; }\n    /* Evita orfani/righe spezzate brutte in PDF */\n    .kv .v, .verify, .sigbox, .title { page-break-inside: avoid; }\n    .verify-url { word-break: break-word; overflow-wrap: anywhere; line-height: 1.15; }\n    .footer .foot-right span { word-break: break-word; overflow-wrap: anywhere; }\n  </style>\n</head>\n<body>\n<div class=\"page pro\">\n  <div class=\"frame\">\n    <!-- Banda superiore -->\n    <div class=\"security-band\">\n      <div class=\"left\">\n        <div class=\"security-kicker\">Documento digitale firmato e verificabile</div>\n        <div class=\"security-title serif\">Attestato di conseguimento</div>\n      </div>\n      <div class=\"right\">\n        <span class=\"chip\">Seriale</span>\n        <span class=\"serial\" th:text=\"${serial}\">ABCDEF123456</span>\n      </div>\n    </div>\n\n    <!-- Header -->\n    <div class=\"header\">\n      <div class=\"brand\">\n        <div class=\"img\">\n          <img th:src=\"${logoUrl}\" alt=\"${logoUrl}\"></img>\n        </div>\n        <span class=\"crest\"></span>\n        <span class=\"brand-title serif\" th:text=\"${tenantName != null ? tenantName : \'Azienda Demo\'}\">Azienda Demo</span>\n      </div>\n      <br></br>\n      <div class=\"meta\">\n        <div class=\"issuer\">\n          <div th:text=\"${issuerName != null ? issuerName : \'Dott. Mario Rossi\'}\">Dott. Mario Rossi</div>\n          <div th:text=\"${issuerTitle != null ? issuerTitle : \'Direttore Formazione\'}\">Direttore Formazione</div>\n        </div>\n\n        <div class=\"issued\">\n          <span>Emesso il:</span>\n          <span th:text=\"${#temporals.format(issuedAt, \'dd/MM/yyyy\')}\">01/01/2025</span>\n        </div>\n      </div>\n    </div>\n\n    <!-- Titolo -->\n    <div class=\"title\">\n      <h1 class=\"serif\">Certificato di Completamento</h1>\n      <div class=\"subtitle\">Si attesta che il/la candidato/a ha completato con profitto il seguente percorso.</div>\n      <div class=\"badge\">Attestato digitale verificabile</div>\n    </div>\n\n    <!-- Dati principali -->\n    <div class=\"card\">\n      <div class=\"row\">\n        <div class=\"col\">\n          <div class=\"kv\">\n            <label>Intestatario</label>\n            <div class=\"v\" th:text=\"${ownerName}\">Nome Cognome</div>\n          </div>\n          <div class=\"kv\">\n            <label>Email</label>\n            <div class=\"v\" th:text=\"${ownerEmail}\">nome.cognome@example.com</div>\n          </div>\n          <div class=\"kv\">\n            <label>Corso / Oggetto</label>\n            <div class=\"v\" th:text=\"${courseName}\">SPRING-BOOT</div>\n          </div>\n        </div>\n        <div class=\"col\">\n          <div class=\"kv\">\n            <label>Codice interno</label>\n            <div class=\"v\"><span class=\"chip\" th:text=\"${courseCode}\">SPRING-K987</span></div>\n          </div>\n          <div class=\"kv\">\n            <label>Ore / Esito</label>\n            <div class=\"v\">\n              <span th:text=\"${hours}\">45</span><span> ore â </span><span th:text=\"${grade}\">A</span>\n            </div>\n          </div>\n        </div>\n      </div>\n\n      <div class=\"divider\"></div>\n\n      <!-- Verifica pubblica -->\n      <div class=\"verify\">\n        <div class=\"qr\">\n          <img th:src=\"\'data:image/png;base64,\' + ${qrBase64}\" alt=\"QR Code\"></img>\n        </div>\n        <div class=\"verify-text\">\n          <div class=\"verify-label serif\">Verifica pubblica</div>\n          <div class=\"note\">Inquadra il QR oppure visita:</div>\n          <div class=\"verify-url\" th:text=\"${verifyUrl}\">https://example.org/v/ABCDE12345</div>\n          <div class=\"note\">\n            Seriale: <span class=\"serial\" th:text=\"${serial}\">ABCDEF123456</span>\n          </div>\n        </div>\n      </div>\n    </div>\n\n    <!-- Firme -->\n    <div class=\"sign\">\n      <div class=\"sigbox\">\n        <div class=\"sigline serif\" th:text=\"${issuerName}\">Dott. Mario Rossi</div>\n        <div class=\"siglabel\" th:text=\"${issuerTitle}\">Direttore Formazione</div>\n        <div class=\"img\">\n          <img th:src=\"${signatureImageUrl}\" width=\"100px\" height=\"70px\" alt=\"Signature\"></img>\n        </div>\n      </div>\n      <div class=\"sigbox\">\n        <div class=\"sigline serif\" th:text=\"${tenantName}\">Azienda Demo</div>\n        <div class=\"siglabel\">AutoritÃ  Emettente</div>\n      </div>\n    </div>\n\n    <!-- Footer -->\n    <div class=\"footer\">\n      <div class=\"foot-left\">\n        Â© <span th:text=\"${#temporals.format(#temporals.createNow(),\'yyyy\')}\">2025</span>\n        Â· <span th:text=\"${tenantName != null ? tenantName : \'Azienda Demo\'}\">Azienda Demo</span>\n      </div>\n      <div class=\"foot-right\">\n        Documento firmato digitalmente <br></br><span th:text=\"${verifyUrl}\">https://example.org/v/ABCDE12345</span>\n      </div>\n    </div>\n  </div>\n</div>\n</body>\n</html>\n','{\"grade\": {\"type\": \"string\", \"label\": \"Esito\", \"required\": false}, \"hours\": {\"type\": \"string\", \"label\": \"Ore\", \"required\": true}, \"ownerName\": {\"type\": \"string\", \"label\": \"Intestatario\", \"required\": true}, \"courseCode\": {\"type\": \"string\", \"label\": \"Codice corso\", \"required\": true}, \"courseName\": {\"type\": \"string\", \"label\": \"Nome corso\", \"required\": true}, \"ownerEmail\": {\"type\": \"string\", \"label\": \"Email\", \"required\": true}}',NULL,_binary '','2026-01-11 07:25:19','2026-01-21 05:13:18'),(3,1,'TEMPLATE ATTESTATI','1.0','<!DOCTYPE html>\n<html lang=\"it\" xmlns:th=\"http://www.thymeleaf.org\">\n<head>\n  <meta charset=\"UTF-8\"></meta>\n  <title th:text=\"\'Certificato \' + ${serial}\">Certificato</title>\n  <style>\n    /* --- Pagina / palette PRO --- */\n    @page { size: A4; margin: 10mm; }           /* prima 14mm */\n    .page { background:#f8fafc; }               /* ok */\n    .frame { margin: 4mm; padding: 7mm;\n      background:#fff; border:2px solid #0a376e; border-radius:8px;\n    }\n    /* spacing piÃ¹ âtightâ e prevedibile */\n    body { line-height: 1.22; }\n\n    /* header layout */\n    .header { margin-top: 2mm; margin-bottom: 4mm; }\n    .meta { margin-top: 2mm; }\n    .meta .issuer { margin-bottom: 2mm; }\n    .meta .issued { margin-top: 2mm; }\n\n    /* riduci spazi globali un poâ eccessivi */\n    .security-band { margin-bottom: 5mm; }      /* prima 8mm */\n    .title { margin: 6mm 0 4mm 0; }             /* prima 10mm 0 8mm 0 */\n    .card { padding: 6mm; margin-bottom: 6mm; } /* prima 8mm/8mm */\n    .kv { margin: 2mm 0; }                      /* prima 3mm */\n    .divider { margin: 4mm 0; }                 /* prima 6mm */\n    .sign { margin-top: 6mm; }                  /* prima 10mm */\n    .footer { margin-top: 8mm; padding-top: 3mm; } /* prima 12mm/4mm */\n    * { box-sizing: border-box; }\n    html, body { margin:0; padding:0; color:#0f172a; font-family: Arial, Helvetica, sans-serif; }\n    /* Sostituisci le variabili con classi o valori diretti */\n    .pro { background: #f8fafc; }\n    /* --- Cornice principale --- */\n    .page { background: #f8fafc; border: 1px solid #d1d5db; border-radius: 10px; }\n    .frame { margin: 8mm; padding: 10mm; background: #ffffff; border: 2px solid #0a376e; border-radius: 8px; }\n    /* --- Banda superiore di sicurezza --- */\n    .security-band {\n      background-color: #0a376e; /* Niente gradiente, usa il colore primario */\n      color: #ffffff; padding: 3mm 6mm; border-radius: 6px; margin-bottom: 8mm;\n    }\n    .brand-title {width:220px; display:inline-block; vertical-align: middle; color: #0a376e;font-weight: 800; font-size: 18pt; letter-spacing:.3px; }\n    .serial { display:inline-block; padding:2px 6px; border:1px solid #d1d5db; background:#f3f4f6; border-radius:6px;font-family: \"Courier New\", Courier, monospace; font-size:10pt; color: #0f172a; }\n    /* --- Titolo documento --- */\n    .title { text-align:center; margin: 10mm 0 8mm 0; }\n    .title h1 { margin:0; font-size: 24pt; color: #0f172a; }\n    .subtitle { margin-top: 2mm; color: #6b7280; font-size: 11pt; }\n    .badge { display:inline-block; margin-top: 4mm; padding: 3px 10px; border-radius: 999px;background: #0a376e; color: #ffffff; font-weight: 700; font-size: 10pt; border:1px solid #163c6a; }\n    /* --- Griglie semplici --- */\n    .row { width:100%; }\n    .col { display:inline-block; vertical-align: top; width: 48.5%; }\n    .spacer { height: 2mm; }\n    /* --- Card dati --- */\n    .card { border:1px solid #d1d5db; border-radius:10px; background:#ffffff; padding:8mm; margin-bottom:8mm; }\n    .kv { margin: 3mm 0; }\n    .kv label { display:block; font-size:9pt; color: #6b7280; margin-bottom: 1mm; letter-spacing: .2px; }\n    .kv .v { font-size:12.5pt; font-weight:700; color: #0f172a; }\n    /* --- Sezione verifica --- */\n    .verify { border:1px dashed #9aa3b2; background: #f3f4f6; border-radius:10px; padding:6mm; }\n    .verify-label { font-weight: 800; margin-bottom: 2mm; letter-spacing: .2px; }\n    .verify-url { word-break: break-all; color: #082a53; font-weight: 800; font-size: 10.5pt; margin: 2mm 0 3mm; }\n    .note { color: #6b7280; font-size: 9.5pt; }\n    /* --- Firme --- */\n    .sign { margin-top: 10mm; }\n    .sigbox { display:inline-block; width: 48.5%; vertical-align: top; text-align: center; }\n    .sigline { border-top:1px solid #0f172a; margin-top:18mm; padding-top:2mm; font-size:10pt; color:#374151; }\n    .siglabel { font-size:9pt; color: #6b7280; }\n    /* --- Footer --- */\n    .footer { margin-top: 12mm; border-top:1px solid #d1d5db; padding-top:4mm; color: #6b7280; font-size: 9pt;display: table; width:100%; }\n    .foot-left, .foot-right { display: table-cell; width:50%; vertical-align: middle; }\n    /* --- Divider --- */\n    .divider { height:1px; background: #b58b00; margin: 6mm 0; }\n    /* Evita orfani/righe spezzate brutte in PDF */\n    .kv .v, .verify, .sigbox, .title { page-break-inside: avoid; }\n    .verify-url { word-break: break-word; overflow-wrap: anywhere; line-height: 1.15; }\n    .footer .foot-right span { word-break: break-word; overflow-wrap: anywhere; }\n  </style>\n</head>\n<body>\n<div class=\"page pro\">\n  <div class=\"frame\">\n    <!-- Banda superiore -->\n    <div class=\"security-band\">\n      <div class=\"left\">\n        <div class=\"security-kicker\">Documento digitale firmato e verificabile</div>\n        <div class=\"security-title serif\">Attestato di conseguimento</div>\n      </div>\n      <div class=\"right\">\n        <span class=\"chip\">Seriale</span>\n        <span class=\"serial\" th:text=\"${serial}\">ABCDEF123456</span>\n      </div>\n    </div>\n\n    <!-- Header -->\n    <div class=\"header\">\n      <div class=\"brand\">\n        <div class=\"img\">\n          <img th:src=\"${logoUrl}\" alt=\"${logoUrl}\"></img>\n        </div>\n        <span class=\"crest\"></span>\n        <span class=\"brand-title serif\" th:text=\"${tenantName != null ? tenantName : \'Azienda Demo\'}\">Azienda Demo</span>\n      </div>\n      <br></br>\n      <div class=\"meta\">\n        <div class=\"issuer\">\n          <div th:text=\"${issuerName != null ? issuerName : \'Dott. Mario Rossi\'}\">Dott. Mario Rossi</div>\n          <div th:text=\"${issuerTitle != null ? issuerTitle : \'Direttore Formazione\'}\">Direttore Formazione</div>\n        </div>\n\n        <div class=\"issued\">\n          <span>Emesso il:</span>\n          <span th:text=\"${#temporals.format(issuedAt, \'dd/MM/yyyy\')}\">01/01/2025</span>\n        </div>\n      </div>\n    </div>\n\n    <!-- Titolo -->\n    <div class=\"title\">\n      <h1 class=\"serif\">Certificato di Completamento</h1>\n      <div class=\"subtitle\">Si attesta che il/la candidato/a ha completato con profitto il seguente percorso.</div>\n      <div class=\"badge\">Attestato digitale verificabile</div>\n    </div>\n\n    <!-- Dati principali -->\n    <div class=\"card\">\n      <div class=\"row\">\n        <div class=\"col\">\n          <div class=\"kv\">\n            <label>Intestatario</label>\n            <div class=\"v\" th:text=\"${ownerName}\">Nome Cognome</div>\n          </div>\n          <div class=\"kv\">\n            <label>Email</label>\n            <div class=\"v\" th:text=\"${ownerEmail}\">nome.cognome@example.com</div>\n          </div>\n          <div class=\"kv\">\n            <label>Corso / Oggetto</label>\n            <div class=\"v\" th:text=\"${courseName}\">SPRING-BOOT</div>\n          </div>\n        </div>\n        <div class=\"col\">\n          <div class=\"kv\">\n            <label>Codice interno</label>\n            <div class=\"v\"><span class=\"chip\" th:text=\"${courseCode}\">SPRING-K987</span></div>\n          </div>\n          <div class=\"kv\">\n            <label>Ore / Esito</label>\n            <div class=\"v\">\n              <span th:text=\"${hours}\">45</span><span> ore â </span><span th:text=\"${grade}\">A</span>\n            </div>\n          </div>\n        </div>\n      </div>\n\n      <div class=\"divider\"></div>\n\n      <!-- Verifica pubblica -->\n      <div class=\"verify\">\n        <div class=\"qr\">\n          <img th:src=\"\'data:image/png;base64,\' + ${qrBase64}\" alt=\"QR Code\"></img>\n        </div>\n        <div class=\"verify-text\">\n          <div class=\"verify-label serif\">Verifica pubblica</div>\n          <div class=\"note\">Inquadra il QR oppure visita:</div>\n          <div class=\"verify-url\" th:text=\"${verifyUrl}\">https://example.org/v/ABCDE12345</div>\n          <div class=\"note\">\n            Seriale: <span class=\"serial\" th:text=\"${serial}\">ABCDEF123456</span>\n          </div>\n        </div>\n      </div>\n    </div>\n\n    <!-- Firme -->\n    <div class=\"sign\">\n      <div class=\"sigbox\">\n        <div class=\"sigline serif\" th:text=\"${issuerName}\">Dott. Mario Rossi</div>\n        <div class=\"siglabel\" th:text=\"${issuerTitle}\">Direttore Formazione</div>\n        <div class=\"img\">\n          <img th:src=\"${signatureImageUrl}\" width=\"100px\" height=\"70px\" alt=\"Signature\"></img>\n        </div>\n      </div>\n      <div class=\"sigbox\">\n        <div class=\"sigline serif\" th:text=\"${tenantName}\">Azienda Demo</div>\n        <div class=\"siglabel\">AutoritÃ  Emettente</div>\n      </div>\n    </div>\n\n    <!-- Footer -->\n    <div class=\"footer\">\n      <div class=\"foot-left\">\n        Â© <span th:text=\"${#temporals.format(#temporals.createNow(),\'yyyy\')}\">2025</span>\n        Â· <span th:text=\"${tenantName != null ? tenantName : \'Azienda Demo\'}\">Azienda Demo</span>\n      </div>\n      <div class=\"foot-right\">\n        Documento firmato digitalmente <br></br><span th:text=\"${verifyUrl}\">https://example.org/v/ABCDE12345</span>\n      </div>\n    </div>\n  </div>\n</div>\n</body>\n</html>\n','{\"grade\": {\"type\": \"string\", \"label\": \"Esito\", \"required\": false}, \"hours\": {\"type\": \"string\", \"label\": \"Ore\", \"required\": true}, \"ownerName\": {\"type\": \"string\", \"label\": \"Intestatario\", \"required\": true}, \"courseCode\": {\"type\": \"string\", \"label\": \"Codice corso\", \"required\": true}, \"courseName\": {\"type\": \"string\", \"label\": \"Nome corso\", \"required\": true}, \"ownerEmail\": {\"type\": \"string\", \"label\": \"Email\", \"required\": true}}',NULL,_binary '','2026-01-25 13:45:19','2026-01-29 00:27:02');
+truncate table `template`;
 /*!40000 ALTER TABLE `template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -673,17 +677,9 @@ CREATE TABLE `verification_token` (
 
 LOCK TABLES `verification_token` WRITE;
 /*!40000 ALTER TABLE `verification_token` DISABLE KEYS */;
-truncate table `verification_token`;
+truncate table  `verification_token`;
 /*!40000 ALTER TABLE `verification_token` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'vericert'
---
-
---
--- Dumping routines for database 'vericert'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -694,4 +690,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-29  2:15:02
+-- Dump completed on 2026-02-11  7:51:47
