@@ -16,7 +16,7 @@ public class FileUploadService {
     @Value("${vericert.base-url}")
     private String baseUrl;
 
-    private static final String STORAGE_BASE_DIR = "/opt/vericert/storage";
+    private static final String STORAGE_BASE_DIR = "/opt/vericert";
 
     /**
      * Salva un file (logo o signature) nella cartella del tenant

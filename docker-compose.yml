@@ -59,7 +59,6 @@ services:
     networks:
       - vericert-net
     volumes:
-      - /opt/vericert/storage:/app/storage
       - /opt/vericert:/data/vericert
   nginx:
     image: nginx:1.27-alpine
@@ -86,4 +85,4 @@ networks:
         - subnet: 172.30.0.0/24
 volumes:
   db_data:
-  opt-vericert-storage:
+  opt-vericert:
