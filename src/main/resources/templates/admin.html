@@ -72,6 +72,12 @@
                 </a>
 
 
+                <a th:href="@{/download}"
+                   class="list-group-item list-group-item-action d-flex align-items-center"
+                   th:classappend="${active}=='files' ? 'active'">
+                    <i class="bi bi-file-zip"></i>&nbsp; Files
+                </a>
+
             </div>
         </aside>
 

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml" th:fragment="content(tenantId)">
+<head>
+    <meta charset="UTF-8">
+    <title>File di supporto Vercert | API e verifica certificati digitali con QR</title>
+    <meta name="description" content="Scopri come funziona Vercert: emissione di certificati digitali, QR code univoci, verifica dello stato, revoca e integrazione nei processi aziendali.">
+</head>
+<body>
+<main class="container py-5">
+    <section class="mb-2">
+        <h1 class="fw-bold">File di supporto Vercert</h1>
+        <p class="mt-3">
+            Vercert è una piattaforma web per aziende che consente di <strong>emettere</strong>, <strong>gestire</strong> e
+            <strong>verificare</strong> certificati digitali tramite <strong>QR code</strong> e identificativi univoci.
+            Il sistema è progettato per garantire <strong>autenticità</strong>, <strong>tracciabilità</strong> e
+            <strong>controllo dello stato</strong> del certificato nel tempo. Prima di emettere certificati
+            o fatture è necessario <strong> compiere alcune operazioni fondamentali </strong>. La prima volta
+            che si entra nel portale occorre <strong> creare l'utente Admin e il tenant che gestirà insieme ai suoi collaboratori. </strong>
+            Per fare questo occorre fare il signup, tale operazione oltre a registrare l'utente Admin del tenant
+            <strong> abilita alcune voci di menù tra cui Admin. Per usare il software occorre compiere
+            alcune operazioni preliminari entrando nella sezione Admin e compilando le informazioni
+            richieste nelle Impostazioni, compilare le varie tab, logo, firma per i certificati, i dati aziendali del fornitore
+            per le fatture. In questa pagina è possibile scaricare un file zip contenente i template HTML
+            e i file Json.</strong> Per ulteriori informazioni fare riferimento alla documentazione di vercert.
+        </p>
+        <hr>
+        <div class="d-flex justify-content-between mt-4">
+            <div class="d-flex gap-2">
+                <a href="/admin/downloads/starter-templates" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-file-zip"></i>&nbsp; Download file zip
+                </a>
+                <a class="btn btn-outline-secondary btn-sm" th:href="@{/}">
+                    <i class="bi bi-house me-1"></i>&nbsp; Home
+                </a>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>
