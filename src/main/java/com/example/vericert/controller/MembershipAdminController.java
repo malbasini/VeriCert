@@ -77,7 +77,7 @@ public class MembershipAdminController {
                     .body(Map.of("message", e.getMessage()));
         }
     }
-
+    public record ReqStatus(String status) {}
     public record BulkReq(List<Long> ids, String value) {}
     @PatchMapping("/bulk/role")
     @PreAuthorize("hasRole('ADMIN')")
@@ -115,6 +115,31 @@ public class MembershipAdminController {
                     .body(Map.of("message", e.getMessage()));
         }
     }
+
+    @PatchMapping("/{id}/{status}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> changeStatus(@PathVariable long id,@PathVariable String status, Principal p){
+        Long tenantId = getCurrentTenantId();
+        try {
+            MembershipId mid = new MembershipId(tenantId,id);
+            service.changeStatus(mid,Status.valueOf(status.toUpperCase()), p.getName(), p.getName());
+            return ResponseEntity.noContent().build();
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     private Long getCurrentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();

@@ -118,7 +118,7 @@
             inp.onchange = async ()=> {
                 const newSt = inp.checked ? 'ACTIVE':'SUSPENDED';
                 try{
-                    await api(`${API}/${id}/status`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({status:newSt})});
+                    await api(`${API}/${id}/${newSt}`, {method:'PATCH', headers:{'Content-Type':'application/json'}});
                     showToast('Stato aggiornato con successo',{ colorClass: 'bg-success' });
                 }catch(e){ showToast(e.message,{ colorClass: 'bg-danger' }); inp.checked = !inp.checked; }
             };

@@ -78,6 +78,11 @@ public class MembershipAdminService {
         for (MembershipId id : ids) setStatus(id, status, actor, currentUser);
     }
 
+    @Transactional
+    public void changeStatus(MembershipId id, Status status, String actor, String currentUser) {
+        setStatus(id, status, actor, currentUser);
+    }
+
     private Long currentTenantId()
     {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
