@@ -11,6 +11,7 @@ import com.example.vericert.repo.TenantRepository;
 import com.example.vericert.repo.VerificationTokenRepository;
 import com.example.vericert.service.*;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,7 @@ public class CertificateApiController {
     private final CaptchaValidator captchaValidator;
     private final UsageMeterService usageMeterService;
     private final VerificationTokenRepository tokRepo;
+    private final Path base;
 
     public CertificateApiController(CertificateService service,
                                     TenantRepository tenantRepo,
@@ -56,7 +58,8 @@ public class CertificateApiController {
                                     TemplatePicker templatePicker,
                                     CaptchaValidator captchaValidator,
                                     UsageMeterService usageMeterService,
-                                    VerificationTokenRepository tokRepo) {
+                                    VerificationTokenRepository tokRepo,
+                                    @Value("${vercert.storage.root:/data/vericert}") String rootDir) {
 
         this.service = service;
         this.tenantRepo = tenantRepo;
@@ -66,6 +69,7 @@ public class CertificateApiController {
         this.captchaValidator = captchaValidator;
         this.usageMeterService = usageMeterService;
         this.tokRepo = tokRepo;
+        this.base = Paths.get(rootDir).toAbsolutePath().normalize();
     }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -153,14 +157,14 @@ public class CertificateApiController {
             String file = c.getSerial();
             Path p = null;
             try {
-                p = Paths.get("storage/", tenantId.toString(), file + ".pdf");
+                p = base.resolve("storage").resolve(String.valueOf(tenantId)).resolve(file + ".pdf");
             }
             catch (Exception e) {
                 return ResponseEntity.status(410)
                         .body(Map.of("message", e.getMessage()));
             }
             assert p != null;
-            if (!Files.exists(p)) return ResponseEntity.notFound().build();
+            if (!Files.exists(p)) return ResponseEntity.badRequest().body(Map.of("message", "File not found"));
             usageMeterService.decrementStorage(currentTenantId(),Files.size(p));
             Files.delete(p);
             service.deleteCertificate(id);

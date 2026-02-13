@@ -17,7 +17,6 @@ public class WebConfig implements WebMvcConfigurer {
     private String rootDir;
 
 
-
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/resources/**").addResourceLocations("/resources/");

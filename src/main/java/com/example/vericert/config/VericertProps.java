@@ -10,6 +10,10 @@ public class VericertProps {
 
     @Value("vericert.public-base-url")
     private String publicBaseUrl;
+
+    @Value("vercert.storage.root")
+    private String storageRoot;
+
     @Value("${vericert.signing-kid}")
     private String kid;
     @Value("${vericert.storage.local-path}")
@@ -47,4 +51,11 @@ public class VericertProps {
         this.baseUrlVerify = baseUrlVerify;
     }
 
+    public String getStorageRoot() {
+        return storageRoot;
+    }
+
+    public void setStorageRoot(String storageRoot) {
+        this.storageRoot = storageRoot;
+    }
 }

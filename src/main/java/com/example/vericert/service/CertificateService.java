@@ -34,10 +34,14 @@ import static com.example.vericert.util.PdfUtil.htmlToPdf;
 
 @Service
 public class CertificateService {
-    @Value("${vericert.base-url}") String baseUrl;
-    @Value("${vericert.storage.local-path}") String storagePath;
-    @Value("${vericert.public-base-url:/files/certificates}") String publicBaseUrl;
-    @Value("${vericert.public-base-url-verify}") String publicBaseUrlVerify;
+    @Value("${vericert.base-url}")
+    String baseUrl;
+    @Value("${vericert.storage.local-path}")
+    String storagePath;
+    @Value("${vericert.public-base-url:/files/certificates}")
+    String publicBaseUrl;
+    @Value("${vericert.public-base-url-verify}")
+    String publicBaseUrlVerify;
 
     private final CertificateRepository certRepo;
     private final VerificationTokenRepository tokRepo;
@@ -53,6 +57,7 @@ public class CertificateService {
     private final TenantSigningKeyService tenantEnsureKeyService;
     private final AesGcmCrypto crypto;
     private final PdfSigningService pdfSigningService;
+    private final Path base;
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
@@ -67,7 +72,8 @@ public class CertificateService {
                               PlanEnforcementService planEnforcementService,
                               TenantSigningKeyService tenantEnsureKeyService,
                               AesGcmCrypto crypto,
-                              PdfSigningService pdfSigningService) {
+                              PdfSigningService pdfSigningService,
+                              @Value("${vercert.storage.root:/data/vericert}") String rootDir) {
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
@@ -83,6 +89,7 @@ public class CertificateService {
         this.tenantEnsureKeyService = tenantEnsureKeyService;
         this.crypto = crypto;
         this.pdfSigningService = pdfSigningService;
+        this.base = Paths.get(rootDir).toAbsolutePath().normalize();
     }
 
     @Transactional
@@ -91,7 +98,6 @@ public class CertificateService {
                              String ownerName,
                              String ownerEmail,
                              Tenant tenant) throws Exception {
-
 
 
         try {
@@ -127,7 +133,7 @@ public class CertificateService {
             BigDecimal mb = BigDecimal.valueOf(bytes / 1_000_000.0);
             planEnforcementService.checkCanStorePdf(tenant.getId(), mb);
             // Costruisci URL pubblico coerente
-            String Url = savePdf(serial, signedPdf, tenant);
+            savePdf(serial, signedPdf, tenant);
             String pdfUrl = "/files/" + tenant.getId().toString() + "/" + serial + ".pdf";
             String sha = HashUtils.base64UrlSha256(signedPdf);
             // 3) Prepara Certificate (senza id ancora) e salva
@@ -171,34 +177,22 @@ public class CertificateService {
             tokRepo.save(t);
             usageMeterService.incrementDocumentsGenerated(tenantId, signedPdf.length); // aggiorna anche storage Mb se abbiamo messo il refresh dentro
             return c;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
     }
 
-    public String savePdf(String serial, byte[] pdf, Tenant tenant) {
+    public void savePdf(String serial, byte[] pdf, Tenant tenant) {
         try {
-            Path baseDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());
+            Path baseDir = base.resolve("storage").resolve(String.valueOf(tenant.getId()));
             Files.createDirectories(baseDir);
             if (!Files.isWritable(baseDir)) {
                 throw new IOException("Storage directory is not writable: " + baseDir.toAbsolutePath());
             }
             Path p = baseDir.resolve(serial + ".pdf");
             Files.write(p, pdf);
-            // Costruisci URL pubblico coerente
-            String publicUrl = publicBaseUrl.endsWith("/")
-                    ? publicBaseUrl + serial + ".pdf"
-                    : publicBaseUrl + "/" + serial + ".pdf";
-            return publicUrl;
         } catch (IOException e) { throw new UncheckedIOException(e); }
     }
-
-
-
-
-
-
     private String extractJti(String compactJws) {
         try {
             var j = JWSObject.parse(compactJws);
@@ -245,4 +239,5 @@ public class CertificateService {
             throw e;
         }
     }
+
 }

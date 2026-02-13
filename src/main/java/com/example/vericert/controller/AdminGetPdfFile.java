@@ -1,5 +1,6 @@
 package com.example.vericert.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,17 +13,19 @@ import java.nio.file.Paths;
 
 @Controller
 public class AdminGetPdfFile {
+
+    private final Path base;
+
+
+    public AdminGetPdfFile(  @Value("${vercert.storage.root:/data/vericert}") String rootDir){
+        this.base = Paths.get(rootDir).toAbsolutePath().normalize();
+    }
+
     @GetMapping(path = "/files/{tenantId}/{file}.pdf", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> get(@PathVariable Long tenantId,
                                       @PathVariable String file) throws Exception {
-        Path p = null;
-        try {
-            p = Paths.get("storage/", tenantId.toString(), file + ".pdf");
-        }
-        catch (Exception e) {
-            String c = e.getMessage();
-            System.out.println(c);
-        }
+
+        Path p = base.resolve("storage").resolve(String.valueOf(tenantId)).resolve(file + ".pdf");
         assert p != null;
         if (!Files.exists(p)) return ResponseEntity.notFound().build();
         byte[] bytes = Files.readAllBytes(p);

@@ -49,6 +49,7 @@ public class InvoiceService {
     private final TenantSigningKeyService tenantEnsureKeyService;
     private final AesGcmCrypto crypto;
     private final PdfSigningService pdfSigningService;
+    private final Path base;
 
     public InvoiceService(InvoiceRepository invoiceRepo,
                           TenantProfileRepository tenantProfileRepo,
@@ -65,7 +66,8 @@ public class InvoiceService {
                           PlanEnforcementService planEnforcementService,
                           TenantSigningKeyService tenantEnsureKeyService,
                           AesGcmCrypto crypto,
-                          PdfSigningService pdfSigningService) {
+                          PdfSigningService pdfSigningService,
+                          @Value("${vercert.storage.root:/data/vericert}") String rootDir) {
 
         this.invoiceRepo = invoiceRepo;
         this.tenantProfileRepo = tenantProfileRepo;
@@ -83,6 +85,7 @@ public class InvoiceService {
         this.tenantEnsureKeyService = tenantEnsureKeyService;
         this.crypto = crypto;
         this.pdfSigningService = pdfSigningService;
+        this.base = Paths.get(rootDir).toAbsolutePath().normalize();
     }
 
     @Transactional
@@ -216,7 +219,7 @@ public class InvoiceService {
             String p12Password = crypto.decryptFromBase64(sk.getP12PasswordEnc());
             byte[] signedPdf = pdfSigningService.signPdf(pdf, sk.getP12Blob(), p12Password);
             String kid = sk.getKid();
-            String Url = savePdf(serial, signedPdf, tenant);
+            savePdf(serial, signedPdf, tenant);
             String pdfUrl = "/files/" + tenant.getId().toString() + "/" + serial + ".pdf";
             inv.setPdfUrl(pdfUrl);
             inv.setKid(kid);
@@ -250,20 +253,15 @@ public class InvoiceService {
         throw new IllegalStateException("Impossibile generare invoice_code univoco");
     }
 
-    public String savePdf(String serial, byte[] pdf, Tenant tenant) {
+    public void savePdf(String serial, byte[] pdf, Tenant tenant) {
         try {
-            Path baseDir = Paths.get(props.getStorageLocalPath(), tenant.getId().toString());
+            Path baseDir = base.resolve("storage").resolve(String.valueOf(tenant.getId()));
             Files.createDirectories(baseDir);
             if (!Files.isWritable(baseDir)) {
                 throw new IOException("Storage directory is not writable: " + baseDir.toAbsolutePath());
             }
             Path p = baseDir.resolve(serial + ".pdf");
             Files.write(p, pdf);
-            // Costruisci URL pubblico coerente
-            String publicUrl = publicBaseUrl.endsWith("/")
-                    ? publicBaseUrl + serial + ".pdf"
-                    : publicBaseUrl + "/" + serial + ".pdf";
-            return publicUrl;
         } catch (IOException e) { throw new UncheckedIOException(e); }
     }
     @Transactional
