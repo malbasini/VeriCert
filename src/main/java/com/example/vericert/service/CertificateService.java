@@ -1,5 +1,6 @@
 package com.example.vericert.service;
 
+import com.example.vericert.component.TenantStorageLayout;
 import com.example.vericert.config.VericertProps;
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.SigningKeyEntity;
@@ -58,6 +59,8 @@ public class CertificateService {
     private final AesGcmCrypto crypto;
     private final PdfSigningService pdfSigningService;
     private final Path base;
+    private final TenantStorageLayout layout;
+
 
     public CertificateService(CertificateRepository certRepo,
                               VerificationTokenRepository tokRepo,
@@ -73,7 +76,8 @@ public class CertificateService {
                               TenantSigningKeyService tenantEnsureKeyService,
                               AesGcmCrypto crypto,
                               PdfSigningService pdfSigningService,
-                              @Value("${vercert.storage.root:/data/vericert}") String rootDir) {
+                              @Value("${vercert.storage.root:/data/vericert}") String rootDir,
+                              TenantStorageLayout layout)  {
 
         this.certRepo = certRepo;
         this.tokRepo = tokRepo;
@@ -90,6 +94,7 @@ public class CertificateService {
         this.crypto = crypto;
         this.pdfSigningService = pdfSigningService;
         this.base = Paths.get(rootDir).toAbsolutePath().normalize();
+        this.layout = layout;
     }
 
     @Transactional
@@ -184,7 +189,7 @@ public class CertificateService {
 
     public void savePdf(String serial, byte[] pdf, Tenant tenant) {
         try {
-            Path baseDir = base.resolve("storage").resolve(String.valueOf(tenant.getId()));
+            Path baseDir = layout.tenantDir(base, tenant.getId()).toAbsolutePath().normalize();
             Files.createDirectories(baseDir);
             if (!Files.isWritable(baseDir)) {
                 throw new IOException("Storage directory is not writable: " + baseDir.toAbsolutePath());

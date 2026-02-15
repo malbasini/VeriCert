@@ -1,11 +1,10 @@
 package com.example.vericert.service;
 
-import com.example.vericert.config.VericertStorageProperties;
+import com.example.vericert.component.TenantStorageLayout;
 import com.example.vericert.dto.StoredFile;
 import com.example.vericert.util.HashUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.nio.file.*;
 
@@ -13,12 +12,18 @@ import java.nio.file.*;
 public class FileSystemCertificateStorageService implements CertificateStorageService {
 
     private final Path base;
-    public FileSystemCertificateStorageService(@Value("${vercert.storage.root:/data/vericert}") String rootDir) {
+    private final TenantStorageLayout layout;
+
+
+
+    public FileSystemCertificateStorageService(@Value("${vercert.storage.root:/data/vericert}") String rootDir,
+                                               TenantStorageLayout layout) {
         this.base = Paths.get(rootDir).toAbsolutePath().normalize();
+        this.layout = layout;
     }
 
     private Path tenantDir(Long tenantId) {
-        return base.resolve("storage").resolve(String.valueOf(tenantId));
+        return layout.tenantDir(base, tenantId).toAbsolutePath().normalize();
     }
 
     private Path pdfPath(Long tenantId, String serial) {

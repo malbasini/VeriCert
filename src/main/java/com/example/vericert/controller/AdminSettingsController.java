@@ -26,20 +26,17 @@ public class AdminSettingsController {
     private final TenantSettingsService service;
     private final UsageLimitsViewService usageLimitsViewService;
     private final TenantProfileService tenantProfileService;
-    private final FileUploadService fileUploadService;
     private final TenantAssetStorageService storageService;
 
     public AdminSettingsController(TenantSettingsService service,
                                    UsageLimitsViewService usageLimitsViewService,
                                    TenantProfileService tenantProfileService,
-                                   FileUploadService fileUploadService,
                                    TenantAssetStorageService storageService)
     {
 
         this.service = service;
         this.usageLimitsViewService = usageLimitsViewService;
         this.tenantProfileService = tenantProfileService;
-        this.fileUploadService = fileUploadService;
         this.storageService = storageService;
     }
 

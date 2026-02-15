@@ -1,5 +1,6 @@
 package com.example.vericert.controller;
 
+import com.example.vericert.component.TenantStorageLayout;
 import com.example.vericert.domain.Certificate;
 import com.example.vericert.domain.Template;
 import com.example.vericert.domain.Tenant;
@@ -50,6 +51,7 @@ public class CertificateApiController {
     private final UsageMeterService usageMeterService;
     private final VerificationTokenRepository tokRepo;
     private final Path base;
+    private final TenantStorageLayout layout;
 
     public CertificateApiController(CertificateService service,
                                     TenantRepository tenantRepo,
@@ -59,7 +61,8 @@ public class CertificateApiController {
                                     CaptchaValidator captchaValidator,
                                     UsageMeterService usageMeterService,
                                     VerificationTokenRepository tokRepo,
-                                    @Value("${vercert.storage.root:/data/vericert}") String rootDir) {
+                                    @Value("${vercert.storage.root:/data/vericert}") String rootDir,
+                                    TenantStorageLayout layout) {
 
         this.service = service;
         this.tenantRepo = tenantRepo;
@@ -70,6 +73,7 @@ public class CertificateApiController {
         this.usageMeterService = usageMeterService;
         this.tokRepo = tokRepo;
         this.base = Paths.get(rootDir).toAbsolutePath().normalize();
+        this.layout = layout;
     }
     private Long currentTenantId() {
         var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
@@ -155,9 +159,10 @@ public class CertificateApiController {
             Certificate c = certRepo.findById(id).orElseThrow();
             Long tenantId = currentTenantId();
             String file = c.getSerial();
+            Path baseDir = layout.tenantDir(base, tenantId).toAbsolutePath().normalize();
             Path p = null;
             try {
-                p = base.resolve("storage").resolve(String.valueOf(tenantId)).resolve(file + ".pdf");
+                p = baseDir.resolve(file + ".pdf");
             }
             catch (Exception e) {
                 return ResponseEntity.status(410)

@@ -125,7 +125,7 @@
                         <!-- mini anteprima -->
                         <div class="border rounded p-3 bg-light">
                             <div class="d-flex align-items-center">
-                                <img id="logoPreview" th:src="*{logoUrl}"  th:alt="@{/files/{tenantId}/logo.png(tenantId=${tenantId})}" style="max-height:60px;" onerror="this.style.display='none'">
+                                <img id="logoPreview" th:src="*{logoUrl}"  th:alt="*{logoUrl}" style="max-height:60px;">
                             </div>
                             <div>
                                 <div class="fw-semibold" th:text="*{issuerName}">Mario Rossi</div>
@@ -133,7 +133,7 @@
                             </div>
                         </div>
                         <div class="mt-3">
-                            <img id="signaturePreview" th:src="*{signatureImageUrl}" alt="signature preview" style="max-height:60px;" onerror="this.style.display='none'">
+                            <img id="signaturePreview" th:src="*{signatureImageUrl}" alt="signature preview" style="max-height:60px;">
                         </div>
                     </div>
                 </div>
@@ -396,11 +396,12 @@
         }
 
         function uploadFile(file, endpoint, statusElementId, previewImageId, urlFieldId) {
+            alert('upload');
             const formData = new FormData();
             formData.append('file', file);
-
             const statusEl = document.getElementById(statusElementId);
             const previewImg = document.getElementById(previewImageId);
+            alert(previewImg);
             const urlField = document.querySelector('input[name="' + urlFieldId + '"]');
 
             statusEl.textContent = '⏳ Caricamento...';
@@ -417,7 +418,7 @@
                         statusEl.className = 'ms-2 small text-success';
 
                         // Aggiorna anteprima e campo URL
-                        if (previewImg && data.url) {
+                        if (previewImg) {
                             previewImg.src = data.url + '?t=' + new Date().getTime();
                             previewImg.style.display = 'block';
                         }

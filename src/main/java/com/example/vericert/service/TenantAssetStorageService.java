@@ -1,5 +1,6 @@
 package com.example.vericert.service;
 
+import com.example.vericert.component.TenantStorageLayout;
 import com.example.vericert.config.VericertProps;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -16,24 +17,28 @@ public class TenantAssetStorageService {
 
     private final Path base;
     private final VericertProps props;
+    private final TenantStorageLayout layout;
 
 
     public TenantAssetStorageService(@Value("${vercert.storage.root:/data/vericert}") String rootDir,
-                                     VericertProps props) {
+                                     VericertProps props,
+                                     TenantStorageLayout layout) {
         this.base = Paths.get(rootDir).toAbsolutePath().normalize();
         this.props = props;
+        this.layout = layout;
     }
 
     public Path signaturePath(long tenantId) throws IOException {
-        Path p = base.resolve("storage").resolve(String.valueOf(tenantId)).resolve("signature.png")
-                .toAbsolutePath().normalize();
+
+        Path baseDir = layout.tenantDir(base, tenantId).toAbsolutePath().normalize();
+        Path p = baseDir.resolve("signature.png");
         Files.createDirectories(p.getParent());
         return p;
     }
 
     public Path logoPath(long tenantId) throws IOException {
-        Path p = base.resolve("storage").resolve(String.valueOf(tenantId)).resolve("logo.png")
-                .toAbsolutePath().normalize();
+        Path baseDir = layout.tenantDir(base, tenantId).toAbsolutePath().normalize();
+        Path p = baseDir.resolve("logo.png");
         Files.createDirectories(p.getParent());
         return p;
     }
@@ -47,11 +52,11 @@ public class TenantAssetStorageService {
     }
 
     public String signaturePublicUrl(long tenantId) {
-        return props.getBaseUrl() + "/files/" + tenantId + "/signature.png";
+        return props.getBaseUrl() + "/storage/" + tenantId + "/signature.png";
     }
 
     public String logoPublicUrl(long tenantId) {
-        return props.getBaseUrl() + "/files/" + tenantId + "/logo.png";
+        return props.getBaseUrl() + "/storage/" + tenantId + "/logo.png";
     }
 
 }
