@@ -105,7 +105,7 @@ public class StripeWebhookController {
                     case "invoice.paid" -> handleInvoicePaid(event);
                     case "payment_intent.payment_failed" -> handlePaymentIntentFailed(event);
                     case "payment_intent.created" -> {
-                        return (ResponseEntity<String>) ResponseEntity.status(200);
+                        return (ResponseEntity.status(200)).body("created");
                     }
                     default -> System.out.println(">>> Evento ignorato: " + type);
                 }
