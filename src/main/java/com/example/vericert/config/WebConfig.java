@@ -29,7 +29,7 @@ public class WebConfig implements WebMvcConfigurer {
             base = base.resolve("storage").normalize();
         }
 
-        String storageLocation = "file:" + base.toString() + "/";
+        String storageLocation = "file:" + base + "/";
 
         registry.addResourceHandler("/storage/**")
                 .addResourceLocations(storageLocation)
