@@ -50,6 +50,36 @@
     <p>Sì. Se un certificato non è più valido può essere revocato e lo stato risulterà aggiornato nella verifica pubblica.</p>
   </details>
 
+  <h2>Trust e firma digitale</h2>
+
+  <details>
+    <summary>Perché Adobe dice “firma valida, ma firmatario non attendibile”?</summary>
+    <p>
+      Significa che la <strong>firma del PDF è integra</strong> (il documento non è stato modificato),
+      ma il <strong>certificato del firmatario</strong> non è ancora marcato come attendibile
+      sul computer dell’utente. È un tema di <em>trust locale</em>, non di contraffazione.
+    </p>
+  </details>
+
+  <details>
+    <summary>Cosa succede se il PDF viene modificato anche di un solo bit?</summary>
+    <p>
+      Anche una modifica minima <strong>invalida la firma</strong>: il PDF risulterà alterato
+      nei lettori (es. Adobe) e non supererà la verifica di autenticità.
+      La firma digitale serve proprio a rendere evidente qualsiasi manomissione.
+    </p>
+  </details>
+
+  <details>
+    <summary>Come contesto o verifico una copia del documento?</summary>
+    <p>
+      La verifica standard avviene tramite <strong>link/QR</strong>, che mostra lo stato ufficiale registrato.
+      Se devi verificare una <strong>copia ricevuta</strong> (es. inoltrata via email/chat),
+      l’amministratore del tenant può inviare il file al supporto tecnico (support@vercert.org) indicando il <strong>seriale</strong>
+      e <strong> l'identificativo del tenant</strong>. Verrà eseguito un confronto tecnico con l’originale archiviato e verrà fornito l’esito.
+    </p>
+  </details>
+
   <h2>Privacy e conformità</h2>
 
   <details>
@@ -90,6 +120,30 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "No. La verifica avviene via browser dopo la scansione del QR code."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Perché Adobe dice “firma valida, ma firmatario non attendibile”?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Significa che la firma del PDF è integra (il documento non è stato modificato), ma il certificato del firmatario non è ancora marcato come attendibile sul computer dell’utente. È un tema di trust locale, non di contraffazione."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Cosa succede se il PDF viene modificato anche di un solo bit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Anche una modifica minima invalida la firma: il PDF risulterà alterato nei lettori (es. Adobe) e non supererà la verifica di autenticità. La firma digitale rende evidente qualsiasi manomissione."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Come contesto o verifico una copia del documento?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La verifica standard avviene tramite link/QR che mostra lo stato ufficiale registrato. Per verificare una copia ricevuta, l’amministratore del tenant può inviare il PDF al supporto indicando il seriale e l'identificativo del tenant: verrà eseguito un confronto tecnico con l’originale archiviato e verrà fornito l’esito."
           }
         }
       ]

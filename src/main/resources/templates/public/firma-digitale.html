@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="it"
-      xmlns:th="http://www.thymeleaf.org">
+<html lang="it" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <head th:replace="fragments/base :: headFragment(
@@ -10,6 +9,7 @@
             'index,follow'
     )"></head>
 </head>
+
 <body>
 <header th:replace="fragments/base :: navFragment"></header>
 
@@ -24,7 +24,7 @@
     </p>
     <p class="mb-0">
       L’obiettivo è fornire <strong>trasparenza tecnica</strong> e chiarire come verificare
-      correttamente l’autenticità degli attestati.
+      correttamente l’autenticità degli attestati e dei documenti emessi.
     </p>
   </section>
 
@@ -45,6 +45,22 @@
     </p>
   </section>
 
+  <!-- VALIDITÀ -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Periodo di validità dell’attestato</h2>
+    <p class="mt-3">
+      Un attestato può includere un <strong>periodo di validità</strong> (ad esempio: “valido dal … al …”).
+      Questo è utile per certificazioni soggette a rinnovo, compliance o percorsi formativi con scadenza.
+    </p>
+    <ul>
+      <li>Se presente nel documento, il periodo di validità viene riportato nel PDF.</li>
+      <li>La verifica pubblica via link/QR restituisce lo stato attuale (valido, scaduto, revocato).</li>
+    </ul>
+    <p class="mb-0">
+      In caso di discrepanze, la verifica server-side è la fonte di verità sempre aggiornata.
+    </p>
+  </section>
+
   <!-- CERTIFICATO DI FIRMA -->
   <section class="mb-5">
     <h2 class="fw-semibold">Certificato di firma per tenant</h2>
@@ -56,7 +72,7 @@
     <ul>
       <li>Isolamento tra tenant.</li>
       <li>Tracciabilità dell’emittente.</li>
-      <li>Controllo completo sul ciclo di vita del certificato.</li>
+      <li>Controllo sul ciclo di vita del certificato.</li>
     </ul>
     <p class="mb-0">
       Il certificato può essere scaricato dall’area di amministrazione del tenant.
@@ -116,10 +132,33 @@
       <li>Fonte di verità sempre aggiornata.</li>
     </ul>
     <p class="mb-0">
-      Anche in presenza di copie del PDF o del QR code,
-      la validità dipende sempre dallo stato registrato sul server.
+      Anche in presenza di copie del PDF o del QR code, la validità dipende sempre dallo stato registrato sul server.
     </p>
   </section>
+
+  <!-- COPIE E CONTESTAZIONI -->
+  <section class="mb-5">
+    <h2 class="fw-semibold">Copie, inoltri e contestazioni</h2>
+    <p class="mt-3">
+      Copie di un PDF (inoltrate via email/chat, scaricate e ricondivise, convertite o scansionate)
+      possono essere alterate intenzionalmente o accidentalmente. Per questo Vercert distingue tra:
+    </p>
+    <ul>
+      <li><strong>Verifica ufficiale</strong>: stato e autenticità dell’originale archiviato, tramite link/QR.</li>
+      <li><strong>Verifica di una copia</strong>: confronto tecnico del file ricevuto con l’originale archiviato (su richiesta).</li>
+    </ul>
+
+    <div class="alert alert-secondary mt-3 mb-0" role="alert">
+      <div class="fw-semibold mb-1">Procedura (verifica di una copia)</div>
+      <ol class="mb-0">
+        <li>L’amministratore del tenant invia a supporto il <strong>PDF ricevuto</strong> e indica il <strong>seriale</strong>
+          e l'dentificativo del tenant.</li>
+        <li>Vercert esegue un confronto tecnico (hash/firma) con l’originale archiviato.</li>
+        <li>Viene fornito un esito: <strong>corrisponde</strong> / <strong>non corrisponde</strong>.</li>
+      </ol>
+    </div>
+  </section>
+
   <!-- POSIZIONAMENTO -->
   <section class="mb-0">
     <h2 class="fw-semibold">Posizionamento e utilizzo</h2>
@@ -137,7 +176,9 @@
       lasciando all’organizzazione la gestione del trust nel proprio contesto operativo.
     </p>
   </section>
+
 </main>
+
 <div th:replace="fragments/footer :: footerFragment"></div>
 </body>
 </html>
