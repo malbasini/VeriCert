@@ -162,11 +162,18 @@
               <span th:text="${hours}">45</span><span> ore — </span><span th:text="${grade}">A</span>
             </div>
           </div>
+          <div class="kv" th:if="${validFrom != null or validTo != null}">
+            <label>Periodo di validità</label>
+            <div class="v">
+              <span th:if="${validFrom != null}" th:text="${#temporals.format(validFrom, 'dd/MM/yyyy')}">01/01/2026</span>
+              <span th:if="${validFrom != null and validTo != null}"> — </span>
+              <span th:if="${validTo != null}" th:text="${#temporals.format(validTo, 'dd/MM/yyyy')}">31/12/2026</span>
+              <span th:if="${validTo == null}" class="note">&nbsp;(senza scadenza)</span>
+            </div>
+          </div>
         </div>
       </div>
-
       <div class="divider"></div>
-
       <!-- Verifica pubblica -->
       <div class="verify">
         <div class="qr">

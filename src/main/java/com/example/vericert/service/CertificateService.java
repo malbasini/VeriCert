@@ -116,12 +116,16 @@ public class CertificateService {
             String verifyUrl = props.getPublicBaseUrlVerify() + "/vui/" + code;
             byte[] qr = QrUtil.png(verifyUrl, 300);
             String qrBase64 = Base64.getEncoder().encodeToString(qr);
+            long now = Instant.now().getEpochSecond();
+            long exp = now + 31536000;
             sysVars.put("serial", serial);
             sysVars.put("code", code);
             sysVars.put("verifyUrl", verifyUrl);
             sysVars.put("qrBase64", qrBase64);
             sysVars.put("issuedAt", Instant.now());   // o formattato in stringa
             sysVars.put("tenantName", tenant.getName());
+            sysVars.put("validFrom",Instant.ofEpochSecond(now));
+            sysVars.put("validTo", Instant.ofEpochSecond(exp));
             ObjectMapper om = new ObjectMapper();
             String json = om.writeValueAsString(vars);   // -> "{\"nome\":\"Mario\",\"eta\":30}"
             // 1) Render HTML e genera PDF
@@ -152,9 +156,7 @@ public class CertificateService {
             c.setUserVarsJson(json);
             c.setKid(kid);
             c = certRepo.save(c);  // ora hai c.getId() (certId)
-            // 4) Token di verifica (JWS compatto nel QR)
-            long now = Instant.now().getEpochSecond();
-            long exp = now + 31536000;                 // es. +1 anno
+            // 4) Token di verifica (JWS compatto nel QR)// es. +1 anno
             Long tenantId = tenant.getId();
             Long certId = c.getId();
             Path priv = Path.of("keys/ed25519-private.pem");
