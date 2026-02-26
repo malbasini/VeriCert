@@ -1,2 +1,0 @@
-LOGO URL:https://app.vercert.org/files/16/logo.png
-FIRMA:https://app.vercert.org/files/16/signature.png
