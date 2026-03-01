@@ -46,6 +46,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf
                                 .ignoringRequestMatchers(
+                                        "/v/**",
                                         "/signup",// signup via fetch JSON
                                         "/admin/**",
                                         "/pricing/billing",       // toggle mensile/annuale sulla index
@@ -69,7 +70,8 @@ public class SecurityConfig {
                         .requestMatchers("/admin/**", "/api/admin/**").hasAnyRole("ADMIN","MANAGER","ISSUER","VIEWER")
                         .requestMatchers("/public/verify-file","/v/verify-file-upload").permitAll()
                         .requestMatchers("/templates/**","/certificates/**").authenticated()
-                        .requestMatchers("/v/**","/vui/**","/signup","/login","/index","/files/**","/actuator/health").permitAll()
+                        .requestMatchers("/vui/**","/signup","/login","/index","/files/**","/actuator/health").permitAll()
+                        .requestMatchers("/v/**").permitAll()
                         .requestMatchers("/checkout/**").permitAll()
                         .requestMatchers("/privacy", "/firma-digitale","/docs","/faq","/come-funziona","/contact","/").permitAll()
                         .anyRequest().authenticated()
