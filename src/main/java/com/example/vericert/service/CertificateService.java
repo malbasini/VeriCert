@@ -159,25 +159,11 @@ public class CertificateService {
             // 4) Token di verifica (JWS compatto nel QR)// es. +1 anno
             Long tenantId = tenant.getId();
             Long certId = c.getId();
-            Path priv = Path.of("keys/ed25519-private.pem");
-            Path pub = Path.of("keys/ed25519-public.pem");
-            QrSignerOkp signer = new QrSignerOkp(priv, pub, kid);
-            Map<String, Object> payloads = Map.of(
-                    "tenantId", tenantId,
-                    "certId", certId,
-                    "sha256", sha,
-                    "iat", System.currentTimeMillis() / 1000,
-                    "exp", (System.currentTimeMillis() / 1000) + 31536000,
-                    "jti", java.util.UUID.randomUUID().toString()
-            );
-            String compactJws = signer.sign(payloads);
             // 5) Salva VerificationToken in DB
             VerificationToken t = new VerificationToken();
-            t.setCompactJws(compactJws);
             t.setCertificateId(certId);
-            t.setCode(code);                     // se usi anche un codice human-friendly
-            t.setKid(kid);           // ✅ NON publicBaseUrl: serve il KID della chiave di firma
-            t.setJti(extractJti(compactJws));
+            t.setCode(code);
+            t.setKid(kid);
             t.setCreatedAt(Instant.ofEpochSecond(now));
             t.setExpiresAt(Instant.ofEpochSecond(exp));
             t.setSha256Cached(sha);             // utile per verifiche veloci
@@ -188,7 +174,6 @@ public class CertificateService {
             throw new Exception(e.getMessage());
         }
     }
-
     public void savePdf(String serial, byte[] pdf, Tenant tenant) {
         try {
             Path baseDir = layout.tenantDir(base, tenant.getId()).toAbsolutePath().normalize();
@@ -199,12 +184,6 @@ public class CertificateService {
             Path p = baseDir.resolve(serial + ".pdf");
             Files.write(p, pdf);
         } catch (IOException e) { throw new UncheckedIOException(e); }
-    }
-    private String extractJti(String compactJws) {
-        try {
-            var j = JWSObject.parse(compactJws);
-            return (String) j.getPayload().toJSONObject().get("jti");
-        } catch (Exception e) { return null; }
     }
     public static String randomCode(int len){
         String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
