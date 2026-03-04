@@ -1,8 +1,8 @@
--- MySQL dump 10.13  Distrib 8.0.40, for macos14 (arm64)
+-- MySQL dump 10.13  Distrib 8.0.44, for Linux (x86_64)
 --
--- Host: localhost    Database: VeriCert2
+-- Host: localhost    Database: vericert
 -- ------------------------------------------------------
--- Server version	8.0.40
+-- Server version	8.0.44
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -73,7 +73,7 @@ CREATE TABLE `certificate` (
   KEY `fk_certficate_tenant_idx` (`tenant_id`),
   KEY `idx_cert_signing_kid` (`signing_kid`),
   CONSTRAINT `fk_certficate_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,7 +82,7 @@ CREATE TABLE `certificate` (
 
 LOCK TABLES `certificate` WRITE;
 /*!40000 ALTER TABLE `certificate` DISABLE KEYS */;
-truncate table `certificate`;
+truncate table certificate;
 /*!40000 ALTER TABLE `certificate` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -118,7 +118,6 @@ CREATE TABLE `invoice_customer` (
 
 LOCK TABLES `invoice_customer` WRITE;
 /*!40000 ALTER TABLE `invoice_customer` DISABLE KEYS */;
-truncate table `invoice_customer`;
 /*!40000 ALTER TABLE `invoice_customer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -143,7 +142,7 @@ CREATE TABLE `invoice_lines` (
   PRIMARY KEY (`id`),
   KEY `ix_invoice_lines_invoice_id` (`invoice_id`),
   CONSTRAINT `fk_invoice_lines_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -152,7 +151,7 @@ CREATE TABLE `invoice_lines` (
 
 LOCK TABLES `invoice_lines` WRITE;
 /*!40000 ALTER TABLE `invoice_lines` DISABLE KEYS */;
-truncate table `invoice_lines`;
+truncate table invoice_lines;
 /*!40000 ALTER TABLE `invoice_lines` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -207,7 +206,7 @@ CREATE TABLE `invoices` (
   KEY `ix_invoices_issued_at` (`issued_at`),
   KEY `ix_invoices_tenant_status` (`tenant_id`,`status`),
   CONSTRAINT `fk_invoices_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -216,7 +215,7 @@ CREATE TABLE `invoices` (
 
 LOCK TABLES `invoices` WRITE;
 /*!40000 ALTER TABLE `invoices` DISABLE KEYS */;
-truncate table `invoices`;
+truncate table invoices;
 /*!40000 ALTER TABLE `invoices` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -248,7 +247,7 @@ CREATE TABLE `membership` (
 
 LOCK TABLES `membership` WRITE;
 /*!40000 ALTER TABLE `membership` DISABLE KEYS */;
-truncate table `membership`;
+truncate table membership;
 /*!40000 ALTER TABLE `membership` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -284,7 +283,7 @@ CREATE TABLE `payments` (
   UNIQUE KEY `idempotency_key` (`idempotency_key`),
   KEY `idx_payments_session` (`checkout_session_id`),
   KEY `idx_payments_intent` (`provider_intent_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -293,6 +292,7 @@ CREATE TABLE `payments` (
 
 LOCK TABLES `payments` WRITE;
 /*!40000 ALTER TABLE `payments` DISABLE KEYS */;
+truncate table payments;
 /*!40000 ALTER TABLE `payments` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -318,7 +318,7 @@ CREATE TABLE `persistent_logins` (
 
 LOCK TABLES `persistent_logins` WRITE;
 /*!40000 ALTER TABLE `persistent_logins` DISABLE KEYS */;
-truncate table `persistent_logins`;
+truncate table persistent_logins;
 /*!40000 ALTER TABLE `persistent_logins` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -357,7 +357,7 @@ CREATE TABLE `plan_definitions` (
 
 LOCK TABLES `plan_definitions` WRITE;
 /*!40000 ALTER TABLE `plan_definitions` DISABLE KEYS */;
-INSERT INTO `plan_definitions` VALUES (1,'FREE','FREE',5,100,100,'Supporto community',0,0,'0','0','0','0','0','0','2025-11-15 00:31:46'),(2,'PRO','PRO',100,50000,5000,'Supporto email',50,792,'price_1Ski4eIX50JfMIoYSFVTlRRk','price_1Sff2WIX50JfMIoYoo9jYBj3','P-95E1655116985253PNFJKFAQ','P-712880856H8572933NFKU4AI','22%','20%','2025-11-15 01:10:08'),(3,'BUSINESS','BUSINESS',500,200000,25000,'Supporto email',2990,2392,'price_1SWu7PIX50JfMIoYKsSqKdbU','price_1SWu8kIX50JfMIoYF7KjQD0b','P-5N7019469X090525ENFKU5AY',' P-7BR4749672596041SNFKU55A','22%','20%','2025-11-15 01:15:25'),(4,'ENTERPRISE','ENTERPRISE',5000,1000000,200000,'Supporto prioritario',9990,7992,'price_1SWuGuIX50JfMIoY774Nflhw','price_1SWuJbIX50JfMIoYEqqcxria','P-80V91018RA589712LNFKVA6A','P-9E712471SG4650119NFKVBJI','22%','20%','2025-11-15 01:20:30');
+INSERT INTO `plan_definitions` VALUES (1,'FREE','FREE',5,100,100,'Supporto community',0,0,'0','0','0','0','0','0','2025-11-15 00:31:46'),(2,'PRO','PRO',100,50000,5000,'Supporto email',990,792,'price_1Ski4eIX50JfMIoYSFVTlRRk','price_1Sff2WIX50JfMIoYoo9jYBj3','P-95E1655116985253PNFJKFAQ','P-712880856H8572933NFKU4AI','22%','20%','2025-11-15 01:10:08'),(3,'BUSINESS','BUSINESS',500,200000,25000,'Supporto email',2990,2392,'price_1SWu7PIX50JfMIoYKsSqKdbU','price_1SWu8kIX50JfMIoYF7KjQD0b','P-5N7019469X090525ENFKU5AY','P-7BR4749672596041SNFKU55A','22%','20%','2025-11-15 01:15:25'),(4,'ENTERPRISE','ENTERPRISE',5000,1000000,200000,'Supporto prioritario',9990,7992,'price_1SWuGuIX50JfMIoY774Nflhw','price_1SWuJbIX50JfMIoYEqqcxria','P-80V91018RA589712LNFKVA6A','P-9E712471SG4650119NFKVBJI','22%','20%','2025-11-15 01:20:30');
 /*!40000 ALTER TABLE `plan_definitions` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -415,7 +415,7 @@ CREATE TABLE `signing_key` (
 
 LOCK TABLES `signing_key` WRITE;
 /*!40000 ALTER TABLE `signing_key` DISABLE KEYS */;
-truncate table `signing_key`;
+truncate table signing_key;
 /*!40000 ALTER TABLE `signing_key` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -441,7 +441,7 @@ CREATE TABLE `template` (
   KEY `tenant_id` (`tenant_id`),
   KEY `idx_template_tenant_updated` (`tenant_id`,`updated_at` DESC),
   CONSTRAINT `fk_template_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenant` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -450,7 +450,7 @@ CREATE TABLE `template` (
 
 LOCK TABLES `template` WRITE;
 /*!40000 ALTER TABLE `template` DISABLE KEYS */;
-truncate table `template`;
+INSERT INTO `template` VALUES (1,0,'TEMPLATE CERTIFICATI','1.0','<!DOCTYPE html>\n<html lang=\"it\" xmlns:th=\"http://www.thymeleaf.org\">\n<head>\n  <meta charset=\"UTF-8\"></meta>\n  <title th:text=\"\'Certificato \' + ${serial}\">Certificato</title>\n  <style>\n    /* --- Pagina / palette PRO --- */\n    @page { size: A4; margin: 10mm; }           /* prima 14mm */\n    .page { background:#f8fafc; }               /* ok */\n    .frame { margin: 4mm; padding: 7mm;\n      background:#fff; border:2px solid #0a376e; border-radius:8px;\n    }\n    /* Forza la stampa dei colori (Chrome/Edge/Safari) */\n  * {\n    -webkit-print-color-adjust: exact;\n    print-color-adjust: exact;\n  }\n\n  /* In alcuni casi aiuta esplicitare in @media print */\n  @media print {\n    body, .page, .frame, .security-band, .card, .verify {\n      -webkit-print-color-adjust: exact;\n      print-color-adjust: exact;\n    }\n  }\n    /* spacing più “tight” e prevedibile */\n    body { line-height: 1.22; }\n\n    /* header layout */\n    .header { margin-top: 2mm; margin-bottom: 4mm; }\n    .meta { margin-top: 2mm; }\n    .meta .issuer { margin-bottom: 2mm; }\n    .meta .issued { margin-top: 2mm; }\n\n    /* riduci spazi globali un po’ eccessivi */\n    .security-band { margin-bottom: 5mm; }      /* prima 8mm */\n    .title { margin: 6mm 0 4mm 0; }             /* prima 10mm 0 8mm 0 */\n    .card { padding: 6mm; margin-bottom: 6mm; } /* prima 8mm/8mm */\n    .kv { margin: 2mm 0; }                      /* prima 3mm */\n    .divider { margin: 4mm 0; }                 /* prima 6mm */\n    .sign { margin-top: 6mm; }                  /* prima 10mm */\n    .footer { margin-top: 8mm; padding-top: 3mm; } /* prima 12mm/4mm */\n    * { box-sizing: border-box; }\n    html, body { margin:0; padding:0; color:#0f172a; font-family: Arial, Helvetica, sans-serif; }\n    /* Sostituisci le variabili con classi o valori diretti */\n    .pro { background: #f8fafc; }\n    /* --- Cornice principale --- */\n    .page { background: #f8fafc; border: 1px solid #d1d5db; border-radius: 10px; }\n    .frame { margin: 8mm; padding: 10mm; background: #ffffff; border: 2px solid #0a376e; border-radius: 8px; }\n    /* --- Banda superiore di sicurezza --- */\n    .security-band {\n      background-color: #0a376e; /* Niente gradiente, usa il colore primario */\n      color: #ffffff; padding: 3mm 6mm; border-radius: 6px; margin-bottom: 8mm;\n    }\n    .brand-title {width:220px; display:inline-block; vertical-align: middle; color: #0a376e;font-weight: 800; font-size: 18pt; letter-spacing:.3px; }\n    .serial { display:inline-block; padding:2px 6px; border:1px solid #d1d5db; background:#f3f4f6; border-radius:6px;font-family: \"Courier New\", Courier, monospace; font-size:10pt; color: #0f172a; }\n    /* --- Titolo documento --- */\n    .title { text-align:center; margin: 10mm 0 8mm 0; }\n    .title h1 { margin:0; font-size: 24pt; color: #0f172a; }\n    .subtitle { margin-top: 2mm; color: #6b7280; font-size: 11pt; }\n    .badge { display:inline-block; margin-top: 4mm; padding: 3px 10px; border-radius: 999px;background: #0a376e; color: #ffffff; font-weight: 700; font-size: 10pt; border:1px solid #163c6a; }\n    /* --- Griglie semplici --- */\n    .row { width:100%; }\n    .col { display:inline-block; vertical-align: top; width: 48.5%; }\n    .spacer { height: 2mm; }\n    /* --- Card dati --- */\n    .card { border:1px solid #d1d5db; border-radius:10px; background:#ffffff; padding:8mm; margin-bottom:8mm; }\n    .kv { margin: 3mm 0; }\n    .kv label { display:block; font-size:9pt; color: #6b7280; margin-bottom: 1mm; letter-spacing: .2px; }\n    .kv .v { font-size:12.5pt; font-weight:700; color: #0f172a; }\n    /* --- Sezione verifica --- */\n    .verify { border:1px dashed #9aa3b2; background: #f3f4f6; border-radius:10px; padding:6mm; }\n    .verify-label { font-weight: 800; margin-bottom: 2mm; letter-spacing: .2px; }\n    .verify-url { word-break: break-all; color: #082a53; font-weight: 800; font-size: 10.5pt; margin: 2mm 0 3mm; }\n    .note { color: #6b7280; font-size: 9.5pt; }\n    /* --- Firme --- */\n    .sign { margin-top: 10mm; }\n    .sigbox { display:inline-block; width: 48.5%; vertical-align: top; text-align: center; }\n    .sigline { border-top:1px solid #0f172a; margin-top:18mm; padding-top:2mm; font-size:10pt; color:#374151; }\n    .siglabel { font-size:9pt; color: #6b7280; }\n    /* --- Footer --- */\n    .footer { margin-top: 12mm; border-top:1px solid #d1d5db; padding-top:4mm; color: #6b7280; font-size: 9pt;display: table; width:100%; }\n    .foot-left, .foot-right { display: table-cell; width:50%; vertical-align: middle; }\n    /* --- Divider --- */\n    .divider { height:1px; background: #b58b00; margin: 6mm 0; }\n    /* Evita orfani/righe spezzate brutte in PDF */\n    .kv .v, .verify, .sigbox, .title { page-break-inside: avoid; }\n    .verify-url { word-break: break-word; overflow-wrap: anywhere; line-height: 1.15; }\n    .footer .foot-right span { word-break: break-word; overflow-wrap: anywhere; }\n  </style>\n</head>\n<body>\n<div class=\"page pro\">\n  <div class=\"frame\">\n    <!-- Banda superiore -->\n    <div class=\"security-band\">\n      <div class=\"left\">\n        <div class=\"security-kicker\">Documento digitale firmato e verificabile</div>\n        <div class=\"security-title serif\">Attestato di conseguimento</div>\n      </div>\n      <div class=\"right\">\n        <span class=\"chip\">Seriale</span>\n        <span class=\"serial\" th:text=\"${serial}\">ABCDEF123456</span>\n      </div>\n    </div>\n\n    <!-- Header -->\n    <div class=\"header\">\n      <div class=\"brand\">\n        <div class=\"img\">\n          <img th:src=\"${logoUrl}\" alt=\"${logoUrl}\"></img>\n        </div>\n        <span class=\"crest\"></span>\n        <span class=\"brand-title serif\" th:text=\"${tenantName != null ? tenantName : \'Azienda Demo\'}\">Azienda Demo</span>\n      </div>\n      <br></br>\n      <div class=\"meta\">\n        <div class=\"issuer\">\n          <div th:text=\"${issuerName != null ? issuerName : \'Dott. Mario Rossi\'}\">Dott. Mario Rossi</div>\n          <div th:text=\"${issuerTitle != null ? issuerTitle : \'Direttore Formazione\'}\">Direttore Formazione</div>\n        </div>\n\n        <div class=\"issued\">\n          <span>Emesso il:</span>\n          <span th:text=\"${#temporals.format(issuedAt, \'dd/MM/yyyy\')}\">01/01/2025</span>\n        </div>\n      </div>\n    </div>\n\n    <!-- Titolo -->\n    <div class=\"title\">\n      <h1 class=\"serif\">Certificato di Completamento</h1>\n      <div class=\"subtitle\">Si attesta che il/la candidato/a ha completato con profitto il seguente percorso.</div>\n      <div class=\"badge\">Attestato digitale verificabile</div>\n    </div>\n\n    <!-- Dati principali -->\n    <div class=\"card\">\n      <div class=\"row\">\n        <div class=\"col\">\n          <div class=\"kv\">\n            <label>Intestatario</label>\n            <div class=\"v\" th:text=\"${ownerName}\">Nome Cognome</div>\n          </div>\n          <div class=\"kv\">\n            <label>Email</label>\n            <div class=\"v\" th:text=\"${ownerEmail}\">nome.cognome@example.com</div>\n          </div>\n          <div class=\"kv\">\n            <label>Corso / Oggetto</label>\n            <div class=\"v\" th:text=\"${courseName}\">SPRING-BOOT</div>\n          </div>\n        </div>\n        <div class=\"col\">\n          <div class=\"kv\">\n            <label>Codice interno</label>\n            <div class=\"v\"><span class=\"chip\" th:text=\"${courseCode}\">SPRING-K987</span></div>\n          </div>\n          <div class=\"kv\">\n            <label>Ore / Esito</label>\n            <div class=\"v\">\n              <span th:text=\"${hours}\">45</span><span> ore — </span><span th:text=\"${grade}\">A</span>\n            </div>\n          </div>\n          <div class=\"kv\" th:if=\"${validFrom != null or validTo != null}\">\n            <label>Periodo di validità</label>\n            <div class=\"v\">\n              <span th:if=\"${validFrom != null}\" th:text=\"${#temporals.format(validFrom, \'dd/MM/yyyy\')}\">01/01/2026</span>\n              <span th:if=\"${validFrom != null and validTo != null}\"> — </span>\n              <span th:if=\"${validTo != null}\" th:text=\"${#temporals.format(validTo, \'dd/MM/yyyy\')}\">31/12/2026</span>\n              <span th:if=\"${validTo == null}\" class=\"note\">&nbsp;(senza scadenza)</span>\n            </div>\n          </div>\n        </div>\n      </div>\n      <div class=\"divider\"></div>\n      <!-- Verifica pubblica -->\n      <div class=\"verify\">\n        <div class=\"qr\">\n          <img th:src=\"\'data:image/png;base64,\' + ${qrBase64}\" alt=\"QR Code\"></img>\n        </div>\n        <div class=\"verify-text\">\n          <div class=\"verify-label serif\">Verifica pubblica</div>\n          <div class=\"note\">Inquadra il QR oppure visita:</div>\n          <div class=\"verify-url\" th:text=\"${verifyUrl}\">https://example.org/v/ABCDE12345</div>\n          <div class=\"note\">\n            Seriale: <span class=\"serial\" th:text=\"${serial}\">ABCDEF123456</span>\n          </div>\n        </div>\n      </div>\n    </div>\n\n    <!-- Firme -->\n    <div class=\"sign\">\n      <div class=\"sigbox\">\n        <div class=\"sigline serif\" th:text=\"${issuerName}\">Dott. Mario Rossi</div>\n        <div class=\"siglabel\" th:text=\"${issuerTitle}\">Direttore Formazione</div>\n        <div class=\"img\">\n          <img th:src=\"${signatureImageUrl}\" width=\"100px\" height=\"70px\" alt=\"Signature\"></img>\n        </div>\n      </div>\n      <div class=\"sigbox\">\n        <div class=\"sigline serif\" th:text=\"${tenantName}\">Azienda Demo</div>\n        <div class=\"siglabel\">Autorità Emettente</div>\n      </div>\n    </div>\n    <!-- Footer -->\n    <div class=\"footer\">\n      <div class=\"foot-left\">\n        © <span th:text=\"${#temporals.format(#temporals.createNow(),\'yyyy\')}\">2025</span>\n        · <span th:text=\"${tenantName != null ? tenantName : \'Azienda Demo\'}\">Azienda Demo</span>\n      </div>\n      <div class=\"foot-right\">\n        Documento firmato digitalmente <br></br><span th:text=\"${verifyUrl}\">https://example.org/v/ABCDE12345</span>\n      </div>\n    </div>\n  </div>\n</div>\n</body>\n</html>\n\n','{\"grade\": {\"type\": \"string\", \"label\": \"Esito\", \"required\": false}, \"hours\": {\"type\": \"string\", \"label\": \"Ore\", \"required\": true}, \"ownerName\": {\"type\": \"string\", \"label\": \"Intestatario\", \"required\": true}, \"courseCode\": {\"type\": \"string\", \"label\": \"Codice corso\", \"required\": true}, \"courseName\": {\"type\": \"string\", \"label\": \"Nome corso\", \"required\": true}, \"ownerEmail\": {\"type\": \"string\", \"label\": \"Email\", \"required\": true}}',NULL,_binary '','2026-02-13 12:00:01','2026-02-25 02:31:45'),(2,0,'TEMPLATE FATTURE','1.0','<!DOCTYPE html>\n<html lang=\"it\" xmlns:th=\"http://www.thymeleaf.org\">\n<head>\n    <meta charset=\"UTF-8\"></meta>\n    <title th:text=\"\'Fattura \' + ${invoice.invoiceCode}\">Fattura</title>\n    <style>\n        @page { size: A4; margin: 0; }\n        body { font-family: \'Helvetica\', \'Arial\', sans-serif; color: #1f2937; margin: 0; padding: 0; line-height: 1.4; }\n        .frame { padding: 15mm; background: #ffffff; }\n\n        /* Banda Superiore Estetica */\n        .security-band { background-color: #0a376e; color: #ffffff; padding: 20px 15mm; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }\n\n        /* Header Struttura */\n        .header-table { width: 100%; margin-bottom: 30px; border-bottom: 2px solid #f3f4f6; padding-bottom: 20px; }\n        .logo { max-height: 60px; }\n\n        /* Layout Fornitore/Cliente */\n        .address-table { width: 100%; margin-bottom: 40px; table-layout: fixed; }\n        .address-box { vertical-align: top; width: 50%; }\n        .box-content { padding: 10px; border-left: 3px solid #e5e7eb; margin-right: 20px; }\n        .box-content.client { border-left-color: #0a376e; background-color: #f9fafb; }\n        .address-line { display: block; margin-bottom: 2px; }\n        h1 { color: #0a376e; font-size: 24px; margin: 0 0 5px 0; }\n        .muted { color: #6b7280; font-size: 11px; }\n        .label { font-size: 10px; text-transform: uppercase; color: #9ca3af; font-weight: bold; margin-bottom: 5px; }\n\n        /* Tabella Prodotti */\n        table.items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }\n        table.items-table th { background-color: #f9fafb; border-bottom: 2px solid #0a376e; padding: 12px 8px; text-align: left; font-size: 11px; text-transform: uppercase; }\n        table.items-table td { padding: 12px 8px; border-bottom: 1px solid #f3f4f6; font-size: 12px; vertical-align: top; }\n\n        .right { text-align: right; }\n        .bold { font-weight: bold; }\n\n        /* Totali */\n        .totals-container { margin-top: 30px; }\n        .totals-table { width: 40%; margin-left: 60%; border-collapse: collapse; }\n        .totals-table td { padding: 8px; font-size: 12px; }\n        .totals-table .total-row { border-top: 2px solid #0a376e; font-size: 15px; font-weight: bold; color: #0a376e; }\n\n        /* QR Code Footer */\n        .footer-verification { margin-top: 50px; padding-top: 20px; border-top: 1px dashed #e5e7eb; }\n        .qr-container { width: 100%; }\n        .qr-image { width: 80px; height: 80px; float: left; margin-right: 15px; }\n        .verify-text { font-size: 10px; color: #6b7280; padding-top: 15px; }\n\n        /* Previene rotture brutte delle tabelle */\n        tr { page-break-inside: avoid; }\n    </style>\n</head>\n<body>\n<div class=\"security-band\">\n\n    Documento digitale certificato • Originale verificabile online\n</div>\n\n<div class=\"frame\">\n    <table class=\"header-table\">\n        <tr>\n            <td>\n                <img th:src=\"${logoUrl}\" alt=\"${logoUrl}\"></img><br></br>\n            </td>\n            <td class=\"right\">\n                <h1>FATTURA</h1>\n                <div class=\"muted\">\n                    Numero: <span class=\"bold\" th:text=\"${invoice.invoiceCode}\">INV-2026-001</span><br></br>\n                    Data: <span class=\"bold\" th:text=\"${#temporals.format(invoice.issuedAt, \'dd/MM/yyyy\')}\">01/01/2026</span>\n                </div>\n            </td>\n        </tr>\n    </table>\n\n    <table class=\"address-table\">\n        <tr>\n            <td class=\"address-box\">\n                <div class=\"label\">Mittente</div>\n                <div class=\"box-content\">\n                    <div class=\"bold address-line\" th:text=\"${supplier.companyName}\">Mia Azienda Srl</div>\n                    <div class=\"muted\">\n                        <span class=\"address-line\" th:text=\"${supplier.addressLine1}\">Via Roma 1</span>\n                        <span class=\"address-line\" th:text=\"${supplier.postalCode}\">00100</span> <span th:text=\"${supplier.city}\">Roma</span> (<span th:text=\"${supplier.province}\">RM</span>)\n                        P.IVA: <span class=\"bold address-line\" th:text=\"${supplier.vatNumber}\">IT01234567890</span>\n                    </div>\n                </div>\n            </td>\n            <td class=\"address-box\">\n                <div class=\"label\">Destinatario</div>\n                <div class=\"box-content client\">\n                    <div class=\"bold address-line\" th:text=\"${invoice.customerName}\">Nome Cliente</div>\n                    <div class=\"muted\">\n                        <span class=\"address-line\" th:text=\"${invoice.customerAddressLine1}\">Indirizzo Cliente</span>\n                        <span class=\"address-line\" th:text=\"${invoice.customerPostalCode}\">00100</span> <span th:text=\"${invoice.customerCity}\">Città</span> (<span th:text=\"${invoice.customerProvince}\">RM</span>)\n                        <span class=\"address-line\" th:if=\"${invoice.customerVat}\" th:text=\"\'P.IVA/CF: \' + ${invoice.customerVat}\">IT...</span>\n                    </div>\n                </div>\n            </td>\n        </tr>\n    </table>\n\n    <table class=\"items-table\">\n        <thead>\n        <tr>\n            <th>Descrizione</th>\n            <th style=\"width: 70px;\">Q.tà</th>\n            <th style=\"width: 100px;\">Prezzo</th>\n            <th style=\"width: 120px;\">Totale riga</th>\n        </tr>\n        </thead>\n        <tbody>\n        <tr th:each=\"l : ${lines}\">\n            <td>\n                <div class=\"bold\" th:text=\"${l.description}\">Servizio professionale</div>\n            </td>\n            <td style=\"width: 73px;\" th:text=\"${l.qty}\">1</td>\n            <td style=\"width: 103px;\" th:text=\"${#numbers.formatDecimal(l.unitPriceMinor/100.0, 1, \'POINT\', 2, \'COMMA\')} + \' €\'\">0,00 €</td>\n            <td style=\"width: 123px;\" th:text=\"${#numbers.formatDecimal(l.grossMinor/100.0, 1, \'POINT\', 2, \'COMMA\')} + \' €\'\">0,00 €</td>\n        </tr>\n        </tbody>\n    </table>\n\n    <div class=\"totals-container\">\n        <table class=\"totals-table\">\n            <tr>\n                <td>Imponibile:</td>\n                <td class=\"right\" th:text=\"${#numbers.formatDecimal(invoice.netTotalMinor/100.0, 1, \'POINT\', 2, \'COMMA\')} + \' €\'\">0,00 €</td>\n            </tr>\n            <tr>\n                <td>IVA (22%):</td>\n                <td class=\"right\" th:text=\"${#numbers.formatDecimal(invoice.vatTotalMinor/100.0, 1, \'POINT\', 2, \'COMMA\')} + \' €\'\">0,00 €</td>\n            </tr>\n            <tr class=\"total-row\">\n                <td>TOTALE:</td>\n                <td class=\"right\" th:text=\"${#numbers.formatDecimal(invoice.grossTotalMinor/100.0, 1, \'POINT\', 2, \'COMMA\')} + \' €\'\">0,00 €</td>\n            </tr>\n        </table>\n    </div>\n\n    <div class=\"footer-verification\">\n        <div class=\"qr-container\">\n            <img th:src=\"\'data:image/png;base64,\' + ${qrBase64}\" class=\"qr-image\" alt=\"QR Code\"></img>\n            <div class=\"verify-text\">\n                <div class=\"bold\" style=\"color:#0a376e\">VERIFICA DOCUMENTO</div>\n                Inquadra il QR Code con il tuo smartphone per verificare l\'autenticità di questa fattura sui nostri sistemi.<br></br>\n                URL di verifica: <span th:text=\"${verifyUrl}\">https://...</span>\n            </div>\n        </div>\n    </div>\n</div>\n</body>\n</html>','{\"lines\": {\"min\": 1, \"fields\": {\"qty\": {\"min\": 1, \"step\": 1, \"type\": \"number\", \"label\": \"Q.tà\", \"default\": 1, \"required\": true}, \"description\": {\"type\": \"string\", \"label\": \"Descrizione riga\", \"required\": true}, \"unitPriceMinor\": {\"min\": 0, \"step\": 1, \"type\": \"number\", \"label\": \"Prezzo unitario (cent)\", \"default\": 0, \"required\": true}}}, \"header\": {\"customerVat\": {\"type\": \"string\", \"label\": \"P.IVA\", \"required\": true}, \"customerCity\": {\"type\": \"string\", \"label\": \"Città\", \"required\": true}, \"customerName\": {\"type\": \"string\", \"label\": \"Ragione sociale\", \"required\": true}, \"customerEmail\": {\"type\": \"string\", \"label\": \"Email\", \"required\": true}, \"customerTaxCode\": {\"type\": \"string\", \"label\": \"Codice Fiscale\", \"required\": false}, \"customerProvince\": {\"type\": \"string\", \"label\": \"Provincia\", \"required\": true}, \"customerPostalCode\": {\"type\": \"string\", \"label\": \"CAP\", \"required\": true}, \"customerAddressLine1\": {\"type\": \"string\", \"label\": \"Indirizzo\", \"required\": true}}, \"vatRate\": {\"max\": 100, \"min\": 0, \"step\": 1, \"type\": \"number\", \"label\": \"Aliquota IVA (%)\", \"default\": 22, \"required\": true}}',NULL,_binary '\0','2026-02-13 12:01:30','2026-02-25 02:31:45');
 /*!40000 ALTER TABLE `template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -477,7 +477,7 @@ CREATE TABLE `tenant` (
 
 LOCK TABLES `tenant` WRITE;
 /*!40000 ALTER TABLE `tenant` DISABLE KEYS */;
-truncate table `tenant`;
+truncate table tenant;
 /*!40000 ALTER TABLE `tenant` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -516,7 +516,7 @@ CREATE TABLE `tenant_profile` (
 
 LOCK TABLES `tenant_profile` WRITE;
 /*!40000 ALTER TABLE `tenant_profile` DISABLE KEYS */;
-truncate table `tenant_profile`;
+truncate table tenant_profile;
 /*!40000 ALTER TABLE `tenant_profile` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -557,7 +557,7 @@ CREATE TABLE `tenant_settings` (
 
 LOCK TABLES `tenant_settings` WRITE;
 /*!40000 ALTER TABLE `tenant_settings` DISABLE KEYS */;
-truncate table `tenant_settings`;
+truncate table tenant_settings;
 /*!40000 ALTER TABLE `tenant_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -585,7 +585,7 @@ CREATE TABLE `tenant_signing_key` (
 
 LOCK TABLES `tenant_signing_key` WRITE;
 /*!40000 ALTER TABLE `tenant_signing_key` DISABLE KEYS */;
-truncate table `tenant_signing_key`;
+truncate table tenant_signing_key;
 /*!40000 ALTER TABLE `tenant_signing_key` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -614,7 +614,7 @@ CREATE TABLE `usage_meter` (
 
 LOCK TABLES `usage_meter` WRITE;
 /*!40000 ALTER TABLE `usage_meter` DISABLE KEYS */;
-truncate table `usage_meter`;
+truncate table usage_meter;
 /*!40000 ALTER TABLE `usage_meter` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -635,7 +635,7 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `username_UNIQUE` (`username`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -644,7 +644,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-truncate table `user`;
+truncate table user;
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -677,9 +677,17 @@ CREATE TABLE `verification_token` (
 
 LOCK TABLES `verification_token` WRITE;
 /*!40000 ALTER TABLE `verification_token` DISABLE KEYS */;
-truncate table  `verification_token`;
+truncate table verification_token;
 /*!40000 ALTER TABLE `verification_token` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping events for database 'vericert'
+--
+
+--
+-- Dumping routines for database 'vericert'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -690,4 +698,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-11  7:51:47
+-- Dump completed on 2026-03-04  2:15:01
