@@ -19,10 +19,9 @@ public class StorageUsageService {
      * Usiamo 1024 * 1024 per i MiB (standard binario) o 1.000.000 per MB (standard decimale).
      */
     public BigDecimal bytesToMb(long bytes) {
-        if (bytes <= 0) return BigDecimal.ZERO.setScale(3, RoundingMode.HALF_UP);
-        // Usiamo una scala più alta (es. 4) per i calcoli intermedi e poi arrotondiamo a 2
-        BigDecimal b = BigDecimal.valueOf(bytes);
-        BigDecimal oneMB = BigDecimal.valueOf(1_000_000); // MB decimale
-        return b.divide(oneMB, 2, RoundingMode.HALF_UP);  // 2 decimali
+        if (bytes <= 0) return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
+        BigDecimal mb = BigDecimal.valueOf(bytes).divide(BigDecimal.valueOf(1_000_000), 8, RoundingMode.HALF_UP); // calcolo preciso
+        int scale = (mb.compareTo(BigDecimal.ONE) >= 0) ? 2 : 3; // sotto 1MB: 3 decimali
+        return mb.setScale(scale, RoundingMode.HALF_UP);
     }
 }
