@@ -110,8 +110,10 @@ public class StripeWebhookController {
                     default -> System.out.println(">>> Evento ignorato: " + type);
                 }
             } catch (Exception ex) {
-                // questo NON è una firma errata
-                ex.printStackTrace();
+                // scelta: se vuoi che Stripe ritenti per eventi critici:
+                if ("invoice.paid".equals(type) || "checkout.session.completed".equals(type)) {
+                    return ResponseEntity.status(500).body("processing error");
+                }
                 // per tutto il resto, rispondi 200 e basta
                 return ResponseEntity.ok("ok");
             }
