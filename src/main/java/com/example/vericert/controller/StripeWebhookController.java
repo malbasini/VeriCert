@@ -112,11 +112,6 @@ public class StripeWebhookController {
             } catch (Exception ex) {
                 // questo NON è una firma errata
                 ex.printStackTrace();
-
-                // scelta: se vuoi che Stripe ritenti per eventi critici:
-                if ("invoice.paid".equals(type) || "checkout.session.completed".equals(type)) {
-                    return ResponseEntity.status(500).body("processing error");
-                }
                 // per tutto il resto, rispondi 200 e basta
                 return ResponseEntity.ok("ok");
             }
@@ -272,7 +267,10 @@ public class StripeWebhookController {
             }
 
             Long tenantId = Long.valueOf(tenantIdStr);
-            TenantSettings ts = service.findPendingBySubscriptionId(tenantId).get();
+            TenantSettings ts = service.findPendingBySubscriptionId(tenantId).orElse(null);
+            if (ts == null) {
+                return;
+            }
             //CALCOLO DATE
         Instant now = Instant.now();
 
@@ -363,7 +361,7 @@ public class StripeWebhookController {
             vars.put("subscription_id", subId);
             vars.put("paid_at", formatRome(paidAt));
             vars.put("portal_url", "https://app.vercert.org/");
-            vars.put("support_email", "support@app.vercert.org");
+            vars.put("support_email", "support@vercert.org");
             vars.put("company_name", "VeriCert");
             vars.put("company_address", "…");
             vars.putAll(grossToVat22Vars(grossCents));
