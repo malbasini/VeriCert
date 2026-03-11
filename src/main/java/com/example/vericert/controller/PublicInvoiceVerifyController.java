@@ -14,20 +14,19 @@ import com.example.vericert.service.PdfSignatureValidationService;
 import com.example.vericert.service.PlanEnforcementService;
 import com.example.vericert.service.UsageMeterService;
 import com.example.vericert.util.CertificatePemUtils;
-import org.jspecify.annotations.NonNull;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/v/invoices")
@@ -44,7 +43,7 @@ public class PublicInvoiceVerifyController {
 
 
     public PublicInvoiceVerifyController(InvoiceRepository invoiceRepo
-                                        ,PlanEnforcementService planEnforcementService,
+            , PlanEnforcementService planEnforcementService,
                                          UsageMeterService usageMeterService,
                                          SigningKeyRepository signingKeyRepo,
                                          TenantSigningKeyRepository tenantSigningKeyRepo,
@@ -75,8 +74,7 @@ public class PublicInvoiceVerifyController {
         // blocco se piano scaduto / oltre o uguale soglia API
         try {
             planEnforcementService.checkCanCallApi(tenantId);
-        }
-        catch (PlanLimitExceededException e) {
+        } catch (PlanLimitExceededException e) {
             if (e.getType() == PlanViolationType.API_QUOTA_EXCEEDED) {
                 return ResponseEntity
                         .status(429) // Too Many Requests
@@ -139,6 +137,7 @@ public class PublicInvoiceVerifyController {
                 "VALID"
         ));
     }
+
     // DTO interno alla risposta
     public record VerificationResponse(
             String code,
@@ -152,4 +151,140 @@ public class PublicInvoiceVerifyController {
             String signedAt,
             String status
     ) {}
+
+    @PostMapping(value = "/{publicCode}/verify-copy", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> verifyCopy(@PathVariable String publicCode,
+                                        @RequestPart("pdf") MultipartFile pdf) throws IOException {
+
+        // 0) Validazioni base upload
+        if (pdf == null || pdf.isEmpty()) {
+            return ResponseEntity.status(400).body(Map.of("error", "Carica un PDF per verificare la copia."));
+        }
+        String ct = pdf.getContentType();
+        if (ct != null && !ct.equalsIgnoreCase("application/pdf")) {
+            // NB: alcuni browser mandano ct generico; se vuoi essere più permissivo, togli questo controllo
+            return ResponseEntity.status(400).body(Map.of("error", "Il file caricato non sembra un PDF."));
+        }
+
+        // 1) Esegui la stessa verifica “ufficiale” della GET (token, scadenza, revoca, firma PAdES)
+        PublicInvoiceVerifyController.VerifiedOriginal verified;
+        try {
+            verified = verifyOriginalOrThrow(publicCode); // vedi metodo sotto
+        } catch (PublicInvoiceVerifyController.ApiError e) {
+            return ResponseEntity.status(e.httpStatus).body(Map.of("error", e.message));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Errore interno durante la verifica."));
+        }
+
+        // 2) Confronto copia vs originale (hash SHA-256 dei bytes)
+        byte[] uploadedBytes = pdf.getBytes();
+
+        String origSha = sha256Hex(verified.signedPdfBytes);
+        String copySha = sha256Hex(uploadedBytes);
+
+        if (!Objects.equals(origSha, copySha)) {
+            // Originale valido ma copia diversa => manomissione / copia non identica
+            return ResponseEntity.status(422).body(Map.of(
+                    "error", "La copia caricata NON corrisponde all’originale archiviato (possibile manomissione o conversione).",
+                    "status", "COPY_MISMATCH",
+                    "signatureOk", true,
+                    "signerCn", verified.signerCn,
+                    "signedAt", verified.signedAt
+            ));
+        }
+
+        // 3) Se match: ok
+        // Metering: qui decidi la policy. Io incrementerei verifications + apiCalls anche qui,
+        // perché è una verifica “reale” e potenzialmente abusabile.
+        usageMeterService.incrementVerifications(verified.tenantId);
+        usageMeterService.incrementApiCalls(verified.tenantId);
+
+        return ResponseEntity.ok(Map.of(
+                "status", "VALID",
+                "signatureOk", true,
+                "copyChecked", true,
+                "copyMatches", true,
+                "signerCn", verified.signerCn,
+                "signedAt", verified.signedAt
+        ));
+    }
+    private record VerifiedOriginal(long tenantId, byte[] signedPdfBytes, String signerCn, String signedAt) {}
+
+    private static class ApiError extends RuntimeException {
+        final int httpStatus;
+        final String message;
+
+        ApiError(int httpStatus, String message) {
+            super(message);
+            this.httpStatus = httpStatus;
+            this.message = message;
+        }
+    }
+
+    private static String sha256Hex(byte[] bytes) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] dig = md.digest(bytes);
+            return HexFormat.of().formatHex(dig);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private VerifiedOriginal verifyOriginalOrThrow(String publicCode) throws IOException {
+        Invoice inv = invoiceRepo.findByPublicCode(publicCode)
+                .orElseThrow(() -> new IllegalArgumentException("Fattura non trovata"));
+
+        Long tenantId = inv.getTenantId();
+        Tenant tenant = tenantRepo.findById(tenantId).orElseThrow();
+        // blocco se piano scaduto / oltre o uguale soglia API
+        try {
+            planEnforcementService.checkCanCallApi(tenantId);
+        } catch (PlanLimitExceededException e) {
+            if (e.getType() == PlanViolationType.API_QUOTA_EXCEEDED) {
+                throw new ApiError(429,"Hai raggiunto il limite di chiamate API per il tuo piano.");
+            }
+        }
+        // 1) carica PDF firmato (originale)
+        byte[] signedPdf;
+        try {
+            signedPdf = certStorage.loadPdfBytes(tenant.getId(), inv.getSerial());
+        } catch (Exception e) {
+            throw new ApiError(500,"Impossibile caricare il documento.");
+        }
+
+        // 2) scegli il KID corretto per verificare (rotazione-safe)
+        String kidToUse = inv.getKid(); // <-- colonna nuova
+        SigningKeyEntity sk = null;
+
+        if (kidToUse != null && !kidToUse.isBlank()) {
+            sk = signingKeyRepo.findById(kidToUse).orElse(null); // anche RETIRED va bene per verify
+        } else {
+            // fallback: se certificati storici non hanno signingKid, usa la ACTIVE del tenant
+            sk = tenantSigningKeyRepo.findActiveSigningKeyByTenant(inv.getTenantId()).orElse(null);
+        }
+
+        if (sk == null || sk.getCertPem() == null || sk.getCertPem().isBlank()) {
+            throw new ApiError(500,"Chiave di firma non configurata.");
+        }
+
+        X509Certificate tenantCert;
+        try {
+            tenantCert = CertificatePemUtils.parseX509(sk.getCertPem());
+        } catch (Exception e) {
+            throw new ApiError(500,"Certificato di firma non valido.");
+        }
+
+        // 3) valida PAdES
+        var sig = pdfSigValidationService.validate(signedPdf, tenantCert);
+        if (!sig.ok()) {
+            throw new ApiError(422,"Documento alterato o firma non valida.");
+        }
+
+        // 4) metering (solo se firma OK e stato OK)
+        usageMeterService.incrementVerifications(inv.getTenantId());
+        usageMeterService.incrementApiCalls(inv.getTenantId());
+
+        return new PublicInvoiceVerifyController.VerifiedOriginal(tenant.getId(), signedPdf, sig.signerCn(), sig.signingTime());
+    }
 }
