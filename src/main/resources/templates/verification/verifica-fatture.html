@@ -84,7 +84,7 @@
             </div>
             <div class="col-12 col-md-4 d-grid">
               <button class="btn btn-warning" type="submit">
-                Verifica copia PDF
+                <i class="bi bi-file-pdf-fill"></i>&nbsp; Verifica copia PDF
               </button>
             </div>
           </form>
@@ -210,10 +210,10 @@
   load();
 </script>
 <script>
-  function getCodeFromPath() {
-    const parts = window.location.pathname.split('/').filter(Boolean);
-    return parts[parts.length - 1];
-  }
+      function getCodeFromPath() {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        return parts[parts.length - 1];
+      }
       document.getElementById('copyForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
 
