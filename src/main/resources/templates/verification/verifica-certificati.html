@@ -19,19 +19,14 @@
             border-radius: 18px;
             overflow: hidden;
         }
-        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-        .k { color: #6c757d; font-size: .9rem; }
-        .v { font-weight: 600; }
         .skeleton { background: linear-gradient(90deg, #f1f3f5, #e9ecef, #f1f3f5); background-size: 200% 100%; animation: sk 1.2s ease-in-out infinite; border-radius: 10px; }
         @keyframes sk { 0% {background-position: 200% 0} 100% {background-position: -200% 0} }
         .skeleton-line { height: 14px; margin: 8px 0; }
         .btn-ghost { border: 1px solid rgba(0,0,0,.12); }
     </style>
 </head>
-
 <body class="bg-light verify-hero">
 <header th:replace="fragments/base :: navFragment"></header>
-
 <main class="container py-5">
     <div class="row justify-content-center">
         <div class="col-12 col-lg-8">
