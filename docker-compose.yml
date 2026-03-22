@@ -51,7 +51,6 @@ services:
       PAYMENTS_PAYPAL_CLIENT_ID: ${PAYMENTS_PAYPAL_CLIENT_ID}
       PAYMENTS_PAYPAL_CLIENT_SECRET: ${PAYMENTS_PAYPAL_CLIENT_SECRET}
       PAYMENTS_PAYPAL_WEBHOOK_ID: ${PAYMENTS_PAYPAL_WEBHOOK_ID}
-
       # Base URL pubblica (per link nei certificati / QR)
       APP_PUBLIC_BASE_URL: https://app.vercert.org
       VERCERT_STORAGE_ROOT: /data/vericert
@@ -75,6 +74,8 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/html/starting.html:/usr/share/nginx/html/starting.html:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+      - /opt/vericert/acme:/var/www/certbot:ro
     networks:
       - vericert-net
 networks:

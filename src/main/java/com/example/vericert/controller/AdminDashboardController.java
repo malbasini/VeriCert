@@ -89,8 +89,16 @@ public class AdminDashboardController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     public String usage(Model model) {
         // stato consumo di tutti i tenant oggi, con limiti e semaforo storage
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String tenantName = "N/A";
+        Long tenantId = null;
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails cud) {
+            tenantName = cud.getTenantName();
+            tenantId = tenantRepo.findByName(tenantName).get().getId();
+        }
         List<TenantUsageStatusDTO> todayStatus = tenantUsageStatusService.buildTodayStatusForAllTenants();
         model.addAttribute("todayStatus", todayStatus);
+        model.addAttribute("tenantId", tenantId);
         return "usage/usage";
     }
 }
