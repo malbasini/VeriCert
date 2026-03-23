@@ -3,7 +3,6 @@ package com.example.vericert.service;
 import com.example.vericert.component.PaymentsProps;
 import com.example.vericert.component.PaypalClient;
 import org.springframework.stereotype.Service;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,9 +28,7 @@ public class PaypalGateway {
             Long tenantId,
             String planCode,
             String billingCycle,
-            String paypalPlanId,
-            String successUrl,
-            String cancelUrl
+            String paypalPlanId
     ) {
         // custom_id con info del tenant
         Map<String, String> customId = Map.of(
@@ -47,8 +44,8 @@ public class PaypalGateway {
         Map<String, Object> applicationContext = new HashMap<>();
         applicationContext.put("brand_name", "VeriCert");
         applicationContext.put("user_action", "SUBSCRIBE_NOW");
-        applicationContext.put("return_url", successUrl);
-        applicationContext.put("cancel_url", cancelUrl);
+        applicationContext.put("return_url", props.getSuccessUrl());
+        applicationContext.put("cancel_url", props.getCancelUrl());
 
         body.put("application_context", applicationContext);
 

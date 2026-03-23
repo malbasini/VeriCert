@@ -121,16 +121,11 @@ public class BillingService {
                             + " billingCycle=" + billingCycle);
                 }
 
-                String success = "https://app.vercert.org/billing/paypal/success";
-                String cancel  = "https://app.vercert.org/billing/paypal/cancel";
-
                 String redirect = paypalGateway.createSubscription(
                         tenantId,
                         planCode,
                         billingCycle,
-                        paypalPlanId,
-                        success,
-                        cancel
+                        paypalPlanId
                 );
 
                 log.info("startCheckout PAYPAL: redirectUrl={}", redirect);

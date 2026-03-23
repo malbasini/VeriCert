@@ -28,10 +28,10 @@
 
                         <tr th:if="${#lists.isEmpty(todayStatus)}">
                             <td colspan="6" class="text-center text-muted py-4">
-                                Nessun consumo registrato oggi &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a class="btn btn-outline-secondary btn-sm"
-                                                                   th:href="@{'/admin/usage/detail/' + ${tenantId}}">
-                                                                         Dettaglio 7 giorni precedenti
-                                                                </a>
+                                Nessun consumo registrato oggi &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a class="btn btn-outline-success btn-sm"
+                                                                     th:href="@{'/admin/usage/detail/' + ${tenantId}}">
+                                                                     <i class="bi bi-7-square"></i>&nbsp; Dettaglio 7 giorni precedenti
+                                                                     </a>
                             </td>
                         </tr>
 

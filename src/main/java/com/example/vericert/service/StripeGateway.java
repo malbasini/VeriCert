@@ -1,5 +1,6 @@
 package com.example.vericert.service;
 
+import com.example.vericert.component.BillingProps;
 import com.example.vericert.component.PaymentsProps;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -10,11 +11,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class StripeGateway {
 
-    private final PaymentsProps props;
+    private final BillingProps props;
+    private final PaymentsProps paymentsProps;
 
-    public StripeGateway(PaymentsProps props) {
+
+    public StripeGateway(BillingProps props,
+                         PaymentsProps paymentsProps) {
         this.props = props;
-        Stripe.apiKey = props.getStripe().getSecretKey();; // inizializzi l’SDK Stripe una volta
+        this.paymentsProps = paymentsProps;
+        Stripe.apiKey = paymentsProps.getStripe().getSecretKey();; // inizializzi l’SDK Stripe una volta
     }
 
     public Session createCheckoutSession(Long tenantId,
@@ -25,8 +30,8 @@ public class StripeGateway {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSuccessUrl("https://app.vercert.org/billing/success?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl("https://app.vercert.org/billing/cancel")
+                .setSuccessUrl(props.getSuccessUrl())
+                .setCancelUrl(props.getCancelUrl())
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
