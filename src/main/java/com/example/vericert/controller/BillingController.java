@@ -90,9 +90,7 @@ public class BillingController {
                                 @RequestParam String billingCycle,   // MONTHLY/ANNUAL
                                 @RequestParam BillingProvider provider) {
 
-        CustomUserDetails user = (CustomUserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        Long tenantId = user.getTenantId();
+        Long tenantId = currentTenantId();
         String redirectUrl = billingService.startCheckout(tenantId, planCode, billingCycle, provider);
         return "redirect:" + redirectUrl;
     }
@@ -135,9 +133,7 @@ public class BillingController {
         String status = String.valueOf(s.get("status"));
         TenantSettings ts = tenantSettingsRepo.findByTenantId(currentTenantId()).orElseThrow();
         //CALCOLO DATE
-        //CALCOLO DATE
         Instant now = Instant.now();
-
         Instant start = ts.getCurrentPeriodStart();
         Instant end   = ts.getCurrentPeriodEnd();
 
@@ -220,7 +216,7 @@ public class BillingController {
             vars.put("plan_name", currentPlan.getPlanCode());
             vars.put("billing_cycle", currentPlan.getBillingCycle());
             vars.put("portal_url", "https://app.vercert.org/");
-            vars.put("support_email", "support@app.vercert.org");
+            vars.put("support_email", "support@vercert.org");
             vars.put("company_name", "VeriCert");
             vars.put("company_address", "…");
             mailService.sendPurchaseSuccess(to,"Rinnovo pagamento per piano - " + currentPlan.getPlanCode() , vars);
